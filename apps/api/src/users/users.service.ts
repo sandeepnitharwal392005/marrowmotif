@@ -118,8 +118,9 @@ export class UsersService {
     let otpExpiry = null;
     let isWhatsappVerified = true;
 
-    // Generate OTP if End User
-    if ((!data.role || data.role === Role.END_USER) && data.whatsappNumber) {
+    // Setup OTP if they are an End User (default role) and they provided a WhatsApp number
+    const dataAsAny = data as any;
+    if ((!dataAsAny.role || dataAsAny.role === Role.END_USER) && data.whatsappNumber) {
       otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       otpExpiry = new Date();
       otpExpiry.setMinutes(otpExpiry.getMinutes() + 10); // 10 min expiry
