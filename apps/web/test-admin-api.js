@@ -1,10 +1,10 @@
 const fetch = require('node-fetch');
 
 async function runTest() {
-  const baseUrl = 'http://localhost:4000';
+  const baseUrl = 'http://localhost:4000/api';
   
   console.log("1. Logging in as Admin...");
-  const loginRes = await fetch(`${baseUrl}/users/login`, {
+  const loginRes = await fetch(`${baseUrl}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: 'admin@example.com', password: 'Demo123!' })
@@ -15,7 +15,7 @@ async function runTest() {
     throw new Error("Login failed: " + txt);
   }
   const loginData = await loginRes.json();
-  const token = loginData.access_token;
+  const token = loginData.accessToken;
   console.log("Logged in!");
 
   console.log("2. Searching for customer (q='API')...");
@@ -29,8 +29,8 @@ async function runTest() {
   }
   
   const searchData = await searchRes.json();
-  console.log(`Found ${searchData.items?.length || 0} users.`);
-  const targetUser = searchData.items?.find(u => u.name.includes('API Test User'));
+  console.log(`Found ${searchData.data?.length || 0} users.`);
+  const targetUser = searchData.data?.find(u => u.name.includes('API Test User'));
   
   if (!targetUser) throw new Error("Could not find API Test User");
   

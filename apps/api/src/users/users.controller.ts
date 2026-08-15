@@ -19,8 +19,8 @@ export class UsersController {
   }
 
   @Get('search')
-  search(@Query('q') q: string, @Query() pagination: PaginationDto, @CurrentUser() user: any) {
-    return this.usersService.search(q, pagination, user);
+  search(@Query() pagination: PaginationDto, @CurrentUser() user: any) {
+    return this.usersService.search(pagination.q || '', pagination, user);
   }
 
   @Get(':id')
