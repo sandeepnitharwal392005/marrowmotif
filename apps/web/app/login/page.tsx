@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 
+const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+const demoLoginHint = process.env.NEXT_PUBLIC_DEMO_LOGIN_HINT;
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +35,11 @@ export default function LoginPage() {
       await login(email, password);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Invalid credentials. Please try again.");
+      setError(
+        err?.status >= 500
+          ? "We couldn't complete the sign-in request right now. Please try again. If the problem continues, contact support."
+          : err.message || "Invalid credentials. Please try again.",
+      );
       setLoading(false);
     }
   }
@@ -58,14 +65,14 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Demo mode banner */}
-        <div className="mb-6 p-4 rounded-xl border border-amber-500/20 bg-[#F5F3EC] text-amber-600 text-sm">
-          <div className="font-medium mb-1">🎭 Demo Mode Active</div>
-          <div className="text-amber-600/80 text-xs">
-            User: user@example.com | Guide: guide@example.com | Admin: admin@example.com<br/>
-            Password for all: Demo123!
+        {isDemoMode && demoLoginHint && (
+          <div className="mb-6 p-4 rounded-xl border border-amber-500/20 bg-[#F5F3EC] text-amber-600 text-sm">
+            <div className="font-medium mb-1">Demo environment</div>
+            <div className="text-amber-600/80 text-xs">
+              {demoLoginHint}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Card */}
         <div className="p-8 bg-white border border-[#EAE6DF] rounded-xl shadow-sm">
