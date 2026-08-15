@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import * as argon2 from 'argon2';
+import * as bcrypt from 'bcryptjs';
 import { Role } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
@@ -112,7 +112,7 @@ export class UsersService {
   }
 
   async create(data: CreateUserDto) {
-    const passwordHash = await argon2.hash(data.password);
+    const passwordHash = await bcrypt.hash(data.password, 10);
     return this.prisma.user.create({
       data: {
         name: data.name,
