@@ -15,6 +15,8 @@ import { LoggerModule } from 'nestjs-pino';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuditModule } from './audit/audit.module';
 import { IncidentsModule } from './incidents/incidents.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -55,5 +57,7 @@ import { IncidentsModule } from './incidents/incidents.module';
     AuditModule,
     IncidentsModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
