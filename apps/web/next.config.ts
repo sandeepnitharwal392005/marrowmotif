@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
+    NEXT_PUBLIC_DEMO_MODE: process.env.NEXT_PUBLIC_DEMO_MODE || "false",
+    NEXT_PUBLIC_DEMO_LOGIN_HINT: process.env.NEXT_PUBLIC_DEMO_LOGIN_HINT || "",
   },
 };
 
