@@ -65,9 +65,10 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* Demo mode banner */}
         {isDemoMode && demoLoginHint && (
           <div className="mb-6 p-4 rounded-xl border border-amber-500/20 bg-[#F5F3EC] text-amber-600 text-sm">
-            <div className="font-medium mb-1">Demo environment</div>
+            <div className="font-medium mb-1">🎭 Demo Mode Active</div>
             <div className="text-amber-600/80 text-xs">
               {demoLoginHint}
             </div>

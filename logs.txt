@@ -1,0 +1,295 @@
+2026-08-15T19:46:21.870038734Z [inf]  scheduling build on Metal builder "builder-fafjuf"
+2026-08-15T19:46:22.451150724Z [inf]  uploading snapshot
+2026-08-15T19:46:22.815514824Z [inf]  fetched snapshot sha256:23d3ccd9236c5240a9d9d381c7a073a32f530da93a4e3c7eb6d0675e57ff18a1 (96 kB bytes)
+2026-08-15T19:46:22.815629546Z [inf]  fetching snapshot
+2026-08-15T19:46:22.914623666Z [inf]  modified file: apps/api/src/common/dto/pagination.dto.ts (312b -> 367b)
+2026-08-15T19:46:23.023775677Z [inf]  unpacking archive
+2026-08-15T19:46:23.176804070Z [inf]  using build driver railpack-v0.36.4
+2026-08-15T19:46:23.332412784Z [inf]  [railway] prepare railpack-v0.36.4
+2026-08-15T19:46:23.332414947Z [inf]  local://prepare-driver
+2026-08-15T19:46:23.332415658Z [inf]  local://prepare-context
+2026-08-15T19:46:23.332416289Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-08-15T19:46:23.332678673Z [inf]  local://prepare-driver
+2026-08-15T19:46:23.332679965Z [inf]  local://prepare-context
+2026-08-15T19:46:23.332687947Z [inf]  local://prepare-context
+2026-08-15T19:46:23.332698983Z [inf]  local://prepare-driver
+2026-08-15T19:46:23.332812163Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-08-15T19:46:23.333198873Z [inf]  local://prepare-driver
+2026-08-15T19:46:23.333204332Z [inf]  local://prepare-context
+2026-08-15T19:46:23.526160592Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-08-15T19:46:23.544246578Z [inf]  local://prepare-driver
+2026-08-15T19:46:23.629749206Z [inf]  local://prepare-context
+2026-08-15T19:46:23.629960012Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-08-15T19:46:23.657708295Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-08-15T19:46:23.659372753Z [inf]  [railway] prepare railpack-v0.36.4
+2026-08-15T19:46:25.316971202Z [inf]                     
+[38;2;125;86;243m╭─────────────────╮[0m
+[38;2;125;86;243m│[0m Railpack 0.36.4 [38;2;125;86;243m│[0m
+[38;2;125;86;243m╰─────────────────╯[0m
+
+  [97m↳ Detected Node[0m
+  [97m↳ Using npm package manager[0m
+  [97m↳ Found workspace with 6 packages[0m
+  [97m↳ Custom start command detected, skipping Caddy start[0m
+  [97m↳ Installing npm@10.8.2 with Corepack[0m
+            
+  [1mPackages[0m  
+  [38;5;238m──────────[0m
+  [95mnode[0m  [38;5;238m│[0m  [96m20.20.2[0m  [38;5;238m│[0m  package.json > engines > node (>=20.0.0)
+            
+  [1mSteps[0m     
+  [38;5;238m──────────[0m
+  [95m▸ install[0m
+    [38;5;245m$[0m [1mnpm i -g corepack@latest && corepack enable && corepack prepare --activate[0m
+    [38;5;245m$[0m [1mnpm install[0m
+         
+  [95m▸ build[0m
+    [38;5;245m$[0m [1mnpm run build --workspace=api[0m
+            
+  [1mDeploy[0m    
+  [38;5;238m──────────[0m
+    [38;5;245m$[0m [1mnpm run start --workspace=api[0m
+
+
+2026-08-15T19:46:25.979027367Z [inf]  [railway] prepare railpack-v0.36.4
+2026-08-15T19:46:26.352715556Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.36.4
+2026-08-15T19:46:26.466720098Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.36.4
+2026-08-15T19:46:26.466986548Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.36.4@sha256:282e3d0e542c9299c9fc4f938c9a5c45f0666d954264deaea59d13281121a91a
+2026-08-15T19:46:26.467143283Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.36.4@sha256:282e3d0e542c9299c9fc4f938c9a5c45f0666d954264deaea59d13281121a91a
+2026-08-15T19:46:26.478549206Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.36.4@sha256:282e3d0e542c9299c9fc4f938c9a5c45f0666d954264deaea59d13281121a91a
+2026-08-15T19:46:26.554987063Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.36.4@sha256:282e3d0e542c9299c9fc4f938c9a5c45f0666d954264deaea59d13281121a91a
+2026-08-15T19:46:26.824220399Z [inf]  load build definition from ./railpack-plan.json
+2026-08-15T19:46:26.824507941Z [inf]  load build definition from ./railpack-plan.json
+2026-08-15T19:46:26.824704395Z [inf]  load build definition from ./railpack-plan.json
+2026-08-15T19:46:26.976548461Z [inf]  load build definition from ./railpack-plan.json
+2026-08-15T19:46:27.101133308Z [inf]  copy /mise/installs
+2026-08-15T19:46:27.101136032Z [inf]  copy /mise/shims
+2026-08-15T19:46:27.101137103Z [inf]  install mise packages: node
+2026-08-15T19:46:27.101138155Z [inf]  create mise config
+2026-08-15T19:46:27.101139647Z [inf]  mkdir /etc/mise
+2026-08-15T19:46:27.101141730Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:mise-2026.8.4
+2026-08-15T19:46:27.101142671Z [inf]  install apt packages: libatomic1
+2026-08-15T19:46:27.101143803Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:mise-2026.8.4
+2026-08-15T19:46:27.101404484Z [inf]  copy apps/api/package.json
+2026-08-15T19:46:27.101407239Z [inf]  mkdir -p /app/node_modules/.cache
+2026-08-15T19:46:27.101408300Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
+2026-08-15T19:46:27.101409231Z [inf]  copy package.json
+2026-08-15T19:46:27.101410323Z [inf]  loading .
+2026-08-15T19:46:27.101411515Z [inf]  copy /root/.local/state/mise
+2026-08-15T19:46:27.101412596Z [inf]  copy /etc/mise/config.toml
+2026-08-15T19:46:27.101413678Z [inf]  copy /usr/local/bin/mise
+2026-08-15T19:46:27.101435160Z [inf]  copy packages/integrations/package.json
+2026-08-15T19:46:27.101435821Z [inf]  copy packages/database/package.json
+2026-08-15T19:46:27.101436532Z [inf]  copy package.json
+2026-08-15T19:46:27.101437093Z [inf]  copy package-lock.json
+2026-08-15T19:46:27.101438155Z [inf]  copy apps/worker/package.json
+2026-08-15T19:46:27.101438996Z [inf]  copy apps/web/package.json
+2026-08-15T19:46:27.101472517Z [inf]  copy packages/database/prisma
+2026-08-15T19:46:27.101473107Z [inf]  copy apps/worker/prisma
+2026-08-15T19:46:27.101473818Z [inf]  copy apps/api/src/prisma
+2026-08-15T19:46:27.101474439Z [inf]  copy apps/api/prisma
+2026-08-15T19:46:27.101475491Z [inf]  copy packages/types/package.json
+2026-08-15T19:46:27.101493889Z [inf]  npm run build --workspace=api
+2026-08-15T19:46:27.101494630Z [inf]  [railpack] secrets hash
+2026-08-15T19:46:27.101495140Z [inf]  copy .
+2026-08-15T19:46:27.101495821Z [inf]  copy / /app
+2026-08-15T19:46:27.101496322Z [inf]  npm install
+2026-08-15T19:46:27.101523062Z [inf]  copy /app
+2026-08-15T19:46:27.101523803Z [inf]  copy /root/.cache
+2026-08-15T19:46:27.101524314Z [inf]  copy /app/node_modules
+2026-08-15T19:46:27.101532326Z [inf]  copy /mise/shims
+2026-08-15T19:46:27.101533067Z [inf]  copy /mise/installs
+2026-08-15T19:46:27.101533598Z [inf]  copy /opt/corepack
+2026-08-15T19:46:27.101974319Z [inf]  loading .
+2026-08-15T19:46:27.102136983Z [inf]  [railpack] secrets hash
+2026-08-15T19:46:27.102682492Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:mise-2026.8.4
+2026-08-15T19:46:27.102974190Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:mise-2026.8.4
+2026-08-15T19:46:27.222460566Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:mise-2026.8.4
+2026-08-15T19:46:27.230754110Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:mise-2026.8.4
+2026-08-15T19:46:27.333970856Z [inf]  install apt packages: libatomic1
+2026-08-15T19:46:27.333973720Z [inf]  mkdir /etc/mise
+2026-08-15T19:46:27.333974261Z [inf]  create mise config
+2026-08-15T19:46:27.333975222Z [inf]  install mise packages: node
+2026-08-15T19:46:27.333975823Z [inf]  copy /mise/shims
+2026-08-15T19:46:27.333976684Z [inf]  copy /mise/installs
+2026-08-15T19:46:27.333977515Z [inf]  copy /usr/local/bin/mise
+2026-08-15T19:46:27.333978807Z [inf]  copy /etc/mise/config.toml
+2026-08-15T19:46:27.333979709Z [inf]  copy /root/.local/state/mise
+2026-08-15T19:46:27.334108672Z [inf]  [railpack] secrets hash
+2026-08-15T19:46:27.334110775Z [inf]  loading .
+2026-08-15T19:46:27.720561243Z [inf]  loading .
+2026-08-15T19:46:27.823771109Z [inf]  [railpack] secrets hash
+2026-08-15T19:46:27.895320130Z [inf]  copy package.json
+2026-08-15T19:46:27.895321542Z [inf]  npm i -g corepack@latest && corepack enable && corepack prepare --activate
+2026-08-15T19:46:27.895321943Z [inf]  mkdir -p /app/node_modules/.cache
+2026-08-15T19:46:27.895322404Z [inf]  copy apps/api/package.json
+2026-08-15T19:46:27.895325548Z [inf]  copy apps/api/package.json
+2026-08-15T19:46:27.896135554Z [inf]  copy apps/web/package.json
+2026-08-15T19:46:28.314797381Z [inf]  copy apps/web/package.json
+2026-08-15T19:46:28.342719215Z [inf]  copy apps/worker/package.json
+2026-08-15T19:46:28.648237542Z [inf]  copy apps/worker/package.json
+2026-08-15T19:46:28.681434641Z [inf]  copy package-lock.json
+2026-08-15T19:46:29.009973729Z [inf]  copy package-lock.json
+2026-08-15T19:46:29.050355708Z [inf]  copy package.json
+2026-08-15T19:46:29.470202994Z [inf]  copy package.json
+2026-08-15T19:46:29.502723738Z [inf]  copy packages/database/package.json
+2026-08-15T19:46:29.730631840Z [inf]  copy packages/database/package.json
+2026-08-15T19:46:29.763967356Z [inf]  copy packages/integrations/package.json
+2026-08-15T19:46:30.016553024Z [inf]  copy packages/integrations/package.json
+2026-08-15T19:46:30.049881891Z [inf]  copy packages/types/package.json
+2026-08-15T19:46:30.293871220Z [inf]  copy packages/types/package.json
+2026-08-15T19:46:30.327337163Z [inf]  copy apps/api/prisma
+2026-08-15T19:46:30.578636711Z [inf]  copy apps/api/prisma
+2026-08-15T19:46:30.612669353Z [inf]  copy apps/api/src/prisma
+2026-08-15T19:46:30.893049053Z [inf]  copy apps/api/src/prisma
+2026-08-15T19:46:30.927276578Z [inf]  copy apps/worker/prisma
+2026-08-15T19:46:31.209395507Z [inf]  copy apps/worker/prisma
+2026-08-15T19:46:31.240197132Z [inf]  copy packages/database/prisma
+2026-08-15T19:46:31.479469564Z [inf]  copy packages/database/prisma
+2026-08-15T19:46:31.513669698Z [inf]  npm install
+2026-08-15T19:46:32.423367473Z [inf]  npm warn config production Use `--omit=dev` instead.
+
+2026-08-15T19:46:34.568790932Z [inf]  npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: '@prisma/streams-local@0.1.11',
+npm warn EBADENGINE   required: { bun: '>=1.2.0', node: '>=22.0.0' },
+npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+npm warn EBADENGINE }
+
+2026-08-15T19:46:37.405326692Z [inf]  npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+
+2026-08-15T19:47:03.74942919Z [inf]  
+added 1268 packages, and audited 1275 packages in 31s
+
+2026-08-15T19:47:03.756959869Z [inf]  
+4 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+2026-08-15T19:47:05.560768692Z [inf]  npm install
+2026-08-15T19:47:05.592742245Z [inf]  copy / /app
+2026-08-15T19:47:06.406539261Z [inf]  copy / /app
+2026-08-15T19:47:06.473795922Z [inf]  copy .
+2026-08-15T19:47:07.087841262Z [inf]  copy .
+2026-08-15T19:47:07.121450599Z [inf]  npm run build --workspace=api
+2026-08-15T19:47:07.890293215Z [inf]  npm warn config production Use `--omit=dev` instead.
+
+2026-08-15T19:47:07.936347284Z [inf]  
+> api@0.0.1 build
+> nest build
+
+
+2026-08-15T19:47:11.094019094Z [inf]  [96mprisma/seed.ts[0m:[93m2[0m:[93m24[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m2[0m import { PrismaClient, Role, PictureBookStatus, WhatsAppMessageStatus } from '@prisma/client';
+[7m [0m [91m                       ~~~~[0m
+[96mprisma/seed.ts[0m:[93m2[0m:[93m30[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PictureBookStatus'.
+
+[7m2[0m import { PrismaClient, Role, PictureBookStatus, WhatsAppMessageStatus } from '@prisma/client';
+[7m [0m [91m                             ~~~~~~~~~~~~~~~~~[0m
+[96mprisma/seed.ts[0m:[93m2[0m:[93m49[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'WhatsAppMessageStatus'.
+
+[7m2[0m import { PrismaClient, Role, PictureBookStatus, WhatsAppMessageStatus } from '@prisma/client';
+[7m [0m [91m                                                ~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/audit/audit.controller.ts[0m:[93m7[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m7[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/contact/contact.controller.ts[0m:[93m8[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m8[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/incidents/dto/create-incident.dto.ts[0m:[93m2[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'IncidentPriority'.
+
+[7m2[0m import { IncidentPriority } from '@prisma/client';
+[7m [0m [91m         ~~~~~~~~~~~~~~~~[0m
+[96msrc/incidents/dto/update-incident.dto.ts[0m:[93m2[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'IncidentStatus'.
+
+[7m2[0m import { IncidentStatus, IncidentPriority } from '@prisma/client';
+[7m [0m [91m         ~~~~~~~~~~~~~~[0m
+[96msrc/incidents/dto/update-incident.dto.ts[0m:[93m2[0m:[93m26[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'IncidentPriority'.
+
+[7m2[0m import { IncidentStatus, IncidentPriority } from '@prisma/client';
+[7m [0m [91m                         ~~~~~~~~~~~~~~~~[0m
+[96msrc/incidents/incidents.controller.ts[0m:[93m8[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m8[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/incidents/incidents.service.ts[0m:[93m3[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m3[0m import { Role, Prisma } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/incidents/incidents.service.ts[0m:[93m47[0m:[93m25[0m - [91merror[0m[90m TS2694: [0mNamespace '"/app/node_modules/.prisma/client/default".Prisma' has no exported member 'IncidentWhereInput'.
+
+[7m47[0m     const where: Prisma.IncidentWhereInput = {};
+[7m  [0m [91m                        ~~~~~~~~~~~~~~~~~~[0m
+[96msrc/picture-books/dto/create-picture-book.dto.ts[0m:[93m2[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'DeliveryPreference'.
+
+[7m2[0m import { DeliveryPreference } from '@prisma/client';
+[7m [0m [91m         ~~~~~~~~~~~~~~~~~~[0m
+[96msrc/picture-books/picture-books.controller.ts[0m:[93m21[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m21[0m import { Role } from '@prisma/client';
+[7m  [0m [91m         ~~~~[0m
+[96msrc/picture-books/picture-books.service.ts[0m:[93m7[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m7[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/products/products.controller.ts[0m:[93m21[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m21[0m import { Role } from '@prisma/client';
+[7m  [0m [91m         ~~~~[0m
+[96msrc/products/products.service.ts[0m:[93m86[0m:[93m24[0m - [91merror[0m[90m TS2694: [0mNamespace '"/app/node_modules/.prisma/client/default".Prisma' has no exported member 'ProductUpdateInput'.
+
+[7m86[0m     const data: Prisma.ProductUpdateInput = { ...dto } as any;
+[7m  [0m [91m                       ~~~~~~~~~~~~~~~~~~[0m
+[96msrc/settings/settings.controller.ts[0m:[93m6[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m6[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/users/dto/create-user.dto.ts[0m:[93m2[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m2[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/users/users.controller.ts[0m:[93m9[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m9[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/users/users.service.ts[0m:[93m4[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m4[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/whatsapp/whatsapp.controller.ts[0m:[93m5[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m5[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/whatsapp/whatsapp.service.ts[0m:[93m6[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Role'.
+
+[7m6[0m import { Role } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+
+
+2026-08-15T19:47:11.094413857Z [inf]  Found 22 error(s).
+
+
+2026-08-15T19:47:11.140561977Z [inf]  npm error Lifecycle script `build` failed with error:
+
+2026-08-15T19:47:11.141312974Z [inf]  npm error code 1
+
+2026-08-15T19:47:11.141555297Z [inf]  npm error path /app/apps/api
+
+2026-08-15T19:47:11.141577451Z [inf]  npm error workspace api@0.0.1
+
+2026-08-15T19:47:11.141645973Z [inf]  npm error location /app/apps/api
+
+2026-08-15T19:47:11.141689619Z [inf]  npm error command failed
+
+2026-08-15T19:47:11.141736179Z [inf]  npm error command sh -c nest build
+
+2026-08-15T19:47:11.465516857Z [err]  npm run build --workspace=api
+2026-08-15T19:47:11.496753625Z [err]  Build Failed: build daemon returned an error < failed to solve: process "sh -c npm run build --workspace=api" did not complete successfully: exit code: 1 >

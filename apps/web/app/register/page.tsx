@@ -9,13 +9,7 @@ export default function RegisterPage() {
     name: "",
     email: "",
     password: "",
-    phone: "",
-    addressLine1: "",
-    addressLine2: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    country: ""
+    whatsappNumber: ""
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,12 +21,19 @@ export default function RegisterPage() {
     setError("");
     try {
       const { apiFetch } = await import("@/lib/api");
+      
+      // If there's a referral code in URL, use it
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('ref');
+      
+      const payload = ref ? { ...formData, referredById: ref } : formData;
+
       await apiFetch("/users", {
         method: "POST",
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
-      // Successful registration, go to login
-      router.push("/login?registered=true");
+      // Registration successful, OTP sent. Redirect to verify.
+      router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
     } catch (err: any) {
       setError(
         err?.status >= 500
@@ -75,40 +76,8 @@ export default function RegisterPage() {
                 <input type="password" name="password" required minLength={8} value={formData.password} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="••••••••" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">WhatsApp / Phone *</label>
-                <input type="tel" name="phone" required value={formData.phone} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="+1234567890" />
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-[#EAE6DF]">
-              <h3 className="text-sm font-semibold text-[#1A1A1A] mb-4">Delivery Address</h3>
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Address Line 1</label>
-                  <input name="addressLine1" value={formData.addressLine1} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="123 Main St" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Address Line 2</label>
-                  <input name="addressLine2" value={formData.addressLine2} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="Apt 4B (Optional)" />
-                </div>
-                <div className="grid grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-2">City</label>
-                    <input name="city" value={formData.city} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="New York" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-2">State / Province</label>
-                    <input name="state" value={formData.state} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="NY" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Postal Code</label>
-                    <input name="postalCode" value={formData.postalCode} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="10001" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Country</label>
-                    <input name="country" value={formData.country} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="USA" />
-                  </div>
-                </div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">WhatsApp Number *</label>
+                <input type="tel" name="whatsappNumber" required value={formData.whatsappNumber} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="+1234567890" />
               </div>
             </div>
 

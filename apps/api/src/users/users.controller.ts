@@ -39,4 +39,36 @@ export class UsersController {
   toggleActive(@Param('id') id: string) {
     return this.usersService.toggleActive(id);
   }
+
+  @Public()
+  @Post('verify-otp')
+  verifyOtp(@Body() body: any) {
+    return this.usersService.verifyOtp(body.email, body.otpCode);
+  }
+
+  @Public()
+  @Post('resend-otp')
+  resendOtp(@Body() body: any) {
+    return this.usersService.resendOtp(body.email);
+  }
+
+  @Post('guides')
+  @Roles(Role.ADMIN)
+  createGuide(@Body() body: any) {
+    // To be implemented in users.service.ts
+    return this.usersService.createGuide(body);
+  }
+
+  @Post('referrals')
+  @Roles(Role.GUIDE)
+  referCustomer(@Body() body: any, @CurrentUser() user: any) {
+    // To be implemented in users.service.ts
+    return this.usersService.referCustomer(body, user.id);
+  }
+
+  @Public()
+  @Post('setup')
+  setupAccount(@Body() body: any) {
+    return this.usersService.setupAccount(body.token, body.password);
+  }
 }

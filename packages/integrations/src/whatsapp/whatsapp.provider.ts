@@ -6,4 +6,8 @@ export interface WhatsAppProvider {
     clientName: string,
     driveLink: string,
   ): Promise<WhatsAppSendResult>;
+  sendTextMessage(
+    to: string,
+    text: string,
+  ): Promise<WhatsAppSendResult>;
 }

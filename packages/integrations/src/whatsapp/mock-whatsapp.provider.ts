@@ -41,6 +41,17 @@ export class MockWhatsAppProvider implements WhatsAppProvider {
     };
   }
 
+  async sendTextMessage(to: string, text: string): Promise<WhatsAppSendResult> {
+    console.log(`\n[MOCK WHATSAPP] Sending TEXT to ${to}:`);
+    console.log(text);
+    console.log('----------------------------------------\n');
+
+    return {
+      success: true,
+      messageId: `mock-txt-${Date.now()}`,
+    };
+  }
+
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }

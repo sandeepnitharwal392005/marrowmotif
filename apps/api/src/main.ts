@@ -42,8 +42,8 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT || process.env.API_PORT || 4000;
-  await app.listen(port);
-  console.log(`🚀 API running on http://localhost:${port}/api`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 API running on port ${port} with CORS_ORIGIN: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
   console.log(`📦 Demo mode: ${process.env.DEMO_MODE === 'true' ? 'ENABLED' : 'DISABLED'}`);
 }
 

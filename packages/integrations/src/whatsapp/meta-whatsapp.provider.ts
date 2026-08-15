@@ -63,6 +63,48 @@ export class MetaWhatsAppProvider implements WhatsAppProvider {
     }
   }
 
+  async sendTextMessage(to: string, text: string): Promise<WhatsAppSendResult> {
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/v19.0/${this.config.phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.config.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: this.normalizeNumber(to),
+            type: 'text',
+            text: {
+              body: text,
+            },
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error?.message || 'Failed to send text message',
+        };
+      }
+
+      return {
+        success: true,
+        messageId: data.messages?.[0]?.id,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Unknown error occurred',
+      };
+    }
+  }
+
   private normalizeNumber(number: string): string {
     // Strip + prefix for Meta API — it expects numbers without +
     return number.startsWith('+') ? number.slice(1) : number;

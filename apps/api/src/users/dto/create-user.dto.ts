@@ -37,4 +37,12 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   country?: string;
+
+  @IsString()
+  @IsOptional()
+  whatsappNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  referredById?: string;
 }

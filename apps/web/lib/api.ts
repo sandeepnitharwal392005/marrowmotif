@@ -95,8 +95,19 @@ export async function apiFetch<T>(
     } catch (e) {
       // Ignored
     }
-    const message = errorData?.message || `HTTP ${response.status} ${response.statusText}`;
-    throw new ApiError(response.status, Array.isArray(message) ? message[0] : message, errorData);
+    
+    let message = errorData?.message || `HTTP ${response.status} ${response.statusText}`;
+    if (Array.isArray(message)) {
+      message = message[0];
+    }
+    
+    // Secure generic 500 errors so users don't see raw stack traces or internal codes
+    if (response.status >= 500) {
+      console.error(`[API Error ${response.status}]`, message, errorData);
+      message = "An unexpected server error occurred. Please try again later or contact support.";
+    }
+    
+    throw new ApiError(response.status, message, errorData);
   }
 
   return response.json();

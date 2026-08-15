@@ -56,6 +56,15 @@ model User {
   postalCode   String?
   country      String?
 
+  // WhatsApp & Security Fields
+  whatsappNumber   String?
+  whatsappVerified Boolean  @default(false)
+  setupToken       String?
+  setupTokenExpiry DateTime?
+  otpCode          String?
+  otpExpiry        DateTime?
+  otpAttempts      Int      @default(0)
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
