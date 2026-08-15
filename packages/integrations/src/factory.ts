@@ -19,8 +19,7 @@ export interface Providers {
 export function createProviders(): Providers {
   const isDemoMode =
     process.env.DEMO_MODE === 'true' ||
-    process.env.DEMO_MODE === '1' ||
-    !process.env.DEMO_MODE;
+    process.env.DEMO_MODE === '1';
 
   if (isDemoMode) {
     console.log('[Providers] 🎭 Running in DEMO MODE — using mock providers');
