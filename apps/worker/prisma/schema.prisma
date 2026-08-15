@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  GUIDE
+  SELLER
+  ADMIN
+}
+
+enum ClientStatus {
+  PENDING
+  ACTIVE
+  FAILED
+}
+
+enum WhatsAppMessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         Role     @default(GUIDE)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  clients      Client[]
+  products     Product[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Client {
+  id              String         @id @default(cuid())
+  guideId         String
+  name            String
+  whatsappNumber  String
+  email           String?
+  bookingRef      String?
+  driveLink       String?
+  status          ClientStatus   @default(PENDING)
+  jobId           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  guide           User           @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  whatsappMessages WhatsAppMessage[]
+
+  @@index([guideId])
+  @@index([bookingRef])
+  @@index([status])
+  @@map("clients")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  price       Decimal  @db.Decimal(10, 2)
+  currency    String   @default("USD")
+  images      String[]
+  itinerary   Json
+  highlights  String[]
+  duration    String?
+  maxGuests   Int?
+  isActive    Boolean  @default(true)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("products")
+}
+
+model WhatsAppMessage {
+  id                String                @id @default(cuid())
+  clientId          String
+  status            WhatsAppMessageStatus @default(QUEUED)
+  providerMessageId String?
+  errorMessage      String?
+  attempts          Int                   @default(0)
+  sentAt            DateTime?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  client            Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([status])
+  @@map("whatsapp_messages")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+  @@map("contact_messages")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}

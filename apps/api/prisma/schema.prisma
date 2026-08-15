@@ -1,0 +1,194 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  GUIDE
+  END_USER
+  ADMIN
+}
+
+enum PictureBookStatus {
+  REQUESTED
+  UPLOAD_PENDING
+  PHOTOS_UPLOADED
+  UNDER_REVIEW
+  IN_PRODUCTION
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum WhatsAppMessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum DeliveryPreference {
+  HOME_DELIVERY
+  BEFORE_DEPARTURE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         Role     @default(END_USER)
+  isActive     Boolean  @default(true)
+  referredById String?
+  
+  // Address Fields
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  referredBy   User?    @relation("Referrals", fields: [referredById], references: [id])
+  referrals    User[]   @relation("Referrals")
+
+  pictureBooks PictureBook[]
+  products     Product[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model PictureBook {
+  id              String             @id @default(cuid())
+  title           String
+  userId          String
+  status          PictureBookStatus  @default(REQUESTED)
+  driveLink       String?
+  jobId           String?
+  
+  // Delivery Info
+  deliveryPreference DeliveryPreference?
+  
+  // Departure Info (if BEFORE_DEPARTURE)
+  departureDate    DateTime?
+  departureTime    String?
+  flightNumber     String?
+  departureAirport String?
+  
+  // Frozen Delivery Address (if HOME_DELIVERY)
+  deliveryAddressLine1 String?
+  deliveryAddressLine2 String?
+  deliveryCity         String?
+  deliveryState        String?
+  deliveryPostalCode   String?
+  deliveryCountry      String?
+  
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages        WhatsAppMessage[]
+  activityLogs    ActivityLog[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("picture_books")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  price       Decimal  @db.Decimal(10, 2)
+  currency    String   @default("USD")
+  images      String[]
+  isActive    Boolean  @default(true)
+  createdById String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("products")
+}
+
+model WhatsAppMessage {
+  id                String                @id @default(cuid())
+  pictureBookId     String
+  status            WhatsAppMessageStatus @default(QUEUED)
+  providerMessageId String?
+  errorMessage      String?
+  attempts          Int                   @default(0)
+  sentAt            DateTime?
+  
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  pictureBook       PictureBook           @relation(fields: [pictureBookId], references: [id], onDelete: Cascade)
+
+  @@index([pictureBookId])
+  @@index([status])
+  @@map("whatsapp_messages")
+}
+
+model ActivityLog {
+  id            String       @id @default(cuid())
+  pictureBookId String
+  action        String
+  details       String?
+  
+  createdAt     DateTime     @default(now())
+
+  pictureBook   PictureBook  @relation(fields: [pictureBookId], references: [id], onDelete: Cascade)
+
+  @@index([pictureBookId])
+  @@map("activity_logs")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String // JSON stringified value
+  @@map("system_settings")
+}

@@ -1,0 +1,41 @@
+{
+  "name": "travel-platform",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "db:generate": "npm run db:generate --workspace=packages/database",
+    "db:migrate": "npm run db:migrate --workspace=packages/database",
+    "db:seed": "npm run db:seed --workspace=packages/database",
+    "worker": "npm run dev --workspace=apps/worker",
+    "type-check": "turbo run type-check"
+  },
+  "overrides": {
+    "prisma": "5.22.0",
+    "@prisma/client": "5.22.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.24",
+    "@types/node": "^20.0.0",
+    "prettier": "^3.3.0",
+    "prisma": "5.22.0",
+    "ts-node": "^10.9.2",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0"
+  }
+}
