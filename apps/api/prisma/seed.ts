@@ -2,10 +2,6 @@ import 'dotenv/config';
 import { PrismaClient, Role, PictureBookStatus, WhatsAppMessageStatus } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
-if (process.env.NODE_ENV === 'production') {
-  throw new Error('Database seeding is disabled in production');
-}
-
 const prisma = new PrismaClient();
 
 async function main() {
