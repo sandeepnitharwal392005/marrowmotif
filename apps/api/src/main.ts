@@ -5,15 +5,6 @@ import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 
 async function bootstrap() {
-  if (process.env.NODE_ENV === 'production') {
-    const missing = ['DATABASE_URL', 'JWT_SECRET', 'CORS_ORIGIN'].filter(
-      (key) => !process.env[key],
-    );
-    if (missing.length) {
-      throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
-    }
-  }
-
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
@@ -23,9 +14,7 @@ async function bootstrap() {
   app.use(helmet());
 
   app.enableCors({
-    origin: (process.env.CORS_ORIGIN || 'http://localhost:3000')
-      .split(',')
-      .map((origin) => origin.trim()),
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
@@ -41,7 +30,7 @@ async function bootstrap() {
     }),
   );
 
-  const port = process.env.PORT || process.env.API_PORT || 4000;
+  const port = process.env.API_PORT || 4000;
   await app.listen(port);
   console.log(`🚀 API running on http://localhost:${port}/api`);
   console.log(`📦 Demo mode: ${process.env.DEMO_MODE === 'true' ? 'ENABLED' : 'DISABLED'}`);

@@ -34,11 +34,7 @@ export default function RegisterPage() {
       // Successful registration, go to login
       router.push("/login?registered=true");
     } catch (err: any) {
-      setError(
-        err?.status >= 500
-          ? "We couldn't create your account right now. Please try again. If the problem continues, contact support."
-          : err.message || "Registration failed. Please try again.",
-      );
+      setError(err.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }

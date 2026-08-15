@@ -119,7 +119,7 @@ export class UsersService {
         email: data.email.toLowerCase(),
         phone: data.phone,
         passwordHash,
-        role: Role.END_USER,
+        role: data.role || Role.END_USER,
         addressLine1: data.addressLine1,
         addressLine2: data.addressLine2,
         city: data.city,
