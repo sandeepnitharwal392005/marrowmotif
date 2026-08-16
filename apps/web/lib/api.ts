@@ -182,3 +182,13 @@ export const settingsApi = {
       body: JSON.stringify(data),
     }),
 };
+
+// Users
+export const usersApi = {
+  referCustomer: (token: string, data: any) =>
+    apiFetch<any>("/users/referrals", {
+      method: "POST",
+      token,
+      body: JSON.stringify(data),
+    }),
+};

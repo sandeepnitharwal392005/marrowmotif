@@ -140,11 +140,11 @@ export default function DashboardPage() {
                   return (
                     <tr key={book.id} className="hover:bg-[#FAF9F6] transition-colors group">
                       <td className="px-6 py-4">
-                        <div className="font-semibold text-[#1A1A1A]">{book.endUser?.name || "Customer"}</div>
+                        <div className="font-semibold text-[#1A1A1A]">{book.user?.name || "Customer"}</div>
                         <div className="text-xs text-[#666] mt-0.5">{book.title}</div>
                       </td>
                       <td className="px-6 py-4 text-[#4A4A4A] font-medium">
-                        {book.endUser?.whatsappNumber || "N/A"}
+                        {book.user?.whatsappNumber || "N/A"}
                       </td>
                       <td className="px-6 py-4">
                         <StatusBadge status={book.status} />

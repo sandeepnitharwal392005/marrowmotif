@@ -72,7 +72,7 @@ const puppeteer = require('puppeteer');
     await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle0' });
     
     // Using a known admin account
-    await page.type('input[name="email"]', 'admin@morrowotif.com');
+    await page.type('input[name="email"]', 'admin@marrowotif.com');
     await page.type('input[name="password"]', 'admin123');
     
     await Promise.all([

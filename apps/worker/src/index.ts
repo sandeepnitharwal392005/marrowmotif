@@ -63,7 +63,7 @@ async function processWelcomeMessage(job: Job) {
 
   // Step 2: Create Drive folder if needed
   if (!driveLink) {
-    if (pictureBook.user.email === 'production-test@morrowotif.internal') {
+    if (pictureBook.user.email === 'production-test@marrowotif.internal') {
       console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking Drive folder creation for "${pictureBook.title}"`);
       driveLink = `https://drive.google.com/drive/folders/synthetic-mock-folder-${pictureBook.id}`;
       
@@ -133,7 +133,7 @@ async function processWelcomeMessage(job: Job) {
   // Step 5: Send WhatsApp message
   if (pictureBook.user.phone) {
     let waResult;
-    const isSynthetic = pictureBook.user.phone === '+15550000000' || pictureBook.user.email === 'production-test@morrowotif.internal';
+    const isSynthetic = pictureBook.user.phone === '+15550000000' || pictureBook.user.email === 'production-test@marrowotif.internal';
     
     if (isSynthetic) {
       console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking WhatsApp to ${pictureBook.user.phone}`);
@@ -212,7 +212,7 @@ async function processManualWhatsApp(job: Job) {
   });
 
   let waResult;
-  const isSynthetic = pictureBook.user.phone === '+15550000000' || pictureBook.user.email === 'production-test@morrowotif.internal';
+  const isSynthetic = pictureBook.user.phone === '+15550000000' || pictureBook.user.email === 'production-test@marrowotif.internal';
   
   if (isSynthetic) {
     console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking manual WhatsApp to ${pictureBook.user.phone}`);

@@ -1,4 +1,4 @@
-const API_URL = 'https://api-production-debe.up.railway.app/api';
+const API_URL = 'http://localhost:4000/api';
 
 async function apiFetch(path, options = {}) {
   const { token, ...rest } = options;
@@ -47,7 +47,7 @@ async function runTests() {
 
     // 1. Authenticate Admin
     log('Authenticating Admin...');
-    const adminAuth = await login('admin@morrowotif.com', 'Admin123!');
+    const adminAuth = await login('admin@marrowotif.com', 'Admin123!');
     log(`✅ Admin logged in: ${adminAuth.user.id}`);
 
     // 2. Authenticate User

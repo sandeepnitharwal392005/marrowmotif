@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
-import { pictureBooksApi, settingsApi, apiFetch } from "@/lib/api";
+import { pictureBooksApi, settingsApi, usersApi, apiFetch } from "@/lib/api";
 import { ArrowLeft, UserPlus, Phone, Mail, BookOpen, CheckCircle2, Info, HardDrive, MessageSquare } from "lucide-react";
 
 export default function NewPictureBookPage() {
@@ -106,9 +106,15 @@ export default function NewPictureBookPage() {
         }
       });
 
-      const book = await pictureBooksApi.create(accessToken, payload);
-      setStatus("success");
-      setTimeout(() => router.push(`/dashboard/clients/${book.id}`), 1500);
+      if (isGuide) {
+        await usersApi.referCustomer(accessToken, payload);
+        setStatus("success");
+        setTimeout(() => router.push(`/dashboard/clients`), 1500);
+      } else {
+        const book = await pictureBooksApi.create(accessToken, payload);
+        setStatus("success");
+        setTimeout(() => router.push(`/dashboard/clients/${book.id}`), 1500);
+      }
     } catch (err: any) {
       setErrorMessage(err.message || "An unexpected error occurred.");
       setStatus("error");
@@ -140,8 +146,8 @@ export default function NewPictureBookPage() {
             <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 border border-emerald-100">
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
-            <h2 className="text-2xl font-serif text-[#1A1A1A] mb-2">Project Created!</h2>
-            <p className="text-[#666] text-sm mb-6 max-w-[280px]">Redirecting you to the project dashboard...</p>
+            <h2 className="text-2xl font-serif text-[#1A1A1A] mb-2">{isGuide ? "Referral Sent!" : "Project Created!"}</h2>
+            <p className="text-[#666] text-sm mb-6 max-w-[280px]">{isGuide ? "Redirecting you back to referrals..." : "Redirecting you to the project dashboard..."}</p>
             <div className="w-6 h-6 border-2 border-[#EAE6DF] border-t-[#C9A84C] rounded-full animate-spin"></div>
           </div>
         ) : (
@@ -149,27 +155,29 @@ export default function NewPictureBookPage() {
             <div className="space-y-5 flex-1">
               
               {/* Common: Book Title */}
-              <div>
-                <label htmlFor="book-title" className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                  Picture Book Title <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <BookOpen className="h-5 w-5 text-[#999]" />
+              {!isGuide && (
+                <div>
+                  <label htmlFor="book-title" className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                    Picture Book Title <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <BookOpen className="h-5 w-5 text-[#999]" />
+                    </div>
+                    <input
+                      id="book-title"
+                      type="text"
+                      required
+                      minLength={2}
+                      maxLength={100}
+                      value={form.title}
+                      onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                      className="w-full pl-11 pr-4 py-3 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
+                      placeholder="e.g. My Trip to Italy"
+                    />
                   </div>
-                  <input
-                    id="book-title"
-                    type="text"
-                    required
-                    minLength={2}
-                    maxLength={100}
-                    value={form.title}
-                    onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                    className="w-full pl-11 pr-4 py-3 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
-                    placeholder={isGuide ? "e.g. The Smith Family Vacation" : "e.g. My Trip to Italy"}
-                  />
                 </div>
-              </div>
+              )}
 
               {/* Admin Only: Select Existing User */}
               {isAdmin && (

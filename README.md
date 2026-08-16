@@ -1,17 +1,17 @@
-# Morrowotif — Where Memory Meets Craft
+# Marrowotif — Where Memory Meets Craft
 
-Morrowotif is a modern **Picture Book Platform** connecting customers with curated, crafted memories. It enables End Users to request bespoke picture books, securely upload their photos, and track the physical delivery of their handcrafted memories. 
+Marrowotif is a modern **Picture Book Platform** connecting customers with curated, crafted memories. It enables End Users to request bespoke picture books, securely upload their photos, and track the physical delivery of their handcrafted memories. 
 
-Morrowotif is **not** a travel booking platform. It focuses entirely on memory curation, physical book production, and communication.
+Marrowotif is **not** a travel booking platform. It focuses entirely on memory curation, physical book production, and communication.
 
 ---
 
 ## 🚀 Business Model & User Journey
 
-The Morrowotif platform enforces strict Role-Based Access Control (RBAC) across three primary actors:
+The Marrowotif platform enforces strict Role-Based Access Control (RBAC) across three primary actors:
 
 1. **End User**: The customer requesting the Picture Book.
-2. **Guide**: A referral partner (e.g., a tour guide) who refers customers to Morrowotif but has restricted access to their private data.
+2. **Guide**: A referral partner (e.g., a tour guide) who refers customers to Marrowotif but has restricted access to their private data.
 3. **Admin**: The business operator responsible for producing the books, managing communications, and driving the backend processes.
 
 ### Complete Customer Journey
@@ -21,14 +21,14 @@ The Morrowotif platform enforces strict Role-Based Access Control (RBAC) across 
 4. **Drive Generation (Admin):** The Admin securely triggers the creation of a unique Google Drive upload folder dedicated specifically to that Picture Book.
 5. **Photo Upload:** The customer receives the Drive link and uploads their photos.
 6. **Production (Admin):** The Admin updates the production status of the Picture Book (e.g., `IN_PRODUCTION`, `COMPLETED`).
-7. **Communication (Admin/Automated):** The Admin triggers automated WhatsApp notifications or sends custom manual messages using the Morrowotif business credentials.
+7. **Communication (Admin/Automated):** The Admin triggers automated WhatsApp notifications or sends custom manual messages using the Marrowotif business credentials.
 8. **Delivery:** The End User views tracking/delivery information directly on their dashboard.
 
 ---
 
 ## 🛠 Architecture
 
-Morrowotif utilizes a heavily decoupled, asynchronous architecture to ensure the frontend and API remain fast while offloading heavy operations (like Google Drive API and WhatsApp API) to a background worker.
+Marrowotif utilizes a heavily decoupled, asynchronous architecture to ensure the frontend and API remain fast while offloading heavy operations (like Google Drive API and WhatsApp API) to a background worker.
 
 ```text
                     ┌──────────────┐

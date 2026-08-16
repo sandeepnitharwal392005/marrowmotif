@@ -15,7 +15,6 @@ import { LoggerModule } from 'nestjs-pino';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuditModule } from './audit/audit.module';
 import { IncidentsModule } from './incidents/incidents.module';
-import { SyntheticsModule } from './synthetics/synthetics.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -57,7 +56,6 @@ import { AppService } from './app.service';
     WhatsAppModule,
     AuditModule,
     IncidentsModule,
-    SyntheticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

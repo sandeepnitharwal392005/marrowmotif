@@ -28,7 +28,7 @@ export default function ContactPage() {
       <nav className="sticky top-0 z-50 bg-[#FAF9F6] border-b border-[#EAE6DF]">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <span className="font-serif text-[#1A1A1A] text-2xl font-semibold tracking-tight">Morrowotif</span>
+            <span className="font-serif text-[#1A1A1A] text-2xl font-semibold tracking-tight">Marrowotif</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm font-medium text-[#1A1A1A] hover:text-[#C9A84C] transition-colors">Sign In</Link>
@@ -47,7 +47,7 @@ export default function ContactPage() {
             </p>
             <div className="space-y-6">
               {[
-                { icon: "✉️", label: "Email", val: "support@morrowotif.com" },
+                { icon: "✉️", label: "Email", val: "support@marrowotif.com" },
                 { icon: "📞", label: "Phone", val: "+1 (800) 123-4567" },
                 { icon: "🕐", label: "Hours", val: "Mon–Fri, 9am–6pm EST" },
               ].map((c) => (

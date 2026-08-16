@@ -176,7 +176,7 @@ export class UsersService {
         const providers = createProviders();
         await providers.whatsApp.sendTextMessage(
           data.whatsappNumber,
-          `Your Morrowotif verification code is: ${otpCode}. It expires in 10 minutes.`,
+          `Your Marrowotif verification code is: ${otpCode}. It expires in 10 minutes.`,
         );
       } catch (err) {
         console.error('Failed to send WhatsApp OTP:', err);
@@ -275,7 +275,7 @@ export class UsersService {
       const providers = createProviders();
       await providers.whatsApp.sendTextMessage(
         user.whatsappNumber,
-        `Your Morrowotif verification code is: ${otpCode}. It expires in 10 minutes.`,
+        `Your Marrowotif verification code is: ${otpCode}. It expires in 10 minutes.`,
       );
     } catch (err) {
       console.error('Failed to send WhatsApp OTP:', err);
@@ -315,13 +315,13 @@ export class UsersService {
     try {
       const { createProviders } = require('@travel/integrations');
       const providers = createProviders();
-      const link = `https://morrowotif-six.vercel.app/setup-account?token=${setupToken}`;
+      const link = `https://marrowotif-six.vercel.app/setup-account?token=${setupToken}`;
 
       // Attempt WhatsApp first, fallback to email conceptually (but we only have WhatsApp provider right now)
       if (data.whatsappNumber) {
         await providers.whatsApp.sendTextMessage(
           data.whatsappNumber,
-          `Welcome to Morrowotif, ${data.name}! Set up your Guide account here: ${link}`,
+          `Welcome to Marrowotif, ${data.name}! Set up your Guide account here: ${link}`,
         );
       }
     } catch (err) {
@@ -335,21 +335,44 @@ export class UsersService {
     const guide = await this.prisma.user.findUnique({ where: { id: guideId } });
     if (!guide) throw new NotFoundException('Guide not found');
 
+    const customerEmail = data.email || `${data.whatsappNumber.replace(/[^0-9]/g, '')}@guest.marrowotif.com`;
+    let customer = await this.prisma.user.findFirst({
+      where: { 
+        OR: [
+          { email: customerEmail },
+          { whatsappNumber: data.whatsappNumber }
+        ]
+      }
+    });
+
+    if (!customer) {
+      customer = await this.prisma.user.create({
+        data: {
+          name: data.customerName || data.name,
+          whatsappNumber: data.whatsappNumber,
+          email: customerEmail,
+          passwordHash: 'pending_setup',
+          role: Role.END_USER,
+          referredById: guide.id,
+        },
+      });
+    }
+
     try {
       const { createProviders } = require('@travel/integrations');
       const providers = createProviders();
-      const link = `https://morrowotif-six.vercel.app/register?ref=${guideId}`;
+      const link = `https://marrowotif-six.vercel.app/register?ref=${guideId}`;
 
       await providers.whatsApp.sendTextMessage(
         data.whatsappNumber,
-        `Hello ${data.name}! ${guide.name} has invited you to create your Picture Book with Morrowotif. Register here: ${link}`,
+        `Hello ${data.customerName || data.name}! ${guide.name} has invited you to create your Picture Book with Marrowotif. Register here: ${link}`,
       );
     } catch (err) {
       console.error('Failed to send Referral link:', err);
-      throw new Error('Failed to send WhatsApp message');
+      // Don't throw 500 if WhatsApp fails, just log it.
     }
 
-    return { success: true };
+    return { success: true, customerId: customer.id };
   }
 
   async setupAccount(token: string, password: string) {
