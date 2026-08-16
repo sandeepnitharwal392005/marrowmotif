@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -68,7 +69,7 @@ export class PictureBooksService {
 
       return pictureBook;
     } catch (e: any) {
-      throw new import('@nestjs/common').BadRequestException('DEBUG_CREATE: ' + e.message);
+      throw new BadRequestException('DEBUG_CREATE: ' + e.message);
     }
   }
 
@@ -109,7 +110,7 @@ export class PictureBooksService {
         meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
       };
     } catch (e: any) {
-      throw new import('@nestjs/common').BadRequestException('DEBUG: ' + e.message);
+      throw new BadRequestException('DEBUG: ' + e.message);
     }
   }
 
