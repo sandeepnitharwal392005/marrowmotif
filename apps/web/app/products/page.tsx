@@ -9,7 +9,8 @@ export const metadata = {
 
 async function getProducts() {
   try {
-    return await productsApi.list();
+    const res = await productsApi.list();
+    return res.data || [];
   } catch {
     return [];
   }

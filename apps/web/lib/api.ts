@@ -143,7 +143,7 @@ export const authApi = {
 
 // Products
 export const productsApi = {
-  list: () => apiFetch<any[]>("/products"),
+  list: () => apiFetch<{ data: any[], meta: any }>("/products"),
   get: (id: string) => apiFetch<any>(`/products/${id}`),
   create: (token: string, data: any) =>
     apiFetch<any>("/products", { method: "POST", token, body: JSON.stringify(data) }),
