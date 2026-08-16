@@ -2,9 +2,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
-import { Shield, User, Smartphone, Mail, CheckCircle2, XCircle, Search } from "lucide-react";
+import { Shield, User, Smartphone, Mail, CheckCircle2, XCircle, Search, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Pagination } from "@/components/ui/pagination";
 
 export default function UsersPage() {
@@ -70,17 +71,23 @@ export default function UsersPage() {
           <p className="text-[#666] text-sm mt-1">Manage platform users, guides, and customer operations.</p>
         </div>
         
-        <div className="relative w-full sm:w-80">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-[#999]" />
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+          <div className="relative w-full sm:w-80">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-[#999]" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="block w-full pl-10 pr-3 py-2 border border-[#EAE6DF] rounded-md leading-5 bg-white placeholder-[#999] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] sm:text-sm transition-colors"
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Search by name, email, phone, or Picture Book ID..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-[#EAE6DF] rounded-md leading-5 bg-white placeholder-[#999] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] sm:text-sm transition-colors"
-          />
+          <Link href="/dashboard/guides/new" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#1A1A1A] text-white rounded-lg text-sm font-medium hover:bg-[#333] transition-colors shadow-sm whitespace-nowrap w-full sm:w-auto">
+            <UserPlus className="w-4 h-4" />
+            Invite Guide
+          </Link>
         </div>
       </div>
 
