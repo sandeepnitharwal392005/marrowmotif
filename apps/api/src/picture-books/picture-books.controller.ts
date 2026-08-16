@@ -56,7 +56,11 @@ export class PictureBooksController {
   @Patch(':id/status')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  updateStatus(@Param('id') id: string, @Body('status') status: any, @CurrentUser() user: any) {
+  updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: any,
+    @CurrentUser() user: any,
+  ) {
     return this.pictureBooksService.updateStatus(id, status, user);
   }
 

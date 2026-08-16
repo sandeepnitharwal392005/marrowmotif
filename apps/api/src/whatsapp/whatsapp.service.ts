@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SettingsService } from '../settings/settings.service';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -32,17 +36,28 @@ export class WhatsAppService {
     template = template.replace('{{customer_name}}', pictureBook.user.name);
     template = template.replace('{{picture_book_name}}', pictureBook.title);
     template = template.replace('{{status}}', pictureBook.status);
-    template = template.replace('{{link}}', pictureBook.driveLink || 'Not generated yet');
+    template = template.replace(
+      '{{link}}',
+      pictureBook.driveLink || 'Not generated yet',
+    );
 
     return this.queueMessage(pictureBookId, template, user);
   }
 
-  async sendCustom(pictureBookId: string, messageContent: string, user: { id: string; role: Role }) {
+  async sendCustom(
+    pictureBookId: string,
+    messageContent: string,
+    user: { id: string; role: Role },
+  ) {
     if (user.role !== Role.ADMIN) throw new ForbiddenException('Access denied');
     return this.queueMessage(pictureBookId, messageContent, user);
   }
 
-  private async queueMessage(pictureBookId: string, messageContent: string, user: { id: string; role: Role }) {
+  private async queueMessage(
+    pictureBookId: string,
+    messageContent: string,
+    user: { id: string; role: Role },
+  ) {
     const jobId = `manual-wa-${pictureBookId}-${Date.now()}`;
     await this.automationQueue.add(
       'send-manual-whatsapp',
@@ -60,7 +75,7 @@ export class WhatsAppService {
         pictureBookId,
         action: 'WHATSAPP_MANUAL_QUEUED',
         details: `Manual WhatsApp message queued: "${messageContent.substring(0, 30)}..."`,
-      }
+      },
     });
 
     this.eventEmitter.emit('audit.log', {

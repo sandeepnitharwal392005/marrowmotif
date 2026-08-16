@@ -10,7 +10,9 @@ async function bootstrap() {
       (key) => !process.env[key],
     );
     if (missing.length) {
-      throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
+      throw new Error(
+        `Missing required production environment variables: ${missing.join(', ')}`,
+      );
     }
   }
 
@@ -43,8 +45,12 @@ async function bootstrap() {
 
   const port = process.env.PORT || process.env.API_PORT || 4000;
   await app.listen(port);
-  console.log(`🚀 API running on port ${port} with CORS_ORIGIN: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
-  console.log(`📦 Demo mode: ${process.env.DEMO_MODE === 'true' ? 'ENABLED' : 'DISABLED'}`);
+  console.log(
+    `🚀 API running on port ${port} with CORS_ORIGIN: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`,
+  );
+  console.log(
+    `📦 Demo mode: ${process.env.DEMO_MODE === 'true' ? 'ENABLED' : 'DISABLED'}`,
+  );
 }
 
 bootstrap();

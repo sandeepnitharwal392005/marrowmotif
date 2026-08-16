@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Query, Req, Res, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Query,
+  Req,
+  Res,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { Public } from '../auth/decorators/public.decorator';
 
@@ -39,7 +48,9 @@ export class WebhooksController {
         for (const change of entry.changes || []) {
           const statuses = change.value?.statuses || [];
           for (const status of statuses) {
-            console.log(`[Webhook] WhatsApp status: ${status.id} -> ${status.status}`);
+            console.log(
+              `[Webhook] WhatsApp status: ${status.id} -> ${status.status}`,
+            );
             // TODO: Update WhatsAppMessage status in DB based on status.id
           }
         }

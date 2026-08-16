@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -95,7 +99,10 @@ export class PictureBooksService {
       this.prisma.pictureBook.count({ where }),
     ]);
 
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findOne(id: string, user: { id: string; role: Role }) {
@@ -119,7 +126,10 @@ export class PictureBooksService {
     if (user.role === Role.END_USER && pictureBook.userId !== user.id) {
       throw new ForbiddenException('Access denied');
     }
-    if (user.role === Role.GUIDE && (pictureBook.user as any).referredById !== user.id) {
+    if (
+      user.role === Role.GUIDE &&
+      (pictureBook.user as any).referredById !== user.id
+    ) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -161,16 +171,29 @@ export class PictureBooksService {
     const [total, active, pending, failed] = await Promise.all([
       this.prisma.pictureBook.count({ where }),
       this.prisma.pictureBook.count({ where: { ...where, status: 'READY' } }),
-      this.prisma.pictureBook.count({ where: { ...where, status: 'REQUESTED' } }),
-      this.prisma.pictureBook.count({ where: { ...where, status: 'CANCELLED' } }),
+      this.prisma.pictureBook.count({
+        where: { ...where, status: 'REQUESTED' },
+      }),
+      this.prisma.pictureBook.count({
+        where: { ...where, status: 'CANCELLED' },
+      }),
     ]);
 
-    return { totalPictureBooks: total, readyPictureBooks: active, requestedPictureBooks: pending, cancelledPictureBooks: failed };
+    return {
+      totalPictureBooks: total,
+      readyPictureBooks: active,
+      requestedPictureBooks: pending,
+      cancelledPictureBooks: failed,
+    };
   }
 
-  async updateStatus(id: string, status: any, user: { id: string; role: Role }) {
+  async updateStatus(
+    id: string,
+    status: any,
+    user: { id: string; role: Role },
+  ) {
     if (user.role !== Role.ADMIN) throw new ForbiddenException('Access denied');
-    
+
     const pictureBook = await this.prisma.pictureBook.update({
       where: { id },
       data: { status },
@@ -181,7 +204,7 @@ export class PictureBooksService {
         pictureBookId: id,
         action: 'STATUS_UPDATED',
         details: `Status manually updated to ${status}`,
-      }
+      },
     });
 
     this.eventEmitter.emit('audit.log', {
@@ -217,7 +240,7 @@ export class PictureBooksService {
         pictureBookId: id,
         action: 'DRIVE_LINK_REQUESTED',
         details: `Manual Drive link creation requested`,
-      }
+      },
     });
 
     this.eventEmitter.emit('audit.log', {

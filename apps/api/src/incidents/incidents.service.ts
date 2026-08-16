@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role, Prisma } from '@prisma/client';
 import { CreateIncidentDto } from './dto/create-incident.dto';
@@ -15,7 +19,9 @@ export class IncidentsService {
 
   async create(dto: CreateIncidentDto, user: { id: string; role: Role }) {
     if (user.role !== Role.END_USER) {
-      throw new ForbiddenException('Only END_USER can create incidents via this endpoint');
+      throw new ForbiddenException(
+        'Only END_USER can create incidents via this endpoint',
+      );
     }
 
     const incident = await this.prisma.incident.create({
@@ -45,7 +51,7 @@ export class IncidentsService {
     const skip = (page - 1) * limit;
 
     const where: Prisma.IncidentWhereInput = {};
-    
+
     if (user.role === Role.END_USER) {
       where.userId = user.id;
     }
@@ -95,7 +101,11 @@ export class IncidentsService {
     return incident;
   }
 
-  async update(id: string, dto: UpdateIncidentDto, user: { id: string; role: Role }) {
+  async update(
+    id: string,
+    dto: UpdateIncidentDto,
+    user: { id: string; role: Role },
+  ) {
     if (user.role !== Role.ADMIN) {
       throw new ForbiddenException('Only admins can update incidents');
     }

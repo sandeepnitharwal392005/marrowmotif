@@ -28,8 +28,10 @@ export class AuditService {
   @OnEvent('audit.log', { async: true })
   async handleAuditLogEvent(payload: AuditEventPayload) {
     try {
-      this.logger.info(`Audit Event received: ${payload.action} on ${payload.resourceType} [${payload.status}]`);
-      
+      this.logger.info(
+        `Audit Event received: ${payload.action} on ${payload.resourceType} [${payload.status}]`,
+      );
+
       await this.prisma.auditLog.create({
         data: {
           userId: payload.userId,
@@ -45,7 +47,10 @@ export class AuditService {
       });
     } catch (err: any) {
       // Catch error so the original request doesn't fail if audit DB write fails
-      this.logger.error({ err, payload }, 'Failed to persist audit log asynchronously');
+      this.logger.error(
+        { err, payload },
+        'Failed to persist audit log asynchronously',
+      );
     }
   }
 
@@ -63,6 +68,9 @@ export class AuditService {
       this.prisma.auditLog.count(),
     ]);
 
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 }

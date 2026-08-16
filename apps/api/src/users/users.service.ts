@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { Role } from '@prisma/client';
@@ -10,7 +14,8 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(pagination: PaginationDto, user: { id: string; role: Role }) {
-    if (user.role === Role.END_USER) throw new ForbiddenException('Access denied');
+    if (user.role === Role.END_USER)
+      throw new ForbiddenException('Access denied');
 
     const page = pagination.page || 1;
     const limit = pagination.limit || 20;
@@ -24,8 +29,13 @@ export class UsersService {
         skip,
         take: limit,
         select: {
-          id: true, name: true, email: true, phone: true,
-          role: true, isActive: true, createdAt: true,
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
           _count: { select: { pictureBooks: true, referrals: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -33,10 +43,17 @@ export class UsersService {
       this.prisma.user.count({ where }),
     ]);
 
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
-  async search(query: string, pagination: PaginationDto, user: { id: string; role: Role }) {
+  async search(
+    query: string,
+    pagination: PaginationDto,
+    user: { id: string; role: Role },
+  ) {
     if (user.role !== Role.ADMIN) throw new ForbiddenException('Access denied');
 
     if (!query || query.trim() === '') {
@@ -58,13 +75,15 @@ export class UsersService {
           pictureBooks: {
             some: {
               OR: [
-                { title: { contains: searchTerm, mode: 'insensitive' as const } },
-                { id: { equals: searchTerm } }
-              ]
-            }
-          }
-        }
-      ]
+                {
+                  title: { contains: searchTerm, mode: 'insensitive' as const },
+                },
+                { id: { equals: searchTerm } },
+              ],
+            },
+          },
+        },
+      ],
     };
 
     const [data, total] = await Promise.all([
@@ -73,8 +92,13 @@ export class UsersService {
         skip,
         take: limit,
         select: {
-          id: true, name: true, email: true, phone: true,
-          role: true, isActive: true, createdAt: true,
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
           _count: { select: { pictureBooks: true, referrals: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -82,19 +106,32 @@ export class UsersService {
       this.prisma.user.count({ where }),
     ]);
 
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findOne(id: string, user?: { id: string; role: Role }) {
     const targetUser = await this.prisma.user.findUnique({
       where: { id },
       select: {
-        id: true, name: true, email: true, phone: true,
-        role: true, isActive: true, createdAt: true,
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
         referredById: true,
         referredBy: { select: { id: true, name: true } },
         referrals: { select: { id: true, name: true } },
-        addressLine1: true, addressLine2: true, city: true, state: true, postalCode: true, country: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        state: true,
+        postalCode: true,
+        country: true,
       },
     });
     if (!targetUser) throw new NotFoundException('User not found');
@@ -103,7 +140,11 @@ export class UsersService {
       if (user.role === Role.END_USER && targetUser.id !== user.id) {
         throw new ForbiddenException('Access denied');
       }
-      if (user.role === Role.GUIDE && targetUser.referredById !== user.id && targetUser.id !== user.id) {
+      if (
+        user.role === Role.GUIDE &&
+        targetUser.referredById !== user.id &&
+        targetUser.id !== user.id
+      ) {
         throw new ForbiddenException('Access denied');
       }
     }
@@ -113,14 +154,17 @@ export class UsersService {
 
   async create(data: CreateUserDto) {
     const passwordHash = await bcrypt.hash(data.password, 10);
-    
+
     let otpCode = null;
     let otpExpiry = null;
     let isWhatsappVerified = true;
 
     // Setup OTP if they are an End User (default role) and they provided a WhatsApp number
     const dataAsAny = data as any;
-    if ((!dataAsAny.role || dataAsAny.role === Role.END_USER) && data.whatsappNumber) {
+    if (
+      (!dataAsAny.role || dataAsAny.role === Role.END_USER) &&
+      data.whatsappNumber
+    ) {
       otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       otpExpiry = new Date();
       otpExpiry.setMinutes(otpExpiry.getMinutes() + 10); // 10 min expiry
@@ -132,7 +176,7 @@ export class UsersService {
         const providers = createProviders();
         await providers.whatsApp.sendTextMessage(
           data.whatsappNumber,
-          `Your Morrowotif verification code is: ${otpCode}. It expires in 10 minutes.`
+          `Your Morrowotif verification code is: ${otpCode}. It expires in 10 minutes.`,
         );
       } catch (err) {
         console.error('Failed to send WhatsApp OTP:', err);
@@ -159,19 +203,29 @@ export class UsersService {
         country: data.country,
       },
       select: {
-        id: true, name: true, email: true, role: true, createdAt: true, whatsappVerified: true
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        whatsappVerified: true,
       },
     });
   }
 
   async verifyOtp(email: string, otpCode: string) {
-    const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    const user = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
     if (!user) throw new NotFoundException('User not found');
     if (user.whatsappVerified) return { success: true };
 
     if (!user.otpCode || user.otpCode !== otpCode) {
       // Increment attempts
-      await this.prisma.user.update({ where: { id: user.id }, data: { otpAttempts: user.otpAttempts + 1 } });
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { otpAttempts: user.otpAttempts + 1 },
+      });
       throw new ForbiddenException('Invalid OTP');
     }
 
@@ -180,22 +234,32 @@ export class UsersService {
     }
 
     if (user.otpAttempts >= 5) {
-      throw new ForbiddenException('Too many invalid attempts. Please request a new OTP.');
+      throw new ForbiddenException(
+        'Too many invalid attempts. Please request a new OTP.',
+      );
     }
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { whatsappVerified: true, otpCode: null, otpExpiry: null, otpAttempts: 0 },
+      data: {
+        whatsappVerified: true,
+        otpCode: null,
+        otpExpiry: null,
+        otpAttempts: 0,
+      },
     });
 
     return { success: true };
   }
 
   async resendOtp(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    const user = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
     if (!user) throw new NotFoundException('User not found');
     if (user.whatsappVerified) return { success: true };
-    if (!user.whatsappNumber) throw new ForbiddenException('No WhatsApp number on file');
+    if (!user.whatsappNumber)
+      throw new ForbiddenException('No WhatsApp number on file');
 
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date();
@@ -211,7 +275,7 @@ export class UsersService {
       const providers = createProviders();
       await providers.whatsApp.sendTextMessage(
         user.whatsappNumber,
-        `Your Morrowotif verification code is: ${otpCode}. It expires in 10 minutes.`
+        `Your Morrowotif verification code is: ${otpCode}. It expires in 10 minutes.`,
       );
     } catch (err) {
       console.error('Failed to send WhatsApp OTP:', err);
@@ -230,7 +294,9 @@ export class UsersService {
   }
 
   async createGuide(data: any) {
-    const setupToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const setupToken =
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15);
     const setupTokenExpiry = new Date();
     setupTokenExpiry.setDate(setupTokenExpiry.getDate() + 7); // 7 days
 
@@ -250,12 +316,12 @@ export class UsersService {
       const { createProviders } = require('@travel/integrations');
       const providers = createProviders();
       const link = `https://morrowotif-six.vercel.app/setup-account?token=${setupToken}`;
-      
+
       // Attempt WhatsApp first, fallback to email conceptually (but we only have WhatsApp provider right now)
       if (data.whatsappNumber) {
         await providers.whatsApp.sendTextMessage(
           data.whatsappNumber,
-          `Welcome to Morrowotif, ${data.name}! Set up your Guide account here: ${link}`
+          `Welcome to Morrowotif, ${data.name}! Set up your Guide account here: ${link}`,
         );
       }
     } catch (err) {
@@ -273,10 +339,10 @@ export class UsersService {
       const { createProviders } = require('@travel/integrations');
       const providers = createProviders();
       const link = `https://morrowotif-six.vercel.app/register?ref=${guideId}`;
-      
+
       await providers.whatsApp.sendTextMessage(
         data.whatsappNumber,
-        `Hello ${data.name}! ${guide.name} has invited you to create your Picture Book with Morrowotif. Register here: ${link}`
+        `Hello ${data.name}! ${guide.name} has invited you to create your Picture Book with Morrowotif. Register here: ${link}`,
       );
     } catch (err) {
       console.error('Failed to send Referral link:', err);

@@ -44,7 +44,10 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findOne(idOrSlug: string) {
@@ -83,7 +86,7 @@ export class ProductsService {
 
   async update(id: string, dto: Partial<CreateProductDto>) {
     await this.findOne(id);
-    const data: Prisma.ProductUpdateInput = { ...dto } as any;
+    const data: Prisma.ProductUpdateInput = { ...dto };
     return this.prisma.product.update({
       where: { id },
       data,

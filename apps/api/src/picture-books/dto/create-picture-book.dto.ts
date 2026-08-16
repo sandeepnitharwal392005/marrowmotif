@@ -1,4 +1,11 @@
-import { IsString, MaxLength, MinLength, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import {
+  IsString,
+  MaxLength,
+  MinLength,
+  IsOptional,
+  IsEnum,
+  IsDateString,
+} from 'class-validator';
 import { DeliveryPreference } from '@prisma/client';
 
 export class CreatePictureBookDto {

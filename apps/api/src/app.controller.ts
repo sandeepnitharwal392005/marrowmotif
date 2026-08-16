@@ -26,14 +26,14 @@ export class AppController {
       dbStatus = 'error';
       dbError = e.message;
     }
-    
+
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
       database: dbStatus,
       databaseError: dbError,
       env: process.env.NODE_ENV,
-      cors: process.env.CORS_ORIGIN
+      cors: process.env.CORS_ORIGIN,
     };
   }
 }

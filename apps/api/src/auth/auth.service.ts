@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
@@ -25,10 +22,12 @@ export class AuthService {
     if (!user || !user.isActive) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    
+
     // Prevent login if WhatsApp OTP is pending (only for END_USER usually, but safely applies if the flag is false)
     if (user.whatsappVerified === false) {
-      throw new UnauthorizedException('Please verify your WhatsApp number before logging in.');
+      throw new UnauthorizedException(
+        'Please verify your WhatsApp number before logging in.',
+      );
     }
 
     const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);

@@ -1,4 +1,15 @@
-import { Controller, Post, Get, Patch, Body, Param, HttpCode, HttpStatus, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Body,
+  Param,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { ContactService } from './contact.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';

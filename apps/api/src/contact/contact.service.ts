@@ -11,7 +11,10 @@ export class ContactService {
     const message = await this.prisma.contactMessage.create({
       data: dto,
     });
-    return { id: message.id, message: 'Message received. We will get back to you soon!' };
+    return {
+      id: message.id,
+      message: 'Message received. We will get back to you soon!',
+    };
   }
 
   async findAll(pagination: PaginationDto) {
@@ -28,7 +31,10 @@ export class ContactService {
       this.prisma.contactMessage.count(),
     ]);
 
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async markRead(id: string) {
