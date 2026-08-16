@@ -99,6 +99,13 @@ export default function NewPictureBookPage() {
         delete (payload as any).userId;
       }
 
+      // Remove any empty strings to avoid class-validator errors on optional fields like departureDate
+      Object.keys(payload).forEach(key => {
+        if ((payload as any)[key] === "") {
+          delete (payload as any)[key];
+        }
+      });
+
       const book = await pictureBooksApi.create(accessToken, payload);
       setStatus("success");
       setTimeout(() => router.push(`/dashboard/clients/${book.id}`), 1500);
