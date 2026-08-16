@@ -14,6 +14,18 @@ export class CreatePictureBookDto {
   userId?: string;
 
   @IsString()
+  @IsOptional()
+  customerName?: string;
+
+  @IsString()
+  @IsOptional()
+  whatsappNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
   @MinLength(2)
   @MaxLength(100)
   title: string;

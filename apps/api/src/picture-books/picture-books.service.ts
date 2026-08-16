@@ -24,6 +24,18 @@ export class PictureBooksService {
 
     if (user.role === Role.ADMIN && dto.userId) {
       targetUserId = dto.userId;
+    } else if (user.role === Role.GUIDE && dto.customerName && dto.whatsappNumber) {
+      // Create a new end-user for this customer
+      const newCustomer = await this.prisma.user.create({
+        data: {
+          name: dto.customerName,
+          whatsappNumber: dto.whatsappNumber,
+          email: dto.email || null,
+          role: Role.END_USER,
+          referredById: user.id,
+        },
+      });
+      targetUserId = newCustomer.id;
     }
 
     const pictureBook = await this.prisma.pictureBook.create({

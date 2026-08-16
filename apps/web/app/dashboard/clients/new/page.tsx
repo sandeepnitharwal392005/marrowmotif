@@ -89,7 +89,17 @@ export default function NewPictureBookPage() {
     setErrorMessage("");
     
     try {
-      const book = await pictureBooksApi.create(accessToken, form);
+      const payload = { ...form };
+      if (!isGuide) {
+        delete (payload as any).customerName;
+        delete (payload as any).whatsappNumber;
+        delete (payload as any).email;
+      }
+      if (!isAdmin) {
+        delete (payload as any).userId;
+      }
+
+      const book = await pictureBooksApi.create(accessToken, payload);
       setStatus("success");
       setTimeout(() => router.push(`/dashboard/clients/${book.id}`), 1500);
     } catch (err: any) {
