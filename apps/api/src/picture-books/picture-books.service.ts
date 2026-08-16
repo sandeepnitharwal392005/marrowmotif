@@ -30,7 +30,8 @@ export class PictureBooksService {
         data: {
           name: dto.customerName,
           whatsappNumber: dto.whatsappNumber,
-          email: dto.email || null,
+          email: dto.email || `${dto.whatsappNumber.replace(/[^0-9]/g, '')}@guest.morrowotif.com`,
+          passwordHash: 'pending_setup',
           role: Role.END_USER,
           referredById: user.id,
         },
