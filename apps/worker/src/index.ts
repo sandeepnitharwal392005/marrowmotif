@@ -45,6 +45,14 @@ async function processWelcomeMessage(job: Job) {
 
   if (!pictureBook) throw new Error(`PictureBook ${pictureBookId} not found`);
 
+  await prisma.pictureBook.update({
+    where: { id: pictureBookId },
+    data: { driveStatus: 'PROCESSING' }
+  });
+  await prisma.activityLog.create({
+    data: { pictureBookId, action: 'DRIVE_GENERATION_STARTED', details: 'Drive generation job started in worker' }
+  });
+
   // Idempotency
   if (pictureBook.status !== 'REQUESTED' && pictureBook.driveLink) {
     console.log(`[Worker] ⏭ PictureBook ${pictureBookId} already has drive link`);
@@ -55,22 +63,46 @@ async function processWelcomeMessage(job: Job) {
 
   // Step 2: Create Drive folder if needed
   if (!driveLink) {
-    console.log(`[Worker] 📁 Creating Drive folder for "${pictureBook.title}"`);
-    const driveResult = await drive.createClientFolder(
-      pictureBook.user.name,
-      pictureBook.id,
-    );
+    if (pictureBook.user.email === 'production-test@morrowotif.internal') {
+      console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking Drive folder creation for "${pictureBook.title}"`);
+      driveLink = `https://drive.google.com/drive/folders/synthetic-mock-folder-${pictureBook.id}`;
+      
+      await prisma.pictureBook.update({
+        where: { id: pictureBookId },
+        data: { driveLink, driveStatus: 'SUCCESS', driveError: null },
+      });
+      await prisma.activityLog.create({
+        data: { pictureBookId, action: 'DRIVE_GENERATION_SUCCESS', details: driveLink }
+      });
+      console.log(`[Worker] ✅ Synthetic Drive link saved: ${driveLink}`);
+    } else {
+      console.log(`[Worker] 📁 Creating Drive folder for "${pictureBook.title}"`);
+      const driveResult = await drive.createClientFolder(
+        pictureBook.user.name,
+        pictureBook.id,
+      );
 
-    if (!driveResult.success || !driveResult.shareLink) {
-      throw new Error(`Drive folder creation failed: ${driveResult.error}`);
+      if (!driveResult.success || !driveResult.shareLink) {
+        await prisma.pictureBook.update({
+          where: { id: pictureBookId },
+          data: { driveStatus: 'FAILED', driveError: driveResult.error },
+        });
+        await prisma.activityLog.create({
+          data: { pictureBookId, action: 'DRIVE_GENERATION_FAILED', details: driveResult.error }
+        });
+        throw new Error(`Drive folder creation failed: ${driveResult.error}`);
+      }
+
+      driveLink = driveResult.shareLink;
+      await prisma.pictureBook.update({
+        where: { id: pictureBookId },
+        data: { driveLink, driveStatus: 'SUCCESS', driveError: null },
+      });
+      await prisma.activityLog.create({
+        data: { pictureBookId, action: 'DRIVE_GENERATION_SUCCESS', details: driveLink }
+      });
+      console.log(`[Worker] ✅ Drive link saved: ${driveLink}`);
     }
-
-    driveLink = driveResult.shareLink;
-    await prisma.pictureBook.update({
-      where: { id: pictureBookId },
-      data: { driveLink },
-    });
-    console.log(`[Worker] ✅ Drive link saved: ${driveLink}`);
   }
 
   // Step 3: Check idempotency for WhatsApp
@@ -93,14 +125,28 @@ async function processWelcomeMessage(job: Job) {
     });
   }
 
+  // Log WhatsApp start
+  await prisma.activityLog.create({
+    data: { pictureBookId, action: 'WHATSAPP_SEND_STARTED', details: `Attempting to send WhatsApp message to ${pictureBook.user.phone || 'unknown'}` }
+  });
+
   // Step 5: Send WhatsApp message
   if (pictureBook.user.phone) {
-    console.log(`[Worker] 📱 Sending WhatsApp to ${pictureBook.user.phone}`);
-    const waResult = await whatsApp.sendTemplateMessage(
-      pictureBook.user.phone,
-      pictureBook.user.name,
-      driveLink,
-    );
+    let waResult;
+    const isSynthetic = pictureBook.user.phone === '+15550000000' || pictureBook.user.email === 'production-test@morrowotif.internal';
+    
+    if (isSynthetic) {
+      console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking WhatsApp to ${pictureBook.user.phone}`);
+      // Simulate success for synthetic tests
+      waResult = { success: true, messageId: `synthetic-msg-${Date.now()}` };
+    } else {
+      console.log(`[Worker] 📱 Sending WhatsApp to ${pictureBook.user.phone}`);
+      waResult = await whatsApp.sendTemplateMessage(
+        pictureBook.user.phone,
+        pictureBook.user.name,
+        driveLink,
+      );
+    }
 
     const attempts = (waMessage.attempts || 0) + 1;
 
@@ -108,6 +154,10 @@ async function processWelcomeMessage(job: Job) {
       await prisma.whatsAppMessage.update({
         where: { id: waMessage.id },
         data: { status: 'FAILED', errorMessage: waResult.error, attempts },
+      });
+
+      await prisma.activityLog.create({
+        data: { pictureBookId, action: 'WHATSAPP_SEND_FAILED', details: waResult.error }
       });
 
       if (job.attemptsMade >= (job.opts.attempts || 3) - 1) {
@@ -128,6 +178,10 @@ async function processWelcomeMessage(job: Job) {
         sentAt: new Date(),
         errorMessage: null,
       },
+    });
+
+    await prisma.activityLog.create({
+      data: { pictureBookId, action: 'WHATSAPP_SEND_SUCCESS', details: `Message ID: ${waResult.messageId}` }
     });
     
     await prisma.pictureBook.update({ where: { id: pictureBookId }, data: { status: 'UPLOAD_PENDING' } });
@@ -157,10 +211,18 @@ async function processManualWhatsApp(job: Job) {
     data: { pictureBookId, status: 'QUEUED', attempts: 0 },
   });
 
-  const waResult = await whatsApp.sendMessage(
-    pictureBook.user.phone,
-    messageContent
-  );
+  let waResult;
+  const isSynthetic = pictureBook.user.phone === '+15550000000' || pictureBook.user.email === 'production-test@morrowotif.internal';
+  
+  if (isSynthetic) {
+    console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking manual WhatsApp to ${pictureBook.user.phone}`);
+    waResult = { success: true, messageId: `synthetic-manual-msg-${Date.now()}` };
+  } else {
+    waResult = await whatsApp.sendMessage(
+      pictureBook.user.phone,
+      messageContent
+    );
+  }
 
   const attempts = 1;
 

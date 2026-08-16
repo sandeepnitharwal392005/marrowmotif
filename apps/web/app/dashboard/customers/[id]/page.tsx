@@ -24,21 +24,22 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [waType, setWaType] = useState<"default" | "custom">("default");
   const [customMsg, setCustomMsg] = useState("");
 
-  useEffect(() => {
-    async function loadCustomer() {
-      if (!accessToken) return;
-      try {
-        const data = await apiFetch(`/users/${resolvedParams.id}`, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        setCustomer(data);
-      } catch (err: any) {
-        toast.error("Failed to load customer", { description: err.message });
-        router.push("/dashboard/users");
-      } finally {
-        setLoading(false);
-      }
+  const loadCustomer = async () => {
+    if (!accessToken) return;
+    try {
+      const data = await apiFetch(`/users/${resolvedParams.id}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      setCustomer(data);
+    } catch (err: any) {
+      toast.error("Failed to load customer", { description: err.message });
+      router.push("/dashboard/users");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadCustomer();
   }, [accessToken, resolvedParams.id, router]);
 
@@ -55,13 +56,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         body: JSON.stringify({ status: newStatus })
       });
       toast.success("Status updated successfully");
-      
-      // We don't want to reload the entire user, let's just update the local state for speed.
-      // But actually, reloading the user is safer to get the new activity log.
-      const data = await apiFetch(`/users/${resolvedParams.id}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      setCustomer(data);
+      await loadCustomer();
     } catch (err: any) {
       toast.error("Failed to update status", { description: err.message });
     } finally {
@@ -78,6 +73,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       toast.success("Drive link creation queued");
+      await loadCustomer();
     } catch (err: any) {
       toast.error("Failed to queue drive job", { description: err.message });
     } finally {
@@ -106,6 +102,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       }
       toast.success("WhatsApp message queued");
       setWaModalOpen(false);
+      await loadCustomer();
     } catch (err: any) {
       toast.error("Failed to queue WhatsApp message", { description: err.message });
     } finally {
@@ -252,6 +249,58 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   </div>
 
                   <div>
+                    <h4 className="text-sm font-semibold text-[#1A1A1A] mb-3 uppercase tracking-wider flex items-center justify-between">
+                      Automation Status
+                      <button onClick={loadCustomer} className="text-[#666] hover:text-[#1A1A1A] transition-colors" title="Refresh Status">
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      </button>
+                    </h4>
+                    <div className="bg-white p-4 rounded-lg border border-[#EAE6DF] space-y-4">
+                      {/* Drive Link Status */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-[#1A1A1A] flex items-center gap-1.5"><HardDrive className="w-4 h-4 text-[#999]"/> Drive Link Generation</span>
+                          {pb.driveStatus ? (
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                              pb.driveStatus === 'SUCCESS' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                              pb.driveStatus === 'FAILED' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                              pb.driveStatus === 'PROCESSING' ? 'bg-blue-100 text-blue-800 border border-blue-200 animate-pulse' :
+                              'bg-amber-100 text-amber-800 border border-amber-200'
+                            }`}>
+                              {pb.driveStatus}
+                            </span>
+                          ) : <span className="text-xs text-[#999] italic">Not started</span>}
+                        </div>
+                        {pb.driveStatus === 'FAILED' && pb.driveError && (
+                          <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 mt-2">
+                            {pb.driveError}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="border-t border-[#EAE6DF] pt-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-[#1A1A1A] flex items-center gap-1.5"><MessageSquare className="w-4 h-4 text-[#999]"/> Welcome WhatsApp</span>
+                          {pb.messages?.[0] ? (
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                              ['SENT', 'DELIVERED', 'READ'].includes(pb.messages[0].status) ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                              pb.messages[0].status === 'FAILED' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                              'bg-amber-100 text-amber-800 border border-amber-200'
+                            }`}>
+                              {pb.messages[0].status}
+                            </span>
+                          ) : <span className="text-xs text-[#999] italic">Not queued</span>}
+                        </div>
+                        {pb.messages?.[0]?.status === 'FAILED' && pb.messages[0].errorMessage && (
+                          <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 mt-2">
+                            {pb.messages[0].errorMessage}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
                     <h4 className="text-sm font-semibold text-[#1A1A1A] mb-3 uppercase tracking-wider">Admin Actions</h4>
                     <div className="flex flex-col gap-2">
                       <button 
@@ -260,7 +309,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         className="bg-white border border-[#EAE6DF] hover:border-[#C9A84C] text-[#1A1A1A] hover:text-[#C9A84C] px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2"
                       >
                         {submittingId === `drive-${pb.id}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
-                        Manually Generate Drive Link
+                        {pb.driveStatus === 'FAILED' ? 'Retry Drive Generation' : 'Manually Generate Drive Link'}
                       </button>
                       
                       <button 
@@ -268,7 +317,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         className="bg-[#1A1A1A] hover:bg-[#333] text-white px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2"
                       >
                         <MessageSquare className="w-4 h-4" />
-                        Send WhatsApp Message
+                        {pb.messages?.[0]?.status === 'FAILED' ? 'Retry WhatsApp Message' : 'Send WhatsApp Message'}
                       </button>
                     </div>
                   </div>

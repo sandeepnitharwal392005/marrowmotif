@@ -75,7 +75,7 @@ export class PictureBooksService {
 
     await this.prisma.pictureBook.update({
       where: { id: pictureBook.id },
-      data: { jobId: job.id?.toString() },
+      data: { jobId: job.id?.toString(), driveStatus: 'QUEUED', driveError: null },
     });
 
     return pictureBook;
@@ -170,6 +170,11 @@ export class PictureBooksService {
       },
     );
 
+    await this.prisma.pictureBook.update({
+      where: { id },
+      data: { driveStatus: 'QUEUED', driveError: null },
+    });
+
     return { message: 'Automation job re-queued', pictureBookId: id };
   }
 
@@ -247,6 +252,11 @@ export class PictureBooksService {
         removeOnFail: false,
       },
     );
+
+    await this.prisma.pictureBook.update({
+      where: { id },
+      data: { driveStatus: 'QUEUED', driveError: null },
+    });
 
     await this.prisma.activityLog.create({
       data: {

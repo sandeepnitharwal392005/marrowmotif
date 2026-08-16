@@ -81,12 +81,21 @@ model User {
   @@map("users")
 }
 
+enum DriveStatus {
+  QUEUED
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
 model PictureBook {
   id              String             @id @default(cuid())
   title           String
   userId          String
   status          PictureBookStatus  @default(REQUESTED)
   driveLink       String?
+  driveStatus     DriveStatus?
+  driveError      String?
   jobId           String?
   
   // Delivery Info
