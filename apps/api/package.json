@@ -12,7 +12,7 @@
     "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "npx prisma@5.22.0 db push --schema ../../packages/database/prisma/schema.prisma --accept-data-loss ; node dist/main.js",
+    "start:prod": "npx prisma@5.22.0 migrate deploy --schema ../../packages/database/prisma/schema.prisma ; node dist/main.js",
     "db:bootstrap-admin": "ts-node scripts/bootstrap-admin.ts",
     "db:bootstrap-user": "ts-node scripts/bootstrap-user.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
