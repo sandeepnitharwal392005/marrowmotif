@@ -20,89 +20,97 @@ export class PictureBooksService {
   ) {}
 
   async create(dto: CreatePictureBookDto, user: { id: string; role: Role }) {
-    let targetUserId = user.id;
+    try {
+      let targetUserId = user.id;
 
-    if (user.role === Role.ADMIN && dto.userId) {
-      targetUserId = dto.userId;
-    }
+      if (user.role === Role.ADMIN && dto.userId) {
+        targetUserId = dto.userId;
+      }
 
-    const pictureBook = await this.prisma.pictureBook.create({
-      data: {
-        userId: targetUserId,
-        title: dto.title,
-        status: 'REQUESTED',
-        deliveryPreference: dto.deliveryPreference,
-        departureDate: dto.departureDate ? new Date(dto.departureDate) : null,
-        departureTime: dto.departureTime,
-        flightNumber: dto.flightNumber,
-        departureAirport: dto.departureAirport,
-        deliveryAddressLine1: dto.deliveryAddressLine1,
-        deliveryAddressLine2: dto.deliveryAddressLine2,
-        deliveryCity: dto.deliveryCity,
-        deliveryState: dto.deliveryState,
-        deliveryPostalCode: dto.deliveryPostalCode,
-        deliveryCountry: dto.deliveryCountry,
-      },
-    });
-
-    const job = await this.automationQueue.add(
-      'generate-drive-link',
-      { pictureBookId: pictureBook.id },
-      {
-        jobId: `drive-${pictureBook.id}`,
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 5000,
+      const pictureBook = await this.prisma.pictureBook.create({
+        data: {
+          userId: targetUserId,
+          title: dto.title,
+          status: 'REQUESTED',
+          deliveryPreference: dto.deliveryPreference,
+          departureDate: dto.departureDate ? new Date(dto.departureDate) : null,
+          departureTime: dto.departureTime,
+          flightNumber: dto.flightNumber,
+          departureAirport: dto.departureAirport,
+          deliveryAddressLine1: dto.deliveryAddressLine1,
+          deliveryAddressLine2: dto.deliveryAddressLine2,
+          deliveryCity: dto.deliveryCity,
+          deliveryState: dto.deliveryState,
+          deliveryPostalCode: dto.deliveryPostalCode,
+          deliveryCountry: dto.deliveryCountry,
         },
-        removeOnComplete: false,
-        removeOnFail: false,
-      },
-    );
+      });
 
-    await this.prisma.pictureBook.update({
-      where: { id: pictureBook.id },
-      data: { jobId: job.id?.toString(), driveStatus: 'QUEUED', driveError: null },
-    });
+      const job = await this.automationQueue.add(
+        'generate-drive-link',
+        { pictureBookId: pictureBook.id },
+        {
+          jobId: `drive-${pictureBook.id}`,
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 5000,
+          },
+          removeOnComplete: false,
+          removeOnFail: false,
+        },
+      );
 
-    return pictureBook;
+      await this.prisma.pictureBook.update({
+        where: { id: pictureBook.id },
+        data: { jobId: job.id?.toString(), driveStatus: 'QUEUED', driveError: null },
+      });
+
+      return pictureBook;
+    } catch (e: any) {
+      throw new import('@nestjs/common').BadRequestException('DEBUG_CREATE: ' + e.message);
+    }
   }
 
   async findAll(pagination: PaginationDto, user: { id: string; role: Role }) {
-    const page = pagination.page || 1;
-    const limit = pagination.limit || 20;
-    const skip = (page - 1) * limit;
+    try {
+      const page = pagination.page || 1;
+      const limit = pagination.limit || 20;
+      const skip = (page - 1) * limit;
 
-    let where: any = {};
-    if (user.role === Role.END_USER) {
-      where = { userId: user.id };
-    } else if (user.role === Role.GUIDE) {
-      where = { user: { referredById: user.id } };
+      let where: any = {};
+      if (user.role === Role.END_USER) {
+        where = { userId: user.id };
+      } else if (user.role === Role.GUIDE) {
+        where = { user: { referredById: user.id } };
+      }
+
+      const [data, total] = await Promise.all([
+        this.prisma.pictureBook.findMany({
+          where,
+          skip,
+          take: limit,
+          include: {
+            messages: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+            user: {
+              select: { id: true, name: true, email: true, whatsappNumber: true },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.pictureBook.count({ where }),
+      ]);
+
+      return {
+        data,
+        meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      };
+    } catch (e: any) {
+      throw new import('@nestjs/common').BadRequestException('DEBUG: ' + e.message);
     }
-
-    const [data, total] = await Promise.all([
-      this.prisma.pictureBook.findMany({
-        where,
-        skip,
-        take: limit,
-        include: {
-          messages: {
-            orderBy: { createdAt: 'desc' },
-            take: 1,
-          },
-          user: {
-            select: { id: true, name: true, email: true, whatsappNumber: true },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.pictureBook.count({ where }),
-    ]);
-
-    return {
-      data,
-      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
-    };
   }
 
   async findOne(id: string, user: { id: string; role: Role }) {
