@@ -59,13 +59,15 @@ function DashboardNav() {
           </Link>
         </div>
 
-        <div className="mx-6 mt-6 px-3 py-2 rounded-lg text-xs font-medium border border-amber-200 bg-[#F5F3EC] text-amber-700 flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-          </span>
-          Demo Mode
-        </div>
+        {process.env.NEXT_PUBLIC_DEMO_MODE === "true" && (
+          <div className="mx-6 mt-6 px-3 py-2 rounded-lg text-xs font-medium border border-amber-200 bg-[#F5F3EC] text-amber-700 flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+            Demo Mode
+          </div>
+        )}
 
         <nav className="flex-1 px-4 space-y-1 mt-6">
           {navItems.map((item) => {
