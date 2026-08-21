@@ -55,7 +55,21 @@ export function ErrorState({ error, onRetry, className = "" }: ErrorStateProps) 
         </Link>
       )
     };
-  } else if (!status || status >= 500 || message.toLowerCase().includes("fetch")) {
+  } else if (status >= 500) {
+    config = {
+      icon: <AlertCircle className="w-12 h-12 text-rose-500 mb-4" />,
+      title: "Server Error",
+      description: `The server encountered an error (500). Message: ${message}`,
+      action: (
+        <button 
+          onClick={onRetry || (() => window.location.reload())} 
+          className="mt-6 px-6 py-2.5 bg-[#1A1A1A] hover:bg-[#333] text-white rounded-md text-sm font-medium transition-colors"
+        >
+          {onRetry ? "Try Again" : "Refresh Page"}
+        </button>
+      )
+    };
+  } else if (!status || message.toLowerCase().includes("fetch") || message.toLowerCase().includes("network")) {
     config = {
       icon: <WifiOff className="w-12 h-12 text-[#999] mb-4" />,
       title: "Connection Error",
