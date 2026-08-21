@@ -15,6 +15,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function loadSettings() {
+      if (!accessToken) return;
+      try {
         if (user?.role === "ADMIN") {
           const data = await settingsApi.get(accessToken);
           setSettings(data);

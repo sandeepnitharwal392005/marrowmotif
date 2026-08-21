@@ -38,6 +38,7 @@ export async function apiFetch<T>(
   // Handle path correctly whether it has a leading slash or not
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   let response = await fetch(`${API_URL}/api${cleanPath}`, {
+    cache: 'no-store',
     ...rest,
     headers,
   });
