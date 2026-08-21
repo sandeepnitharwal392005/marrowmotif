@@ -49,6 +49,30 @@ export class UsersService {
     };
   }
 
+  async getStats(user: { id: string; role: Role }) {
+    if (user.role !== Role.GUIDE && user.role !== Role.ADMIN) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const where = user.role === Role.ADMIN ? {} : { referredById: user.id };
+
+    const [totalReferred, pendingRegistration, registered] = await Promise.all([
+      this.prisma.user.count({ where }),
+      this.prisma.user.count({
+        where: { ...where, passwordHash: 'pending_setup' },
+      }),
+      this.prisma.user.count({
+        where: { ...where, passwordHash: { not: 'pending_setup' } },
+      }),
+    ]);
+
+    return {
+      totalReferred,
+      pendingRegistration,
+      registered,
+    };
+  }
+
   async search(
     query: string,
     pagination: PaginationDto,
@@ -126,6 +150,13 @@ export class UsersService {
         referredById: true,
         referredBy: { select: { id: true, name: true } },
         referrals: { select: { id: true, name: true } },
+        pictureBooks: {
+          include: {
+            messages: true,
+            activityLogs: true,
+          },
+          orderBy: { createdAt: 'desc' }
+        },
         addressLine1: true,
         addressLine2: true,
         city: true,
@@ -401,5 +432,49 @@ export class UsersService {
     });
 
     return { success: true };
+  }
+
+  async update(id: string, data: any, user: { id: string; role: Role }) {
+    if (user.role !== Role.ADMIN && user.id !== id) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const updateData: any = {
+      name: data.name,
+      phone: data.phone,
+      whatsappNumber: data.whatsappNumber,
+      addressLine1: data.addressLine1,
+      addressLine2: data.addressLine2,
+      city: data.city,
+      state: data.state,
+      postalCode: data.postalCode,
+      country: data.country,
+    };
+
+    // Remove undefined fields
+    Object.keys(updateData).forEach(
+      (key) => updateData[key] === undefined && delete updateData[key],
+    );
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        whatsappNumber: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        state: true,
+        postalCode: true,
+        country: true,
+      },
+    });
+
+    return updatedUser;
   }
 }

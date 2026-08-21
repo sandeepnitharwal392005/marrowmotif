@@ -96,7 +96,7 @@ export class PictureBooksService {
       if (user.role === Role.END_USER) {
         where = { userId: user.id };
       } else if (user.role === Role.GUIDE) {
-        where = { user: { referredById: user.id } };
+        throw new ForbiddenException('Guides do not have access to Picture Books');
       }
 
       const [data, total] = await Promise.all([
@@ -151,11 +151,8 @@ export class PictureBooksService {
     if (user.role === Role.END_USER && pictureBook.userId !== user.id) {
       throw new ForbiddenException('Access denied');
     }
-    if (
-      user.role === Role.GUIDE &&
-      (pictureBook.user as any).referredById !== user.id
-    ) {
-      throw new ForbiddenException('Access denied');
+    if (user.role === Role.GUIDE) {
+      throw new ForbiddenException('Guides do not have access to Picture Books');
     }
 
     return pictureBook;
@@ -208,17 +205,28 @@ export class PictureBooksService {
     if (user.role === Role.END_USER) {
       where = { userId: user.id };
     } else if (user.role === Role.GUIDE) {
-      where = { user: { referredById: user.id } };
+      throw new ForbiddenException('Guides do not have access to Picture Books');
     }
 
     const [total, active, pending, failed] = await Promise.all([
       this.prisma.pictureBook.count({ where }),
-      this.prisma.pictureBook.count({ where: { ...where, status: 'READY' } }),
+      this.prisma.pictureBook.count({ 
+        where: { 
+          ...where, 
+          status: { in: ['READY', 'IN_PRODUCTION', 'UNDER_REVIEW', 'PHOTOS_UPLOADED', 'UPLOAD_PENDING'] } 
+        } 
+      }),
       this.prisma.pictureBook.count({
         where: { ...where, status: 'REQUESTED' },
       }),
       this.prisma.pictureBook.count({
-        where: { ...where, status: 'CANCELLED' },
+        where: { 
+          ...where, 
+          OR: [
+            { driveStatus: 'FAILED' },
+            { status: 'CANCELLED' }
+          ] 
+        },
       }),
     ]);
 

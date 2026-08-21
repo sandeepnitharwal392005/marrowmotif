@@ -28,6 +28,11 @@ export class UsersController {
     return this.usersService.findAll(pagination, user);
   }
 
+  @Get('stats')
+  getStats(@CurrentUser() user: any) {
+    return this.usersService.getStats(user);
+  }
+
   @Get('search')
   search(@Query() pagination: PaginationDto, @CurrentUser() user: any) {
     return this.usersService.search(pagination.q || '', pagination, user);
@@ -42,6 +47,11 @@ export class UsersController {
   @Post()
   create(@Body() body: CreateUserDto) {
     return this.usersService.create(body);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() body: any, @CurrentUser() user: any) {
+    return this.usersService.update(id, body, user);
   }
 
   @Patch(':id/toggle-active')

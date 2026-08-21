@@ -185,10 +185,13 @@ export const settingsApi = {
 
 // Users
 export const usersApi = {
+  list: (token: string, page: number = 1, limit: number = 20) => 
+    apiFetch<any>(`/users?page=${page}&limit=${limit}`, { token }),
   referCustomer: (token: string, data: any) =>
     apiFetch<any>("/users/referrals", {
       method: "POST",
       token,
       body: JSON.stringify(data),
     }),
+  stats: (token: string) => apiFetch<any>("/users/stats", { token }),
 };

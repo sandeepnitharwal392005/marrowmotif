@@ -10,24 +10,30 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
     async function loadSettings() {
-      if (!accessToken || user?.role !== "ADMIN") {
-        setLoading(false);
-        return;
-      }
-      try {
-        const data = await settingsApi.get(accessToken);
-        setSettings(data);
+        if (user?.role === "ADMIN") {
+          const data = await settingsApi.get(accessToken);
+          setSettings(data);
+        }
+        if (user?.id) {
+          const { apiFetch } = await import('@/lib/api');
+          const userData = await apiFetch(`/users/${user.id}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          setProfile(userData);
+        }
       } catch (err: any) {
-        toast.error("Failed to load settings");
+        toast.error("Failed to load data");
       } finally {
         setLoading(false);
       }
     }
     loadSettings();
-  }, [accessToken, user]);
+  }, [accessToken, user?.id, user?.role]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -41,6 +47,39 @@ export default function SettingsPage() {
       toast.error("Failed to save settings", { description: err.message });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleProfileSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!accessToken || !profile) return;
+    setSavingProfile(true);
+    try {
+      const { apiFetch } = await import('@/lib/api');
+      const updated = await apiFetch(`/users/${user?.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          name: profile.name,
+          phone: profile.phone,
+          whatsappNumber: profile.whatsappNumber,
+          addressLine1: profile.addressLine1,
+          addressLine2: profile.addressLine2,
+          city: profile.city,
+          state: profile.state,
+          postalCode: profile.postalCode,
+          country: profile.country,
+        })
+      });
+      setProfile(updated);
+      toast.success("Profile saved successfully");
+    } catch (err: any) {
+      toast.error("Failed to save profile", { description: err.message });
+    } finally {
+      setSavingProfile(false);
     }
   }
 
@@ -63,25 +102,117 @@ export default function SettingsPage() {
         <p className="text-[#666666] text-sm mt-1">Manage your account and platform configuration.</p>
       </div>
 
-      <div className="bg-white border border-[#EAE6DF] rounded-xl p-6 sm:p-8 shadow-sm">
+      <form onSubmit={handleProfileSave} className="bg-white border border-[#EAE6DF] rounded-xl p-6 sm:p-8 shadow-sm space-y-6">
         <h2 className="font-serif text-[#1A1A1A] text-xl mb-4">Account Information</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Name</label>
-            <div className="text-[#1A1A1A] font-medium">{user?.name}</div>
+            <input 
+              type="text"
+              value={profile?.name || ''}
+              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+              required
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Email</label>
-            <div className="text-[#1A1A1A] font-medium">{user?.email}</div>
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Email <span className="text-[10px] lowercase normal-case text-gray-400">(Read-only)</span></label>
+            <input 
+              type="email"
+              value={profile?.email || ''}
+              disabled
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm bg-gray-50 text-gray-500"
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Role</label>
-            <div className="inline-flex px-2 py-1 rounded bg-[#FAF9F6] border border-[#EAE6DF] text-xs font-medium text-[#1A1A1A]">
-              {user?.role}
-            </div>
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Phone</label>
+            <input 
+              type="tel"
+              value={profile?.phone || ''}
+              onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">WhatsApp Number</label>
+            <input 
+              type="tel"
+              value={profile?.whatsappNumber || ''}
+              onChange={(e) => setProfile({ ...profile, whatsappNumber: e.target.value })}
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+            />
           </div>
         </div>
-      </div>
+
+        <h3 className="text-sm font-semibold text-[#1A1A1A] uppercase tracking-wider pt-4 border-t border-[#EAE6DF]">Address</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Address Line 1</label>
+            <input 
+              type="text"
+              value={profile?.addressLine1 || ''}
+              onChange={(e) => setProfile({ ...profile, addressLine1: e.target.value })}
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Address Line 2</label>
+            <input 
+              type="text"
+              value={profile?.addressLine2 || ''}
+              onChange={(e) => setProfile({ ...profile, addressLine2: e.target.value })}
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">City</label>
+            <input 
+              type="text"
+              value={profile?.city || ''}
+              onChange={(e) => setProfile({ ...profile, city: e.target.value })}
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">State/Province</label>
+            <input 
+              type="text"
+              value={profile?.state || ''}
+              onChange={(e) => setProfile({ ...profile, state: e.target.value })}
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Postal Code</label>
+            <input 
+              type="text"
+              value={profile?.postalCode || ''}
+              onChange={(e) => setProfile({ ...profile, postalCode: e.target.value })}
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Country</label>
+            <input 
+              type="text"
+              value={profile?.country || ''}
+              onChange={(e) => setProfile({ ...profile, country: e.target.value })}
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-4">
+          <button
+            type="submit"
+            disabled={savingProfile}
+            className="bg-[#1A1A1A] hover:bg-[#333333] text-white px-6 py-2.5 rounded-md font-medium transition-colors flex items-center justify-center gap-2 min-w-[140px]"
+          >
+            {savingProfile ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {savingProfile ? "Saving..." : "Save Profile"}
+          </button>
+        </div>
+      </form>
 
       {user?.role === "ADMIN" && settings && (
         <form onSubmit={handleSave} className="bg-white border border-[#EAE6DF] rounded-xl overflow-hidden shadow-sm">

@@ -31,7 +31,8 @@ function DashboardNav() {
   } else if (user?.role === "GUIDE") {
     navItems = [
       { href: "/dashboard", label: "Dashboard", icon: Home },
-      { href: "/dashboard/clients/new", label: "Refer Customer", icon: UserPlus },
+      { href: "/dashboard/referrals", label: "My Referrals", icon: Users },
+      { href: "/dashboard/referrals/new", label: "Refer Customer", icon: UserPlus },
       { href: "/dashboard/settings", label: "Settings", icon: Settings },
     ];
   } else {

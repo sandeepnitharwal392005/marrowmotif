@@ -3,23 +3,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
-import { pictureBooksApi, settingsApi, usersApi, apiFetch } from "@/lib/api";
-import { ArrowLeft, UserPlus, Phone, Mail, BookOpen, CheckCircle2, Info, HardDrive, MessageSquare } from "lucide-react";
+import { pictureBooksApi, settingsApi, apiFetch } from "@/lib/api";
+import { ArrowLeft, UserPlus, BookOpen, CheckCircle2, HardDrive } from "lucide-react";
 
 export default function NewPictureBookPage() {
   const { user, accessToken } = useAuth();
   const router = useRouter();
-  const isGuide = user?.role === "GUIDE";
   const isEndUser = user?.role === "END_USER";
   const isAdmin = user?.role === "ADMIN";
 
-  // Guide needs to provide customer details. End User just provides book details.
   // Admin provides userId for an existing user.
   const [form, setForm] = useState({ 
     title: "", 
-    customerName: "", 
-    whatsappNumber: "", 
-    email: "",
     deliveryPreference: "HOME_DELIVERY",
     departureDate: "",
     departureTime: "",
@@ -90,11 +85,6 @@ export default function NewPictureBookPage() {
     
     try {
       const payload = { ...form };
-      if (!isGuide) {
-        delete (payload as any).customerName;
-        delete (payload as any).whatsappNumber;
-        delete (payload as any).email;
-      }
       if (!isAdmin) {
         delete (payload as any).userId;
       }
@@ -106,15 +96,9 @@ export default function NewPictureBookPage() {
         }
       });
 
-      if (isGuide) {
-        await usersApi.referCustomer(accessToken, payload);
-        setStatus("success");
-        setTimeout(() => router.push(`/dashboard/clients`), 1500);
-      } else {
-        const book = await pictureBooksApi.create(accessToken, payload);
-        setStatus("success");
-        setTimeout(() => router.push(`/dashboard/clients/${book.id}`), 1500);
-      }
+      const book = await pictureBooksApi.create(accessToken, payload);
+      setStatus("success");
+      setTimeout(() => router.push(`/dashboard/clients/${book.id}`), 1500);
     } catch (err: any) {
       setErrorMessage(err.message || "An unexpected error occurred.");
       setStatus("error");
@@ -129,14 +113,12 @@ export default function NewPictureBookPage() {
           Back to list
         </Link>
         <h1 className="text-3xl font-serif text-[#1A1A1A] tracking-tight">
-          {isGuide ? "Refer a Customer" : "Create Picture Book"}
+          Create Picture Book
         </h1>
         <p className="text-[#666] text-sm mt-2 leading-relaxed">
           {isAdmin 
             ? "Create a Picture Book project and assign it to an existing customer."
-            : isGuide 
-              ? "Enter your customer's details to set up their Picture Book project and send them an upload link." 
-              : "Give your new Picture Book a title to generate a secure photo upload link."}
+            : "Give your new Picture Book a title to generate a secure photo upload link."}
         </p>
       </div>
 
@@ -146,8 +128,8 @@ export default function NewPictureBookPage() {
             <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 border border-emerald-100">
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
-            <h2 className="text-2xl font-serif text-[#1A1A1A] mb-2">{isGuide ? "Referral Sent!" : "Project Created!"}</h2>
-            <p className="text-[#666] text-sm mb-6 max-w-[280px]">{isGuide ? "Redirecting you back to referrals..." : "Redirecting you to the project dashboard..."}</p>
+            <h2 className="text-2xl font-serif text-[#1A1A1A] mb-2">Project Created!</h2>
+            <p className="text-[#666] text-sm mb-6 max-w-[280px]">Redirecting you to the project dashboard...</p>
             <div className="w-6 h-6 border-2 border-[#EAE6DF] border-t-[#C9A84C] rounded-full animate-spin"></div>
           </div>
         ) : (
@@ -155,29 +137,27 @@ export default function NewPictureBookPage() {
             <div className="space-y-5 flex-1">
               
               {/* Common: Book Title */}
-              {!isGuide && (
-                <div>
-                  <label htmlFor="book-title" className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                    Picture Book Title <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <BookOpen className="h-5 w-5 text-[#999]" />
-                    </div>
-                    <input
-                      id="book-title"
-                      type="text"
-                      required
-                      minLength={2}
-                      maxLength={100}
-                      value={form.title}
-                      onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                      className="w-full pl-11 pr-4 py-3 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
-                      placeholder="e.g. My Trip to Italy"
-                    />
+              <div>
+                <label htmlFor="book-title" className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                  Picture Book Title <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <BookOpen className="h-5 w-5 text-[#999]" />
                   </div>
+                  <input
+                    id="book-title"
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    value={form.title}
+                    onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                    className="w-full pl-11 pr-4 py-3 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
+                    placeholder="e.g. My Trip to Italy"
+                  />
                 </div>
-              )}
+              </div>
 
               {/* Admin Only: Select Existing User */}
               {isAdmin && (
@@ -241,79 +221,6 @@ export default function NewPictureBookPage() {
                         <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Customer selected successfully
                       </div>
                     )}
-                  </div>
-                </>
-              )}
-
-              {/* Guide Only: Customer Details */}
-              {isGuide && (
-                <>
-                  <div className="pt-2 pb-1">
-                    <div className="h-px w-full bg-[#EAE6DF]"></div>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="customer-name" className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                      Customer Name <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <UserPlus className="h-5 w-5 text-[#999]" />
-                      </div>
-                      <input
-                        id="customer-name"
-                        type="text"
-                        required
-                        value={form.customerName}
-                        onChange={(e) => setForm((f) => ({ ...f, customerName: e.target.value }))}
-                        className="w-full pl-11 pr-4 py-3 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
-                        placeholder="Sarah Jenkins"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="customer-whatsapp" className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                      WhatsApp Number <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <Phone className="h-5 w-5 text-[#999]" />
-                      </div>
-                      <input
-                        id="customer-whatsapp"
-                        type="tel"
-                        required
-                        pattern="^\+[1-9]\d{6,14}$"
-                        value={form.whatsappNumber}
-                        onChange={(e) => setForm((f) => ({ ...f, whatsappNumber: e.target.value }))}
-                        className="w-full pl-11 pr-4 py-3 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
-                        placeholder="+1234567890"
-                      />
-                    </div>
-                    <p className="text-xs text-[#666] mt-2 flex items-start gap-1.5">
-                      <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 opacity-70" />
-                      Include country code (e.g. +1 for US/Canada, +44 for UK).
-                    </p>
-                  </div>
-
-                  <div>
-                    <label htmlFor="customer-email" className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                      Email Address <span className="text-[#999] font-normal">(Optional)</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <Mail className="h-5 w-5 text-[#999]" />
-                      </div>
-                      <input
-                        id="customer-email"
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                        className="w-full pl-11 pr-4 py-3 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
-                        placeholder="sarah@example.com"
-                      />
-                    </div>
                   </div>
                 </>
               )}
@@ -400,18 +307,12 @@ export default function NewPictureBookPage() {
                     Processing...
                   </span>
                 ) : (
-                  isAdmin ? "Create & Assign Picture Book" : isGuide ? "Refer Customer & Send Link" : "Create Picture Book"
+                  isAdmin ? "Create & Assign Picture Book" : "Create Picture Book"
                 )}
               </button>
               
               <div className="mt-5 flex items-center justify-center gap-2 text-xs font-medium text-[#666]">
                 <HardDrive className="w-3.5 h-3.5 text-[#C9A84C]" /> Secure Drive Folder
-                {isGuide && (
-                  <>
-                    <span className="mx-1 text-[#EAE6DF]">•</span>
-                    <MessageSquare className="w-3.5 h-3.5 text-[#10B981]" /> WhatsApp Message
-                  </>
-                )}
               </div>
             </div>
           </form>

@@ -39,7 +39,6 @@ export default function PictureBooksPage() {
     )
   );
 
-  const isGuide = user?.role === "GUIDE";
   const isEndUser = user?.role === "END_USER";
 
   return (
@@ -48,15 +47,15 @@ export default function PictureBooksPage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-serif text-[#1A1A1A] tracking-tight">
-            {isGuide ? "Referrals" : "Picture Books"}
+            Picture Books
           </h1>
           <p className="text-[#666] text-sm mt-1">
-            {isGuide ? "Manage your referred customers" : "Manage your Picture Books and automation status"}
+            Manage your Picture Books and automation status
           </p>
         </div>
         <Link href="/dashboard/clients/new" className="bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-2.5 flex items-center justify-center font-medium shadow-sm">
           <Plus className="w-4 h-4 mr-2" /> 
-          {isGuide ? "Refer Customer" : isEndUser ? "Create Picture Book" : "Add Picture Book"}
+          {isEndUser ? "Create Picture Book" : "Add Picture Book"}
         </Link>
       </div>
 
