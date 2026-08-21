@@ -31,7 +31,7 @@ export function createProviders() {
     },
     get drive() {
       return new GoogleDriveProvider({
-        projectId: requireEnv('GOOGLE_PROJECT_ID'),
+        projectId: process.env.GOOGLE_PROJECT_ID || 'morrowotif',
         clientEmail: requireEnv('GOOGLE_CLIENT_EMAIL'),
         privateKey: requireEnv('GOOGLE_PRIVATE_KEY'),
         rootFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
