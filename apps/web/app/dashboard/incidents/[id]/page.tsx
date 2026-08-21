@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Clock, AlertTriangle, ShieldAlert } from "lucide-react";
 import { ErrorState } from "@/components/ui/ErrorState";
 
-export default function IncidentDetailPage({ params }: { params: { id: string } }) {
+export default function IncidentDetailPage() {
   const { accessToken, user } = useAuth();
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [incident, setIncident] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -17,12 +18,12 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
   const [pageError, setPageError] = useState<any>(null);
 
   function load() {
-    if (!accessToken) return;
+    if (!accessToken || !id) return;
     setLoading(true);
     setPageError(null);
     
     // The backend now has GET /incidents/:id, which we added.
-    apiFetch(`/incidents/${params.id}`, {
+    apiFetch(`/incidents/${id}`, {
       headers: { Authorization: `Bearer ${accessToken}` }
     })
       .then((data) => {
@@ -36,13 +37,13 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
 
   useEffect(() => {
     load();
-  }, [params.id, accessToken]);
+  }, [id, accessToken]);
 
   const handleStatusUpdate = async (newStatus: string) => {
-    if (!accessToken) return;
+    if (!accessToken || !id) return;
     setUpdating(true);
     try {
-      const updated = await apiFetch(`/incidents/${params.id}`, {
+      const updated = await apiFetch(`/incidents/${id}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({ status: newStatus }),
@@ -56,7 +57,7 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
     }
   };
 
-  if (user?.role !== "ADMIN") {
+  if (user?.role === "GUIDE") {
     return (
       <div className="p-10 flex flex-col items-center justify-center text-center">
         <ShieldAlert className="w-12 h-12 text-[#999] mb-4" />
@@ -145,20 +146,22 @@ export default function IncidentDetailPage({ params }: { params: { id: string } 
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#EAE6DF]">
-                <div className="text-xs font-semibold text-[#1A1A1A] uppercase mb-2">Update Status</div>
-                <select
-                  disabled={updating}
-                  value={incident.status}
-                  onChange={(e) => handleStatusUpdate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-sm text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
-                >
-                  <option value="OPEN">Open</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="RESOLVED">Resolved</option>
-                </select>
-                {updating && <div className="text-xs text-[#666] mt-2 animate-pulse">Updating...</div>}
-              </div>
+              {user?.role === "ADMIN" && (
+                <div className="pt-4 border-t border-[#EAE6DF]">
+                  <div className="text-xs font-semibold text-[#1A1A1A] uppercase mb-2">Update Status</div>
+                  <select
+                    disabled={updating}
+                    value={incident.status}
+                    onChange={(e) => handleStatusUpdate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-sm text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
+                  >
+                    <option value="OPEN">Open</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="RESOLVED">Resolved</option>
+                  </select>
+                  {updating && <div className="text-xs text-[#666] mt-2 animate-pulse">Updating...</div>}
+                </div>
+              )}
             </div>
           </div>
         </div>

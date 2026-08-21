@@ -48,6 +48,14 @@ export default function IncidentsPage() {
 
   const isAdmin = user?.role === "ADMIN";
 
+  if (user?.role === "GUIDE") {
+    return (
+      <div className="p-10 flex flex-col items-center justify-center text-center">
+        <h2 className="text-xl font-serif text-[#1A1A1A]">Access Denied</h2>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 sm:p-10 max-w-7xl mx-auto space-y-8">
       {/* Header */}
@@ -104,8 +112,8 @@ export default function IncidentsPage() {
                   {incidents.map((incident) => (
                     <tr 
                       key={incident.id} 
-                      onClick={() => isAdmin ? router.push(`/dashboard/incidents/${incident.id}`) : null}
-                      className={`hover:bg-[#FAF9F6] transition-colors group ${isAdmin ? 'cursor-pointer' : ''}`}
+                      onClick={() => router.push(`/dashboard/incidents/${incident.id}`)}
+                      className={`hover:bg-[#FAF9F6] transition-colors group cursor-pointer`}
                     >
                       <td className="px-6 py-4">
                         <div className="font-semibold text-[#1A1A1A]">{incident.title}</div>

@@ -150,8 +150,8 @@ export default function DashboardPage() {
                         <StatusBadge status={book.status} />
                       </td>
                       <td className="px-6 py-4">
-                        {book.driveFolderUrl ? (
-                          <a href={book.driveFolderUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                        {book.driveLink ? (
+                          <a href={book.driveLink} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
                             Open Drive Link
                           </a>
                         ) : (

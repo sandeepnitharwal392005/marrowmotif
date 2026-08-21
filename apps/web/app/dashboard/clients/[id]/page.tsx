@@ -96,9 +96,9 @@ export default function PictureBookDetailPage() {
   }
 
   async function handleCopyLink() {
-    if (!book?.driveFolderUrl) return;
+    if (!book?.driveLink) return;
     try {
-      await navigator.clipboard.writeText(book.driveFolderUrl);
+      await navigator.clipboard.writeText(book.driveLink);
       toast.success("Link copied to clipboard");
     } catch (err) {
       toast.error("Failed to copy link");
@@ -651,7 +651,7 @@ export default function PictureBookDetailPage() {
                     <p className="text-sm text-[#666] leading-relaxed ml-6">
                       Sends the configured default welcome message automatically interpolating the customer's name, book title, and Drive Upload Link.
                     </p>
-                    {!book.driveFolderUrl && (
+                    {!book.driveLink && (
                       <div className="mt-3 ml-6 text-xs text-rose-600 bg-rose-50 px-3 py-2 rounded-md border border-rose-100 font-medium">
                         Warning: Drive Link has not been generated yet. The message will say "Not generated yet".
                       </div>

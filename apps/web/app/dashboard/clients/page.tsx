@@ -121,8 +121,8 @@ export default function PictureBooksPage() {
                       </td>
                       <td className="px-6 py-4"><StatusBadge status={book.status} /></td>
                       <td className="px-6 py-4">
-                        {book.driveFolderUrl ? (
-                          <a href={book.driveFolderUrl} target="_blank" rel="noopener noreferrer"
+                        {book.driveLink ? (
+                          <a href={book.driveLink} target="_blank" rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-500 transition-colors">
                             <HardDrive className="w-3.5 h-3.5" /> Open
                           </a>
@@ -162,7 +162,7 @@ export default function PictureBooksPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <StatusBadge status={book.status} />
-                    {book.driveFolderUrl && (
+                    {book.driveLink && (
                       <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider flex items-center gap-1">
                         <HardDrive className="w-3 h-3" /> Drive Ready
                       </span>
