@@ -297,9 +297,6 @@ export class PictureBooksService {
     await this.prisma.whatsAppMessage.deleteMany({
       where: { pictureBookId: { in: bookIds } },
     });
-    await this.prisma.message.deleteMany({
-      where: { pictureBookId: { in: bookIds } },
-    });
 
     // Finally delete picture books
     const deleted = await this.prisma.pictureBook.deleteMany({
