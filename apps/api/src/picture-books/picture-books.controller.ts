@@ -1,8 +1,8 @@
 import {
   Controller,
-  Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -70,5 +70,13 @@ export class PictureBooksController {
   @HttpCode(HttpStatus.OK)
   createDriveLink(@Param('id') id: string, @CurrentUser() user: any) {
     return this.pictureBooksService.createDriveLink(id, user);
+  }
+
+  @Delete('synthetic')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  cleanupSynthetic(@CurrentUser() user: any) {
+    return this.pictureBooksService.cleanupSynthetic(user);
   }
 }

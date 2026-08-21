@@ -272,4 +272,43 @@ export class PictureBooksService {
 
     return { message: 'Drive creation job queued' };
   }
+
+  async cleanupSynthetic(user: { id: string; role: Role }) {
+    if (user.role !== Role.ADMIN) throw new ForbiddenException('Access denied');
+
+    // Find all synthetic picture books
+    const syntheticBooks = await this.prisma.pictureBook.findMany({
+      where: {
+        title: {
+          startsWith: '[SYNTHETIC]',
+        },
+      },
+    });
+
+    const bookIds = syntheticBooks.map(b => b.id);
+    if (bookIds.length === 0) {
+      return { message: 'No synthetic data to clean up', deletedCount: 0 };
+    }
+
+    // Delete related records first due to foreign keys (ActivityLog, WhatsAppMessage, Message, etc.)
+    await this.prisma.activityLog.deleteMany({
+      where: { pictureBookId: { in: bookIds } },
+    });
+    await this.prisma.whatsAppMessage.deleteMany({
+      where: { pictureBookId: { in: bookIds } },
+    });
+    await this.prisma.message.deleteMany({
+      where: { pictureBookId: { in: bookIds } },
+    });
+
+    // Finally delete picture books
+    const deleted = await this.prisma.pictureBook.deleteMany({
+      where: { id: { in: bookIds } },
+    });
+
+    return {
+      message: 'Synthetic data cleaned up',
+      deletedCount: deleted.count,
+    };
+  }
 }

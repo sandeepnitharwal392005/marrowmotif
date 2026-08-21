@@ -99,8 +99,10 @@ async function runSyntheticTest() {
 
     console.log('✅ Synthetic E2E Suite passed successfully.');
     
-    // 4. Teardown: we don't have a direct delete API for PictureBooks yet, so we'll rely on the DB script or leave them for cleanup later.
-    // In a real prod setup, we might have an internal purge endpoint.
+    // 4. Teardown: Clean up synthetic test data
+    console.log('Cleaning up synthetic test data...');
+    const cleanupRes = await request('DELETE', `/picture-books/synthetic`, null, adminToken);
+    console.log(`Cleanup complete: ${cleanupRes.deletedCount} items deleted`);
     
     const duration = Date.now() - startTime;
     console.log(JSON.stringify({
