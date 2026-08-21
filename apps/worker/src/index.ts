@@ -230,7 +230,7 @@ async function processManualWhatsApp(job: Job) {
     console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking manual WhatsApp to ${pictureBook.user.phone}`);
     waResult = { success: true, messageId: `synthetic-manual-msg-${Date.now()}` };
   } else {
-    waResult = await whatsApp.sendMessage(
+    waResult = await whatsApp.sendTextMessage(
       pictureBook.user.phone,
       messageContent
     );

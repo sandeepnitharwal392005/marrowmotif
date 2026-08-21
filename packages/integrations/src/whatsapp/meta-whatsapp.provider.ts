@@ -56,8 +56,9 @@ export class MetaWhatsAppProvider implements WhatsAppProvider {
       const messageId = response.data?.messages?.[0]?.id;
       return { success: true, messageId };
     } catch (error: any) {
+      const err = error as any;
       const message =
-        error?.response?.data?.error?.message || error?.message || 'Unknown error';
+        err?.response?.data?.error?.message || err?.message || 'Unknown error';
       console.error('[MetaWhatsApp] Send failed:', message);
       return { success: false, error: message };
     }
@@ -84,23 +85,24 @@ export class MetaWhatsAppProvider implements WhatsAppProvider {
         },
       );
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       if (!response.ok) {
         return {
           success: false,
-          error: data.error?.message || 'Failed to send text message',
+          error: data?.error?.message || 'Failed to send text message',
         };
       }
 
       return {
         success: true,
-        messageId: data.messages?.[0]?.id,
+        messageId: data?.messages?.[0]?.id,
       };
     } catch (error: any) {
+      const err = error as any;
       return {
         success: false,
-        error: error.message || 'Unknown error occurred',
+        error: err.message || 'Unknown error occurred',
       };
     }
   }
