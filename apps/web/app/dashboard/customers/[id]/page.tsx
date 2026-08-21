@@ -43,6 +43,22 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     loadCustomer();
   }, [accessToken, resolvedParams.id, router]);
 
+  // Poll for status updates if any picture book is in a transient state
+  useEffect(() => {
+    if (!customer?.pictureBooks) return;
+    
+    const hasPendingJobs = customer.pictureBooks.some(
+      (pb: any) => pb.driveStatus === 'QUEUED' || pb.driveStatus === 'PROCESSING'
+    );
+
+    if (hasPendingJobs) {
+      const interval = setInterval(() => {
+        loadCustomer();
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [customer]);
+
   async function updateStatus(pbId: string, newStatus: string) {
     if (!accessToken) return;
     setSubmittingId(`status-${pbId}`);
@@ -257,25 +273,66 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                     </h4>
                     <div className="bg-white p-4 rounded-lg border border-[#EAE6DF] space-y-4">
                       {/* Drive Link Status */}
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-[#1A1A1A] flex items-center gap-1.5"><HardDrive className="w-4 h-4 text-[#999]"/> Drive Link Generation</span>
-                          {pb.driveStatus ? (
+                          {pb.driveStatus && (
                             <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
                               pb.driveStatus === 'SUCCESS' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
                               pb.driveStatus === 'FAILED' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
                               pb.driveStatus === 'PROCESSING' ? 'bg-blue-100 text-blue-800 border border-blue-200 animate-pulse' :
                               'bg-amber-100 text-amber-800 border border-amber-200'
                             }`}>
-                              {pb.driveStatus}
+                              Status: {pb.driveStatus}
                             </span>
-                          ) : <span className="text-xs text-[#999] italic">Not started</span>}
+                          )}
                         </div>
-                        {pb.driveStatus === 'FAILED' && pb.driveError && (
-                          <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 mt-2">
-                            {pb.driveError}
-                          </div>
-                        )}
+                        
+                        <div className="mt-1">
+                          {!pb.driveStatus && (
+                            <span className="text-sm text-[#666]">Not started</span>
+                          )}
+                          
+                          {pb.driveStatus === 'QUEUED' && (
+                            <span className="text-sm text-[#666]">Drive link generation queued</span>
+                          )}
+                          
+                          {pb.driveStatus === 'PROCESSING' && (
+                            <span className="text-sm text-blue-600 flex items-center gap-2">
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating Drive link...
+                            </span>
+                          )}
+                          
+                          {pb.driveStatus === 'SUCCESS' && pb.driveLink && (
+                            <div className="flex flex-col gap-2">
+                              <span className="text-sm text-emerald-600 font-medium">Drive link generated</span>
+                              <a 
+                                href={pb.driveLink} 
+                                target="_blank" 
+                                className="inline-flex items-center justify-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-md text-sm font-medium w-fit transition-colors"
+                              >
+                                <HardDrive className="w-3.5 h-3.5" /> Open Drive
+                              </a>
+                            </div>
+                          )}
+                          
+                          {pb.driveStatus === 'FAILED' && (
+                            <div className="flex flex-col gap-2">
+                              <span className="text-sm text-rose-600 font-medium">Drive link generation failed</span>
+                              <div className="text-xs text-rose-700 bg-rose-50 p-2 rounded border border-rose-100 break-words">
+                                {pb.driveError || 'Could not create the Drive folder.'}
+                              </div>
+                              <button 
+                                onClick={() => createDriveLink(pb.id)}
+                                disabled={submittingId === `drive-${pb.id}`}
+                                className="inline-flex items-center justify-center gap-1.5 bg-white border border-[#EAE6DF] hover:border-[#C9A84C] text-[#1A1A1A] hover:text-[#C9A84C] px-3 py-1.5 rounded-md text-sm font-medium w-fit transition-colors disabled:opacity-50"
+                              >
+                                {submittingId === `drive-${pb.id}` ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                                Retry
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="border-t border-[#EAE6DF] pt-3">
@@ -303,14 +360,16 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   <div>
                     <h4 className="text-sm font-semibold text-[#1A1A1A] mb-3 uppercase tracking-wider">Admin Actions</h4>
                     <div className="flex flex-col gap-2">
-                      <button 
-                        onClick={() => createDriveLink(pb.id)}
-                        disabled={submittingId === `drive-${pb.id}`}
-                        className="bg-white border border-[#EAE6DF] hover:border-[#C9A84C] text-[#1A1A1A] hover:text-[#C9A84C] px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2"
-                      >
-                        {submittingId === `drive-${pb.id}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
-                        {pb.driveStatus === 'FAILED' ? 'Retry Drive Generation' : 'Manually Generate Drive Link'}
-                      </button>
+                      {!pb.driveStatus && (
+                        <button 
+                          onClick={() => createDriveLink(pb.id)}
+                          disabled={submittingId === `drive-${pb.id}`}
+                          className="bg-white border border-[#EAE6DF] hover:border-[#C9A84C] text-[#1A1A1A] hover:text-[#C9A84C] px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2"
+                        >
+                          {submittingId === `drive-${pb.id}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
+                          Generate Drive Link
+                        </button>
+                      )}
                       
                       <button 
                         onClick={() => { setSelectedPbId(pb.id); setWaModalOpen(true); }}

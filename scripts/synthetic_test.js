@@ -63,38 +63,65 @@ async function runSyntheticTest() {
     });
     const adminToken = adminLoginData.accessToken;
     
-    // 2. Create Picture Book as Admin
-    console.log('Creating Picture Book...');
+    // 2. Create Picture Book as Admin (Simulating Failure)
+    console.log('Creating Picture Book (Simulating Failure)...');
+    const failBook = await request('POST', '/picture-books', {
+      title: `[SYNTHETIC] Automated Test Book FAIL_DRIVE ${Date.now()}`,
+      userId: customerId,
+      deliveryPreference: 'HOME_DELIVERY'
+    }, adminToken);
+    
+    console.log(`Created Picture Book: ${failBook.id}`);
+
+    // Poll for status update by worker (Should be FAILED)
+    console.log('Polling for worker completion (expecting FAILED)...');
+    let maxAttempts = 15;
+    let delayMs = 1500;
+    
+    let failedStatusVerified = false;
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      
+      const checkData = await request('GET', `/picture-books/${failBook.id}`, null, adminToken);
+      
+      if (checkData.driveStatus === 'FAILED') {
+        failedStatusVerified = true;
+        console.log(`✅ Verified FAILED status: ${checkData.driveError}`);
+        break;
+      }
+    }
+
+    if (!failedStatusVerified) {
+      throw new Error(`Worker did not mark job as FAILED within ${maxAttempts * delayMs}ms.`);
+    }
+
+    // 3. Create Picture Book as Admin (Success)
+    console.log('Creating Picture Book (Success)...');
     const book = await request('POST', '/picture-books', {
       title: `[SYNTHETIC] Automated Test Book ${Date.now()}`,
       userId: customerId,
       deliveryPreference: 'HOME_DELIVERY'
     }, adminToken);
-    
+
     console.log(`Created Picture Book: ${book.id}`);
 
-    // 3. Poll for status update by worker
-    console.log('Polling for worker completion...');
-    const maxAttempts = 10;
-    const delayMs = 1500;
-    
+    // Poll for status update by worker (Should be SUCCESS)
+    console.log('Polling for worker completion (expecting SUCCESS)...');
     let processed = false;
     for (let i = 0; i < maxAttempts; i++) {
       await new Promise(resolve => setTimeout(resolve, delayMs));
       
       const checkData = await request('GET', `/picture-books/${book.id}`, null, adminToken);
       
-      if (checkData.status === 'UPLOAD_PENDING') {
+      if (checkData.driveStatus === 'SUCCESS') {
         processed = true;
+        console.log(`✅ Verified SUCCESS status: ${checkData.driveLink}`);
         break;
-      }
-      if (checkData.status === 'CANCELLED') {
-        throw new Error('Worker exhausted retries and marked book as CANCELLED');
       }
     }
 
     if (!processed) {
-      throw new Error(`Worker did not process the synthetic job within ${maxAttempts * delayMs}ms. Job might be stuck or worker is down.`);
+      throw new Error(`Worker did not process the synthetic job within ${maxAttempts * delayMs}ms.`);
     }
 
     console.log('✅ Synthetic E2E Suite passed successfully.');

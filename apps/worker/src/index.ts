@@ -65,6 +65,18 @@ async function processWelcomeMessage(job: Job) {
   if (!driveLink) {
     if (pictureBook.user.email === 'production-test@marrowotif.internal') {
       console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking Drive folder creation for "${pictureBook.title}"`);
+      
+      if (pictureBook.title.includes('FAIL_DRIVE')) {
+        await prisma.pictureBook.update({
+          where: { id: pictureBookId },
+          data: { driveStatus: 'FAILED', driveError: 'Simulated Drive API Failure' },
+        });
+        await prisma.activityLog.create({
+          data: { pictureBookId, action: 'DRIVE_GENERATION_FAILED', details: 'Simulated Drive API Failure' }
+        });
+        throw new Error('Simulated Drive API Failure');
+      }
+
       driveLink = `https://drive.google.com/drive/folders/synthetic-mock-folder-${pictureBook.id}`;
       
       await prisma.pictureBook.update({
