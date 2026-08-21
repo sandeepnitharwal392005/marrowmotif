@@ -15,7 +15,7 @@ const puppeteer = require('puppeteer');
     await page.waitForSelector('input[id="login-email"]');
     await new Promise(resolve => setTimeout(resolve, 1000)); // wait for hydration
     await page.type('input[id="login-email"]', 'admin@example.com');
-    await page.type('input[id="login-password"]', 'Demo123!');
+    await page.type('input[id="login-password"]', 'Admin123!');
     
     await page.click('button[type="submit"]');
     

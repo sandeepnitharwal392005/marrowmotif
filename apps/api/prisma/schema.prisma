@@ -1,4 +1,4 @@
-// This is your Prisma schema file
+﻿// This is your Prisma schema file
 generator client {
   provider = "prisma-client-js"
 }
@@ -56,6 +56,15 @@ model User {
   postalCode   String?
   country      String?
 
+  // WhatsApp & Security Fields
+  whatsappNumber   String?
+  whatsappVerified Boolean  @default(false)
+  setupToken       String?
+  setupTokenExpiry DateTime?
+  otpCode          String?
+  otpExpiry        DateTime?
+  otpAttempts      Int      @default(0)
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -64,6 +73,8 @@ model User {
 
   pictureBooks PictureBook[]
   products     Product[]
+  incidents    Incident[] @relation("UserIncidents")
+  assignedIncidents Incident[] @relation("AssignedIncidents")
 
   @@index([email])
   @@index([role])
@@ -101,6 +112,7 @@ model PictureBook {
   user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages        WhatsAppMessage[]
   activityLogs    ActivityLog[]
+  incidents       Incident[]
 
   @@index([userId])
   @@index([status])
@@ -191,4 +203,57 @@ model SystemSetting {
   key   String @unique
   value String // JSON stringified value
   @@map("system_settings")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String?
+  action       String
+  resourceType String
+  resourceId   String?
+  status       String
+  details      String?
+  ipAddress    String?
+  userAgent    String?
+  requestId    String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([resourceType, resourceId])
+  @@map("audit_logs")
+}
+
+enum IncidentPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum IncidentStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Incident {
+  id              String           @id @default(cuid())
+  title           String
+  description     String
+  userId          String
+  pictureBookId   String?
+  priority        IncidentPriority @default(MEDIUM)
+  status          IncidentStatus   @default(OPEN)
+  assignedToId    String?
+  resolutionNotes String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user            User             @relation("UserIncidents", fields: [userId], references: [id])
+  assignedTo      User?            @relation("AssignedIncidents", fields: [assignedToId], references: [id])
+  pictureBook     PictureBook?     @relation(fields: [pictureBookId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("incidents")
 }

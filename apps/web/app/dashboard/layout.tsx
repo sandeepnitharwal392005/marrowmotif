@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth, AuthProvider } from "@/lib/auth";
-import { Home, Users, PlusCircle, Map, Shield, MessageSquare, Settings, LogOut, User as UserIcon, BookOpen, UserPlus } from "lucide-react";
+import { Home, Users, PlusCircle, Map, Shield, MessageSquare, Settings, LogOut, User as UserIcon, BookOpen, UserPlus, ClipboardList } from "lucide-react";
 
 function DashboardNav() {
   const { user, logout } = useAuth();
@@ -25,6 +25,7 @@ function DashboardNav() {
       { href: "/dashboard/products", label: "Products", icon: Map },
       { href: "/dashboard/contact", label: "Public Inquiries", icon: MessageSquare },
       { href: "/dashboard/incidents", label: "IT Support", icon: Shield },
+      { href: "/dashboard/audit", label: "Audit Logs", icon: ClipboardList },
       { href: "/dashboard/settings", label: "Settings", icon: Settings },
     ];
   } else if (user?.role === "GUIDE") {

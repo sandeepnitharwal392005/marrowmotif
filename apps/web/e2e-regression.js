@@ -21,7 +21,7 @@ const puppeteer = require('puppeteer');
     
     await page.type('input[name="name"]', 'Regression Test User');
     await page.type('input[name="email"]', email);
-    await page.type('input[name="phone"]', '+1234567890');
+    await page.type('input[name="whatsappNumber"]', '+1234567890');
     await page.type('input[name="password"]', password);
     // Submit registration
     await Promise.all([
@@ -30,11 +30,12 @@ const puppeteer = require('puppeteer');
     ]);
 
     log("Successfully registered! Now at: " + page.url());
-    if (!page.url().includes('/login')) {
-      throw new Error("Registration did not redirect to login page.");
+    if (!page.url().includes('/login') && !page.url().includes('/verify-otp')) {
+      throw new Error("Registration did not redirect to login or OTP page.");
     }
 
     log("2. Testing Login Flow...");
+    await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle0' });
     await page.type('input[id="login-email"]', email);
     await page.type('input[id="login-password"]', password);
     await Promise.all([

@@ -39,7 +39,7 @@ export default function ContactMessagesPage() {
 
   async function markAsRead(id: string) {
     try {
-      await apiFetch(`/api/contact/${id}/read`, {
+      await apiFetch(`/contact/${id}/read`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${accessToken}` }
       });
