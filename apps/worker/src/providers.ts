@@ -1,5 +1,9 @@
-import { MockWhatsAppProvider, MetaWhatsAppProvider } from './whatsapp/providers';
-import { MockDriveProvider, GoogleDriveProvider } from './drive/providers';
+import { 
+  MockWhatsAppProvider, 
+  MetaWhatsAppProvider, 
+  MockDriveProvider, 
+  GoogleDriveProvider 
+} from '@travel/integrations';
 
 export function createProviders() {
   const isDemoMode =

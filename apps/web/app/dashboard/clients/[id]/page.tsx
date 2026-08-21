@@ -334,8 +334,26 @@ export default function PictureBookDetailPage() {
               />
               <TimelineStep 
                 label="Google Drive Folder" 
-                description={book.driveFolderUrl ? "Secure upload folder generated" : "Generating secure folder..."}
-                state={book.driveFolderUrl ? "completed" : (isFailed ? "failed" : "active")} 
+                description={
+                  book.driveStatus === 'SUCCESS' || book.driveLink 
+                    ? "Secure upload folder generated" 
+                    : book.driveStatus === 'PROCESSING'
+                    ? "Generating secure folder..."
+                    : book.driveStatus === 'QUEUED'
+                    ? "Queued for generation..."
+                    : book.driveStatus === 'FAILED'
+                    ? (book.driveError || "Failed to generate folder")
+                    : "Not generated yet"
+                }
+                state={
+                  book.driveStatus === 'SUCCESS' || book.driveLink 
+                    ? "completed" 
+                    : book.driveStatus === 'FAILED'
+                    ? "failed"
+                    : book.driveStatus === 'PROCESSING' || book.driveStatus === 'QUEUED'
+                    ? "active"
+                    : "pending"
+                } 
               />
               <TimelineStep 
                 label="WhatsApp Link Sent" 
@@ -348,7 +366,7 @@ export default function PictureBookDetailPage() {
                 state={
                   (lastMsg?.status === "DELIVERED" || lastMsg?.status === "READ" || lastMsg?.status === "SENT") ? "completed" : 
                   isFailed ? "failed" : 
-                  book.driveFolderUrl ? "active" : "pending"
+                  book.driveLink ? "active" : "pending"
                 } 
               />
             </div>
@@ -382,7 +400,7 @@ export default function PictureBookDetailPage() {
               <HardDrive className="w-5 h-5 text-[#C9A84C]" /> Document Upload Link
             </h2>
             
-            {book.driveFolderUrl ? (
+            {book.driveLink ? (
               <div className="space-y-4">
                 <p className="text-sm text-[#666] leading-relaxed">
                   A secure Google Drive folder has been created for this Picture Book. The customer can use this link to upload their travel photos.
@@ -393,19 +411,19 @@ export default function PictureBookDetailPage() {
                     <input 
                       type="text" 
                       readOnly 
-                      value={book.driveFolderUrl} 
+                      value={book.driveLink} 
                       className="w-full pl-4 pr-4 h-12 bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] rounded-md outline-none"
                     />
                   </div>
                   <div className="flex gap-2">
                     <button 
-                      onClick={handleCopyLink}
+                      onClick={() => navigator.clipboard.writeText(book.driveLink)}
                       className="flex-1 sm:flex-none border border-[#EAE6DF] hover:bg-[#FAF9F6] text-[#1A1A1A] h-12 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
                     >
                       <Copy className="w-4 h-4" /> <span className="hidden sm:inline">Copy</span>
                     </button>
                     <a 
-                      href={book.driveFolderUrl} 
+                      href={book.driveLink} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="flex-1 sm:flex-none bg-[#1A1A1A] hover:bg-[#333] text-white h-12 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
@@ -484,6 +502,48 @@ export default function PictureBookDetailPage() {
                     {msg.errorMessage && (
                       <div className="text-xs text-rose-600 bg-rose-50 px-3 py-2 rounded-lg max-w-xs break-words border border-rose-100">
                         {msg.errorMessage}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
+            <h2 className="font-serif text-[#1A1A1A] text-lg mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-[#C9A84C]" /> Execution History
+            </h2>
+            
+            {book.activityLogs?.length === 0 ? (
+              <div className="p-8 rounded-xl border border-dashed border-[#EAE6DF] bg-[#FAF9F6] flex flex-col items-center justify-center text-center">
+                <Clock className="w-8 h-8 text-[#CCC] mb-3" />
+                <p className="text-[#999] text-sm">No activity logged yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                {book.activityLogs?.map((log: any) => (
+                  <div key={log.id} className="p-4 rounded-lg bg-[#FAF9F6] border border-[#EAE6DF] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start sm:items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        log.action.includes('SUCCESS') ? 'bg-emerald-50 text-emerald-600' :
+                        log.action.includes('FAILED') ? 'bg-rose-50 text-rose-600' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                        {log.action.includes('FAILED') ? <XCircle className="w-4 h-4" /> : 
+                         log.action.includes('SUCCESS') ? <CheckCircle2 className="w-4 h-4" /> :
+                         <Clock className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-[#1A1A1A]">{log.action.replace(/_/g, ' ')}</div>
+                        <div className="text-xs text-[#999] flex items-center gap-1.5 mt-0.5">
+                          <span>{new Date(log.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {log.details && (
+                      <div className="text-xs text-[#666] bg-white px-3 py-2 rounded-lg max-w-xs break-words border border-[#EAE6DF]">
+                        {log.details}
                       </div>
                     )}
                   </div>

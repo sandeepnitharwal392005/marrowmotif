@@ -74,7 +74,7 @@ async function processWelcomeMessage(job: Job) {
         await prisma.activityLog.create({
           data: { pictureBookId, action: 'DRIVE_GENERATION_FAILED', details: 'Simulated Drive API Failure' }
         });
-        throw new Error('Simulated Drive API Failure');
+        return { success: false, error: 'Simulated Drive API Failure' };
       }
 
       driveLink = `https://drive.google.com/drive/folders/synthetic-mock-folder-${pictureBook.id}`;
@@ -102,7 +102,7 @@ async function processWelcomeMessage(job: Job) {
         await prisma.activityLog.create({
           data: { pictureBookId, action: 'DRIVE_GENERATION_FAILED', details: driveResult.error }
         });
-        throw new Error(`Drive folder creation failed: ${driveResult.error}`);
+        return { success: false, error: `Drive folder creation failed: ${driveResult.error}` };
       }
 
       driveLink = driveResult.shareLink;
