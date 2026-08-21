@@ -47,9 +47,17 @@ export class PictureBooksService {
         },
       });
 
+      const automationJob = await this.prisma.automationJob.create({
+        data: {
+          pictureBookId: pictureBook.id,
+          automationType: 'DRIVE_GENERATION',
+          status: 'QUEUED',
+        }
+      });
+
       const job = await this.automationQueue.add(
         'generate-drive-link',
-        { pictureBookId: pictureBook.id },
+        { pictureBookId: pictureBook.id, automationJobId: automationJob.id },
         {
           jobId: `drive-${pictureBook.id}`,
           attempts: 3,
@@ -61,6 +69,11 @@ export class PictureBooksService {
           removeOnFail: false,
         },
       );
+
+      await this.prisma.automationJob.update({
+        where: { id: automationJob.id },
+        data: { jobId: job.id?.toString() }
+      });
 
       await this.prisma.pictureBook.update({
         where: { id: pictureBook.id },
@@ -124,6 +137,9 @@ export class PictureBooksService {
         activityLogs: {
           orderBy: { createdAt: 'desc' },
         },
+        automationJobs: {
+          orderBy: { requestedAt: 'desc' },
+        },
         user: {
           select: { id: true, name: true, email: true, referredById: true },
         },
@@ -153,10 +169,18 @@ export class PictureBooksService {
       data: { status: 'REQUESTED' },
     });
 
+    const automationJob = await this.prisma.automationJob.create({
+      data: {
+        pictureBookId: id,
+        automationType: 'DRIVE_GENERATION',
+        status: 'QUEUED',
+      }
+    });
+
     const jobId = `drive-${id}-retry-${Date.now()}`;
     await this.automationQueue.add(
       'generate-drive-link',
-      { pictureBookId: id },
+      { pictureBookId: id, automationJobId: automationJob.id },
       {
         jobId,
         attempts: 3,
@@ -165,6 +189,11 @@ export class PictureBooksService {
         removeOnFail: false,
       },
     );
+
+    await this.prisma.automationJob.update({
+      where: { id: automationJob.id },
+      data: { jobId }
+    });
 
     await this.prisma.pictureBook.update({
       where: { id },
@@ -236,10 +265,18 @@ export class PictureBooksService {
   async createDriveLink(id: string, user: { id: string; role: Role }) {
     if (user.role !== Role.ADMIN) throw new ForbiddenException('Access denied');
 
+    const automationJob = await this.prisma.automationJob.create({
+      data: {
+        pictureBookId: id,
+        automationType: 'DRIVE_GENERATION',
+        status: 'QUEUED',
+      }
+    });
+
     const jobId = `manual-drive-${id}-${Date.now()}`;
     await this.automationQueue.add(
       'generate-drive-link',
-      { pictureBookId: id },
+      { pictureBookId: id, automationJobId: automationJob.id },
       {
         jobId,
         attempts: 3,
@@ -248,6 +285,11 @@ export class PictureBooksService {
         removeOnFail: false,
       },
     );
+
+    await this.prisma.automationJob.update({
+      where: { id: automationJob.id },
+      data: { jobId }
+    });
 
     await this.prisma.pictureBook.update({
       where: { id },

@@ -515,35 +515,79 @@ export default function PictureBookDetailPage() {
               <Clock className="w-5 h-5 text-[#C9A84C]" /> Execution History
             </h2>
             
-            {book.activityLogs?.length === 0 ? (
+            {(!book.automationJobs || book.automationJobs.length === 0) ? (
               <div className="p-8 rounded-xl border border-dashed border-[#EAE6DF] bg-[#FAF9F6] flex flex-col items-center justify-center text-center">
                 <Clock className="w-8 h-8 text-[#CCC] mb-3" />
-                <p className="text-[#999] text-sm">No activity logged yet.</p>
+                <p className="text-[#999] text-sm">No automation jobs logged yet.</p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                {book.activityLogs?.map((log: any) => (
-                  <div key={log.id} className="p-4 rounded-lg bg-[#FAF9F6] border border-[#EAE6DF] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-start sm:items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                        log.action.includes('SUCCESS') ? 'bg-emerald-50 text-emerald-600' :
-                        log.action.includes('FAILED') ? 'bg-rose-50 text-rose-600' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>
-                        {log.action.includes('FAILED') ? <XCircle className="w-4 h-4" /> : 
-                         log.action.includes('SUCCESS') ? <CheckCircle2 className="w-4 h-4" /> :
-                         <Clock className="w-4 h-4" />}
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-[#1A1A1A]">{log.action.replace(/_/g, ' ')}</div>
-                        <div className="text-xs text-[#999] flex items-center gap-1.5 mt-0.5">
-                          <span>{new Date(log.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                {book.automationJobs.map((job: any) => (
+                  <div key={job.id} className="p-4 rounded-lg bg-[#FAF9F6] border border-[#EAE6DF] flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                          job.status === 'SUCCESS' ? 'bg-emerald-50 text-emerald-600' :
+                          job.status === 'FAILED' ? 'bg-rose-50 text-rose-600' :
+                          job.status === 'PROCESSING' ? 'bg-[#FAF9F6] border border-[#C9A84C]/20 text-[#C9A84C]' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {job.status === 'FAILED' ? <XCircle className="w-4 h-4" /> : 
+                           job.status === 'SUCCESS' ? <CheckCircle2 className="w-4 h-4" /> :
+                           job.status === 'PROCESSING' ? <RefreshCw className="w-4 h-4 animate-spin" /> :
+                           <Clock className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-[#1A1A1A] capitalize">{job.automationType.replace(/_/g, ' ').toLowerCase()}</div>
+                          <div className="text-xs text-[#999] flex items-center gap-1.5 mt-0.5">
+                            <span className="font-mono text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">{job.jobId || 'N/A'}</span>
+                            <span className="opacity-50">•</span>
+                            <span>{new Date(job.requestedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                          </div>
                         </div>
                       </div>
+                      
+                      <div className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md ${
+                        job.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-700' :
+                        job.status === 'FAILED' ? 'bg-rose-100 text-rose-700' :
+                        job.status === 'PROCESSING' ? 'bg-[#C9A84C]/10 text-[#C9A84C]' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                        {job.status}
+                      </div>
                     </div>
-                    {log.details && (
-                      <div className="text-xs text-[#666] bg-white px-3 py-2 rounded-lg max-w-xs break-words border border-[#EAE6DF]">
-                        {log.details}
+
+                    <div className="pl-11 grid grid-cols-2 gap-x-4 gap-y-2">
+                      {job.startedAt && (
+                        <div>
+                          <div className="text-[10px] uppercase text-[#999] font-medium">Started</div>
+                          <div className="text-xs text-[#1A1A1A]">{new Date(job.startedAt).toLocaleTimeString()}</div>
+                        </div>
+                      )}
+                      {job.completedAt && (
+                        <div>
+                          <div className="text-[10px] uppercase text-[#999] font-medium">Completed</div>
+                          <div className="text-xs text-[#1A1A1A]">{new Date(job.completedAt).toLocaleTimeString()}</div>
+                        </div>
+                      )}
+                      {job.durationMs !== null && (
+                        <div>
+                          <div className="text-[10px] uppercase text-[#999] font-medium">Duration</div>
+                          <div className="text-xs text-[#1A1A1A]">{(job.durationMs / 1000).toFixed(2)}s</div>
+                        </div>
+                      )}
+                      {job.attemptNumber > 0 && (
+                        <div>
+                          <div className="text-[10px] uppercase text-[#999] font-medium">Attempt</div>
+                          <div className="text-xs text-[#1A1A1A]">{job.attemptNumber}</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {job.failureReason && (
+                      <div className="ml-11 mt-1 text-xs text-rose-700 bg-rose-50 px-3 py-2 rounded-lg break-words border border-rose-100">
+                        <span className="font-semibold block mb-1">Failure Reason:</span>
+                        {job.failureReason}
                       </div>
                     )}
                   </div>

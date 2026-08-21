@@ -1,0 +1,35 @@
+# Railway Deployment Guide (Monorepo)
+
+Currently, the Morrowotif project is a monorepo containing multiple applications (API, Web, Worker). By default, Railway's auto-detect will usually only run the first application it finds (like the API) if you deploy the root repository as a single service. 
+
+To ensure the **Drive Generation & WhatsApp Worker** runs properly and picks up jobs from the queue, you must create a separate service in Railway.
+
+## Step-by-Step Configuration
+
+1. **Open your Railway Project Dashboard**
+2. Click **+ New** -> **GitHub Repo**
+3. Select this repository (`travel-platform` or whatever it's named in GitHub).
+4. Once the new service is created, rename it to **Worker** (or something distinguishable from the API).
+5. Go to the **Settings** tab of this new Worker service.
+6. Under **Build**:
+   - Ensure the Builder is set to **Nixpacks** (default).
+7. Under **Deploy**:
+   - Set the **Custom Start Command** to: 
+     ```bash
+     npm run start --workspace=apps/worker
+     ```
+8. Under **Variables**:
+   - Ensure you copy over *all* the same environment variables that your API uses, especially:
+     - `DATABASE_URL`
+     - `REDIS_URL`
+   - You must also provide the integration credentials here:
+     - `GOOGLE_PROJECT_ID`
+     - `GOOGLE_CLIENT_EMAIL`
+     - `GOOGLE_PRIVATE_KEY` (ensure newlines are preserved properly or replace actual newlines with `\n` literals)
+     - `GOOGLE_DRIVE_ROOT_FOLDER_ID`
+     - `WHATSAPP_ACCESS_TOKEN`
+     - `WHATSAPP_PHONE_NUMBER_ID`
+     - `WHATSAPP_TEMPLATE_NAME`
+     - `WHATSAPP_TEMPLATE_LANGUAGE`
+
+By running the worker as an isolated service, it will securely process `google-drive` jobs independently from your API, and will not crash your API if an automation fails.

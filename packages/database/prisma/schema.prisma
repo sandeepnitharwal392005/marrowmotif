@@ -121,6 +121,7 @@ model PictureBook {
   user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages        WhatsAppMessage[]
   activityLogs    ActivityLog[]
+  automationJobs  AutomationJob[]
   incidents       Incident[]
 
   @@index([userId])
@@ -180,6 +181,29 @@ model ActivityLog {
 
   @@index([pictureBookId])
   @@map("activity_logs")
+}
+
+model AutomationJob {
+  id              String       @id @default(cuid())
+  jobId           String?
+  pictureBookId   String
+  customerId      String?
+  automationType  String
+  status          DriveStatus
+  attemptNumber   Int          @default(0)
+  failureReason   String?
+  requestedAt     DateTime     @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationMs      Int?
+  correlationId   String?
+  externalRef     String?
+
+  pictureBook     PictureBook  @relation(fields: [pictureBookId], references: [id], onDelete: Cascade)
+
+  @@index([pictureBookId])
+  @@index([status])
+  @@map("automation_jobs")
 }
 
 model ContactMessage {

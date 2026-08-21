@@ -21,18 +21,22 @@ export function createProviders() {
 
   console.log('[Providers] 🚀 PRODUCTION MODE — using real providers');
   return {
-    whatsApp: new MetaWhatsAppProvider({
-      accessToken: requireEnv('WHATSAPP_ACCESS_TOKEN'),
-      phoneNumberId: requireEnv('WHATSAPP_PHONE_NUMBER_ID'),
-      templateName: process.env.WHATSAPP_TEMPLATE_NAME || 'welcome_client',
-      templateLanguage: process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en_US',
-    }),
-    drive: new GoogleDriveProvider({
-      projectId: requireEnv('GOOGLE_PROJECT_ID'),
-      clientEmail: requireEnv('GOOGLE_CLIENT_EMAIL'),
-      privateKey: requireEnv('GOOGLE_PRIVATE_KEY'),
-      rootFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
-    }),
+    get whatsApp() {
+      return new MetaWhatsAppProvider({
+        accessToken: requireEnv('WHATSAPP_ACCESS_TOKEN'),
+        phoneNumberId: requireEnv('WHATSAPP_PHONE_NUMBER_ID'),
+        templateName: process.env.WHATSAPP_TEMPLATE_NAME || 'welcome_client',
+        templateLanguage: process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en_US',
+      });
+    },
+    get drive() {
+      return new GoogleDriveProvider({
+        projectId: requireEnv('GOOGLE_PROJECT_ID'),
+        clientEmail: requireEnv('GOOGLE_CLIENT_EMAIL'),
+        privateKey: requireEnv('GOOGLE_PRIVATE_KEY'),
+        rootFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
+      });
+    },
     isDemoMode: false,
   };
 }
