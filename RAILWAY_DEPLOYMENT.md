@@ -32,6 +32,8 @@ To ensure the **Drive Generation & WhatsApp Worker** runs properly and picks up 
     - `WHATSAPP_ACCESS_TOKEN` (system-user Cloud API token)
     - `WHATSAPP_PHONE_NUMBER_ID`
 
+  The API and Worker start commands use the repository-pinned Prisma CLI (`prisma migrate deploy`). Do not replace this with an unpinned global or `npx` Prisma command.
+
   The API service needs `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET`, and `WHATSAPP_BUSINESS_NUMBER` for webhook verification, signature validation, and Click-to-Chat links. It does not need the Worker’s Cloud API access token. The application sends only free-form WhatsApp text inside the user’s 24-hour customer-service window; it does not use OTPs or templates.
 
 By running the worker as an isolated service, it will securely process `google-drive` jobs independently from your API, and will not crash your API if an automation fails.

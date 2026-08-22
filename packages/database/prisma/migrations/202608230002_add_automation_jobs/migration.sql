@@ -1,4 +1,4 @@
-CREATE TABLE "automation_jobs" (
+CREATE TABLE IF NOT EXISTS "automation_jobs" (
   "id" TEXT NOT NULL,
   "jobId" TEXT,
   "pictureBookId" TEXT NOT NULL,
@@ -15,6 +15,13 @@ CREATE TABLE "automation_jobs" (
   "externalRef" TEXT,
   CONSTRAINT "automation_jobs_pkey" PRIMARY KEY ("id")
 );
-CREATE INDEX "automation_jobs_pictureBookId_idx" ON "automation_jobs"("pictureBookId");
-CREATE INDEX "automation_jobs_status_idx" ON "automation_jobs"("status");
-ALTER TABLE "automation_jobs" ADD CONSTRAINT "automation_jobs_pictureBookId_fkey" FOREIGN KEY ("pictureBookId") REFERENCES "picture_books"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE INDEX IF NOT EXISTS "automation_jobs_pictureBookId_idx" ON "automation_jobs"("pictureBookId");
+CREATE INDEX IF NOT EXISTS "automation_jobs_status_idx" ON "automation_jobs"("status");
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'automation_jobs_pictureBookId_fkey'
+  ) THEN
+    ALTER TABLE "automation_jobs" ADD CONSTRAINT "automation_jobs_pictureBookId_fkey" FOREIGN KEY ("pictureBookId") REFERENCES "picture_books"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
