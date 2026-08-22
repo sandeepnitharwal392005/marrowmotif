@@ -49,7 +49,7 @@ export default function NewPictureBookPage() {
         }
 
         if (user?.role === "END_USER") {
-          const res = await apiFetch(`/users/${user.id}`, { headers: { Authorization: `Bearer ${accessToken}` } });
+          const res = (await apiFetch(`/users/${user.id}`, { headers: { Authorization: `Bearer ${accessToken}` } })) as any;
           setProfile(res);
           const hasSavedAddress = res.addressLine1 && res.city && res.country;
           if (!hasSavedAddress) {
