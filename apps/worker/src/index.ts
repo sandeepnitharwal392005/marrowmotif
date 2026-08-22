@@ -109,6 +109,12 @@ async function processWelcomeMessage(job: Job) {
         });
         console.log(`[Worker] ✅ Drive link saved: ${driveLink}`);
       }
+    } else {
+      await prisma.pictureBook.update({
+        where: { id: pictureBookId },
+        data: { driveStatus: 'SUCCESS', driveError: null },
+      });
+      console.log(`[Worker] ⏭ Drive folder already exists, restored status to SUCCESS`);
     }
 
     if (automationJobId) {

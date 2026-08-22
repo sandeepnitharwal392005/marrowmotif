@@ -161,6 +161,10 @@ export class PictureBooksService {
   async resend(id: string, user: { id: string; role: Role }) {
     const pictureBook = await this.findOne(id, user);
 
+    if (pictureBook.driveStatus === 'QUEUED' || pictureBook.driveStatus === 'PROCESSING') {
+      throw new BadRequestException('Automation is already in progress');
+    }
+
     await this.prisma.pictureBook.update({
       where: { id },
       data: { status: 'REQUESTED' },
@@ -272,6 +276,16 @@ export class PictureBooksService {
 
   async createDriveLink(id: string, user: { id: string; role: Role }) {
     if (user.role !== Role.ADMIN) throw new ForbiddenException('Access denied');
+
+    const pictureBook = await this.prisma.pictureBook.findUnique({ where: { id } });
+    if (!pictureBook) throw new NotFoundException('Picture Book not found');
+
+    if (pictureBook.driveLink || pictureBook.driveStatus === 'SUCCESS') {
+      throw new BadRequestException('Drive link already exists for this Picture Book');
+    }
+    if (pictureBook.driveStatus === 'QUEUED' || pictureBook.driveStatus === 'PROCESSING') {
+      throw new BadRequestException('Drive link generation is already in progress');
+    }
 
     const automationJob = await this.prisma.automationJob.create({
       data: {
