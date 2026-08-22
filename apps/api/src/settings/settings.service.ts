@@ -22,9 +22,6 @@ export class SettingsService {
       beforeDepartureDelivery: result.beforeDepartureDelivery ?? true,
       whatsappNotifications: result.whatsappNotifications ?? true,
       googleDriveUpload: result.googleDriveUpload ?? true,
-      defaultWhatsappTemplate:
-        result.defaultWhatsappTemplate ??
-        'Hi {{customer_name}}, your Picture Book {{picture_book_name}} has been updated to {{status}}. You can check the latest status and your Drive link here: {{link}}',
     };
   }
 

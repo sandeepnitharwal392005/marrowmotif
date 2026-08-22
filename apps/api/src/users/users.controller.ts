@@ -60,18 +60,6 @@ export class UsersController {
     return this.usersService.toggleActive(id);
   }
 
-  @Public()
-  @Post('verify-otp')
-  verifyOtp(@Body() body: any) {
-    return this.usersService.verifyOtp(body.email, body.otpCode);
-  }
-
-  @Public()
-  @Post('resend-otp')
-  resendOtp(@Body() body: any) {
-    return this.usersService.resendOtp(body.email);
-  }
-
   @Post('guides')
   @Roles(Role.ADMIN)
   createGuide(@Body() body: any) {

@@ -1,19 +1,5 @@
 import { IsEmail, IsString, IsNotEmpty } from 'class-validator';
 
-export class VerifyOtpDto {
-  @IsEmail()
-  email: string;
-
-  @IsString()
-  @IsNotEmpty()
-  otpCode: string;
-}
-
-export class ResendOtpDto {
-  @IsEmail()
-  email: string;
-}
-
 export class CreateGuideDto {
   @IsString()
   @IsNotEmpty()

@@ -187,43 +187,13 @@ export class UsersService {
   async create(data: CreateUserDto) {
     const passwordHash = await bcrypt.hash(data.password, 10);
 
-    let otpCode = null;
-    let otpExpiry = null;
-    let isWhatsappVerified = true;
-
-    // Setup OTP if they are an End User (default role) and they provided a WhatsApp number
-    const dataAsAny = data as any;
-    if (
-      (!dataAsAny.role || dataAsAny.role === Role.END_USER) &&
-      data.whatsappNumber
-    ) {
-      otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      otpExpiry = new Date();
-      otpExpiry.setMinutes(otpExpiry.getMinutes() + 10); // 10 min expiry
-      isWhatsappVerified = false;
-
-      // Send OTP using provider
-      try {
-        const { createProviders } = require('@travel/integrations');
-        const providers = createProviders();
-        await providers.whatsApp.sendTextMessage(
-          data.whatsappNumber,
-          `Your Marrowmotif verification code is: ${otpCode}. It expires in 10 minutes.`,
-        );
-      } catch (err) {
-        console.error('Failed to send WhatsApp OTP:', err);
-      }
-    }
-
     return this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email.toLowerCase(),
         phone: data.phone,
         whatsappNumber: data.whatsappNumber,
-        whatsappVerified: isWhatsappVerified,
-        otpCode,
-        otpExpiry,
+        whatsappVerified: false,
         referredById: data.referredById,
         passwordHash,
         role: Role.END_USER,
@@ -243,77 +213,6 @@ export class UsersService {
         whatsappVerified: true,
       },
     });
-  }
-
-  async verifyOtp(email: string, otpCode: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
-    });
-    if (!user) throw new NotFoundException('User not found');
-    if (user.whatsappVerified) return { success: true };
-
-    if (!user.otpCode || user.otpCode !== otpCode) {
-      // Increment attempts
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { otpAttempts: user.otpAttempts + 1 },
-      });
-      throw new ForbiddenException('Invalid OTP');
-    }
-
-    if (user.otpExpiry && new Date() > user.otpExpiry) {
-      throw new ForbiddenException('OTP has expired');
-    }
-
-    if (user.otpAttempts >= 5) {
-      throw new ForbiddenException(
-        'Too many invalid attempts. Please request a new OTP.',
-      );
-    }
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        whatsappVerified: true,
-        otpCode: null,
-        otpExpiry: null,
-        otpAttempts: 0,
-      },
-    });
-
-    return { success: true };
-  }
-
-  async resendOtp(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
-    });
-    if (!user) throw new NotFoundException('User not found');
-    if (user.whatsappVerified) return { success: true };
-    if (!user.whatsappNumber)
-      throw new ForbiddenException('No WhatsApp number on file');
-
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiry = new Date();
-    otpExpiry.setMinutes(otpExpiry.getMinutes() + 10);
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { otpCode, otpExpiry, otpAttempts: 0 },
-    });
-
-    try {
-      const { createProviders } = require('@travel/integrations');
-      const providers = createProviders();
-      await providers.whatsApp.sendTextMessage(
-        user.whatsappNumber,
-        `Your Marrowmotif verification code is: ${otpCode}. It expires in 10 minutes.`,
-      );
-    } catch (err) {
-      console.error('Failed to send WhatsApp OTP:', err);
-    }
-
-    return { success: true };
   }
 
   async toggleActive(id: string) {

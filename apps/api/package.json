@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "npx prisma@5.22.0 db push --schema ../../packages/database/prisma/schema.prisma --accept-data-loss ; node dist/main.js",
+    "start": "npx prisma@5.22.0 migrate deploy --schema ../../packages/database/prisma/schema.prisma && node dist/main.js",
     "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",

@@ -18,13 +18,6 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 export class WhatsAppController {
   constructor(private readonly whatsappService: WhatsAppService) {}
 
-  @Post('send-default/:id')
-  @Roles(Role.ADMIN)
-  @HttpCode(HttpStatus.OK)
-  sendDefault(@Param('id') id: string, @CurrentUser() user: any) {
-    return this.whatsappService.sendDefault(id, user);
-  }
-
   @Post('send-custom/:id')
   @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)

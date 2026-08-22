@@ -276,20 +276,6 @@ export default function SettingsPage() {
               </label>
             </div>
 
-            <div className="h-px bg-[#EAE6DF] w-full" />
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-[#1A1A1A] font-medium block">Default WhatsApp Message Template</label>
-                <div className="text-[#666666] text-sm mt-1">This template is used when sending manual status updates. Available variables: <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{`{{customer_name}}`}</code>, <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{`{{picture_book_name}}`}</code>, <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{`{{status}}`}</code>, <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{`{{link}}`}</code></div>
-              </div>
-              <textarea
-                value={settings.defaultWhatsappTemplate || ''}
-                onChange={(e) => setSettings({ ...settings, defaultWhatsappTemplate: e.target.value })}
-                className="w-full px-4 py-3 bg-white border border-[#EAE6DF] rounded-md text-[#1A1A1A] text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all min-h-[120px] resize-y"
-                placeholder="Hi {{customer_name}}, your Picture Book {{picture_book_name}} is now {{status}}..."
-              />
-            </div>
           </div>
 
           <div className="bg-[#FAF9F6] p-6 sm:px-8 border-t border-[#EAE6DF] flex justify-end">

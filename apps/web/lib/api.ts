@@ -159,6 +159,10 @@ export const pictureBooksApi = {
   get: (token: string, id: string) => apiFetch<any>(`/picture-books/${id}`, { token }),
   create: (token: string, data: any) =>
     apiFetch<any>("/picture-books", { method: "POST", token, body: JSON.stringify(data) }),
+  whatsappOptIn: (token: string, id: string, whatsappNumber?: string) =>
+    apiFetch<any>(`/picture-books/${id}/whatsapp-opt-in`, { method: "POST", token, body: JSON.stringify({ whatsappNumber }) }),
+  whatsappDecline: (token: string, id: string) =>
+    apiFetch<any>(`/picture-books/${id}/whatsapp-decline`, { method: "POST", token }),
   resend: (token: string, id: string) =>
     apiFetch<any>(`/picture-books/${id}/resend`, { method: "POST", token }),
   stats: (token: string) => apiFetch<any>("/picture-books/stats", { token }),

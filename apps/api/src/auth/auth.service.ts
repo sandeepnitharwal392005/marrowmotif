@@ -23,13 +23,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Prevent login if WhatsApp OTP is pending (only for END_USER usually, but safely applies if the flag is false)
-    if (user.whatsappVerified === false) {
-      throw new UnauthorizedException(
-        'Please verify your WhatsApp number before logging in.',
-      );
-    }
-
     const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials');

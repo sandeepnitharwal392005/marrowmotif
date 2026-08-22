@@ -7,12 +7,26 @@ import {
   Res,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { Public } from '../auth/decorators/public.decorator';
+import { WebhooksService } from './webhooks.service';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 @Controller('webhooks')
 export class WebhooksController {
+  constructor(private readonly webhooksService: WebhooksService) {}
+
+  @Get('whatsapp/events')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  listWhatsappEvents() {
+    return this.webhooksService.listWhatsappEvents();
+  }
   /**
    * WhatsApp webhook verification (GET)
    */
@@ -39,24 +53,12 @@ export class WebhooksController {
   @Post('whatsapp')
   @HttpCode(HttpStatus.OK)
   handleWebhook(@Req() req: Request) {
-    const body = req.body;
-
-    // Process delivery receipts, read receipts etc.
-    if (body?.object === 'whatsapp_business_account') {
-      const entries = body.entry || [];
-      for (const entry of entries) {
-        for (const change of entry.changes || []) {
-          const statuses = change.value?.statuses || [];
-          for (const status of statuses) {
-            console.log(
-              `[Webhook] WhatsApp status: ${status.id} -> ${status.status}`,
-            );
-            // TODO: Update WhatsAppMessage status in DB based on status.id
-          }
-        }
-      }
-    }
-
-    return { status: 'ok' };
+    const signature = req.header('x-hub-signature-256');
+    const appSecret = process.env.WHATSAPP_APP_SECRET;
+    const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
+    if (!signature || !appSecret || !rawBody) return { status: 'ignored' };
+    const expected = `sha256=${createHmac('sha256', appSecret).update(rawBody).digest('hex')}`;
+    if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return { status: 'ignored' };
+    return this.webhooksService.handleWhatsapp(req.body);
   }
 }

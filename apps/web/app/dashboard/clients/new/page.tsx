@@ -35,6 +35,7 @@ export default function NewPictureBookPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [settings, setSettings] = useState<any>({ homeDelivery: true, beforeDepartureDelivery: true });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [createdBookId, setCreatedBookId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadSettings() {
@@ -130,8 +131,8 @@ export default function NewPictureBookPage() {
       });
 
       const book = await pictureBooksApi.create(accessToken, payload);
+      setCreatedBookId(book.id);
       setStatus("success");
-      setTimeout(() => router.push(`/dashboard/clients/${book.id}`), 1500);
     } catch (err: any) {
       setErrorMessage(err.message || "An unexpected error occurred.");
       setStatus("error");
@@ -151,7 +152,7 @@ export default function NewPictureBookPage() {
         <p className="text-[#666] text-sm mt-2 leading-relaxed">
           {isAdmin 
             ? "Create a Picture Book project and assign it to an existing customer."
-            : "Give your new Picture Book a title to generate a secure photo upload link."}
+            : "Give your new Picture Book a title. We’ll prepare your photo upload folder on the website."}
         </p>
       </div>
 
@@ -162,8 +163,11 @@ export default function NewPictureBookPage() {
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
             <h2 className="text-2xl font-serif text-[#1A1A1A] mb-2">Project Created!</h2>
-            <p className="text-[#666] text-sm mb-6 max-w-[280px]">Redirecting you to the project dashboard...</p>
-            <div className="w-6 h-6 border-2 border-[#EAE6DF] border-t-[#C9A84C] rounded-full animate-spin"></div>
+            <p className="text-[#666] text-sm mb-6 max-w-sm">Your Picture Book is being prepared on the website. WhatsApp notifications are optional.</p>
+            <div className="w-full max-w-sm space-y-3">
+              <button onClick={() => router.push(`/dashboard/clients/${createdBookId}?whatsapp=1`)} className="w-full bg-[#1A1A1A] text-white py-3 rounded-md text-sm font-medium">Get updates on WhatsApp</button>
+              <button onClick={() => router.push(`/dashboard/clients/${createdBookId}`)} className="w-full border border-[#EAE6DF] text-[#1A1A1A] py-3 rounded-md text-sm font-medium">Continue without WhatsApp</button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6 flex-1 flex flex-col">
@@ -394,8 +398,8 @@ export default function NewPictureBookPage() {
                 )}
               </button>
               
-              <div className="mt-5 flex items-center justify-center gap-2 text-xs font-medium text-[#666]">
-                <HardDrive className="w-3.5 h-3.5 text-[#C9A84C]" /> Secure Drive Folder
+              <div className="mt-5 text-center text-xs text-[#666]">
+                We’ll show the upload folder and all updates here. WhatsApp notifications are optional.
               </div>
             </div>
           </form>

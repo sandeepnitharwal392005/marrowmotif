@@ -24,6 +24,11 @@ export class IncidentsService {
       );
     }
 
+    if (dto.pictureBookId) {
+      const pictureBook = await this.prisma.pictureBook.findFirst({ where: { id: dto.pictureBookId, userId: user.id }, select: { id: true } });
+      if (!pictureBook) throw new NotFoundException('Picture Book not found');
+    }
+
     const incident = await this.prisma.incident.create({
       data: {
         title: dto.title,
@@ -52,9 +57,8 @@ export class IncidentsService {
 
     const where: Prisma.IncidentWhereInput = {};
 
-    if (user.role === Role.END_USER) {
-      where.userId = user.id;
-    }
+    if (user.role === Role.END_USER) where.userId = user.id;
+    if (user.role === Role.GUIDE) throw new ForbiddenException('Guides do not have access to incidents');
 
     const [data, total] = await Promise.all([
       this.prisma.incident.findMany({
@@ -94,7 +98,7 @@ export class IncidentsService {
 
     if (!incident) throw new NotFoundException('Incident not found');
 
-    if (user.role === Role.END_USER && incident.userId !== user.id) {
+    if (user.role !== Role.ADMIN && incident.userId !== user.id) {
       throw new ForbiddenException('Access denied');
     }
 

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { pictureBooksApi, apiFetch } from "@/lib/api";
@@ -45,6 +45,7 @@ function TimelineStep({ label, description, state }: { label: string; descriptio
 
 export default function PictureBookDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const { accessToken, user } = useAuth();
   const [book, setBook] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,8 @@ export default function PictureBookDetailPage() {
   
   // WhatsApp Modal State
   const [showWaModal, setShowWaModal] = useState(false);
+  const [waNumber, setWaNumber] = useState("");
+  const [waLink, setWaLink] = useState("");
   const [waType, setWaType] = useState<"DEFAULT" | "CUSTOM">("DEFAULT");
   const [customMsg, setCustomMsg] = useState("");
   const [sendingWa, setSendingWa] = useState(false);
@@ -73,6 +76,13 @@ export default function PictureBookDetailPage() {
   }
 
   useEffect(() => { load(); }, [accessToken, id]);
+
+  useEffect(() => {
+    if (searchParams.get("whatsapp") === "1" && book && user?.role === "END_USER") {
+      setWaNumber(book.user?.whatsappNumber || "");
+      setShowWaModal(true);
+    }
+  }, [searchParams, book, user?.role]);
 
   // Poll for status changes if pending
   useEffect(() => {
@@ -148,12 +158,7 @@ export default function PictureBookDetailPage() {
     if (!accessToken || !id) return;
     setSendingWa(true);
     try {
-      if (waType === "DEFAULT") {
-        await apiFetch(`/whatsapp/send-default/${id}`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-      } else {
+      if (waType === "CUSTOM") {
         await apiFetch(`/whatsapp/send-custom/${id}`, {
           method: "POST",
           headers: { 
@@ -174,6 +179,31 @@ export default function PictureBookDetailPage() {
     }
   }
 
+  async function handleWhatsappOptIn() {
+    if (!accessToken || !id) return;
+    setSendingWa(true);
+    try {
+      const result = await pictureBooksApi.whatsappOptIn(accessToken, id, waNumber || undefined);
+      setWaLink(result.link);
+      await load();
+    } catch (err: any) {
+      toast.error("WhatsApp updates are unavailable", { description: err.message });
+    } finally {
+      setSendingWa(false);
+    }
+  }
+
+  async function handleWhatsappDecline() {
+    if (!accessToken || !id) return;
+    try {
+      await pictureBooksApi.whatsappDecline(accessToken, id);
+      setShowWaModal(false);
+      await load();
+    } catch (err: any) {
+      toast.error("Could not update your preference", { description: err.message });
+    }
+  }
+
   if (loading) return (
     <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
       <div className="w-10 h-10 border-4 border-[#EAE6DF] border-t-[#C9A84C] rounded-full animate-spin"></div>
@@ -189,9 +219,8 @@ export default function PictureBookDetailPage() {
   );
 
   const lastMsg = book.whatsappMessages?.[0];
-  const isPending = book.status === "REQUESTED";
-  const isFailed = book.status === "FAILED";
-  const isCompleted = book.status === "ACTIVE";
+  const isFailed = book.driveStatus === "FAILED";
+  const isEndUser = user?.role === "END_USER";
 
   return (
     <div className="p-6 sm:p-10 max-w-5xl mx-auto space-y-8">
@@ -250,14 +279,14 @@ export default function PictureBookDetailPage() {
                 <User className="w-4 h-4 text-[#999] mt-0.5 shrink-0" />
                 <div>
                   <div className="text-xs text-[#999] mb-0.5 font-medium uppercase tracking-wider">Customer</div>
-                  <div className="text-sm font-medium text-[#1A1A1A]">{book.endUser?.name || "N/A"}</div>
+                  <div className="text-sm font-medium text-[#1A1A1A]">{book.user?.name || "N/A"}</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Smartphone className="w-4 h-4 text-[#999] mt-0.5 shrink-0" />
                 <div>
                   <div className="text-xs text-[#999] mb-0.5 font-medium uppercase tracking-wider">WhatsApp</div>
-                  <div className="text-sm font-medium text-[#1A1A1A]">{book.endUser?.whatsappNumber || "N/A"}</div>
+                  <div className="text-sm font-medium text-[#1A1A1A]">{book.user?.whatsappNumber || "Not added"}</div>
                 </div>
               </div>
               {book.endUser?.email && (
@@ -355,20 +384,7 @@ export default function PictureBookDetailPage() {
                     : "pending"
                 } 
               />
-              <TimelineStep 
-                label="WhatsApp Link Sent" 
-                description={
-                  lastMsg?.status === "DELIVERED" || lastMsg?.status === "READ" ? "Link delivered to customer" :
-                  lastMsg?.status === "SENT" ? "Link sent, awaiting delivery" :
-                  isFailed ? (lastMsg?.errorMessage || "Failed to send message") :
-                  "Sending secure upload link..."
-                }
-                state={
-                  (lastMsg?.status === "DELIVERED" || lastMsg?.status === "READ" || lastMsg?.status === "SENT") ? "completed" : 
-                  isFailed ? "failed" : 
-                  book.driveLink ? "active" : "pending"
-                } 
-              />
+              <TimelineStep label="Website upload instructions" description={book.driveLink ? "Ready on this page" : "We’ll show the link here when ready"} state={book.driveLink ? "completed" : book.driveStatus === 'FAILED' ? "failed" : "active"} />
             </div>
 
             {isFailed && (
@@ -403,7 +419,7 @@ export default function PictureBookDetailPage() {
             {book.driveLink ? (
               <div className="space-y-4">
                 <p className="text-sm text-[#666] leading-relaxed">
-                  A secure Google Drive folder has been created for this Picture Book. The customer can use this link to upload their travel photos.
+                  Your photo upload folder is ready. Please upload your photos to this Google Drive folder to create your picture book.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -437,7 +453,7 @@ export default function PictureBookDetailPage() {
             ) : (
               <div className="p-8 rounded-xl border border-dashed border-[#EAE6DF] bg-[#FAF9F6] flex flex-col items-center justify-center text-center">
                 <HardDrive className="w-8 h-8 text-[#CCC] mb-3" />
-                <p className="text-[#999] text-sm mb-4">Upload link will appear here once generated.</p>
+                <p className="text-[#999] text-sm mb-4">{book.driveStatus === 'FAILED' ? "We couldn’t prepare your upload folder yet. Please try again shortly. If the problem continues, our support team can help." : "Your photo upload folder is being prepared. We’ll show the upload link here as soon as it’s ready."}</p>
                 {user?.role === "ADMIN" && (
                   <button 
                     onClick={handleCreateDrive}
@@ -465,6 +481,13 @@ export default function PictureBookDetailPage() {
                   <Send className="w-3.5 h-3.5 text-[#C9A84C]" /> Send Message
                 </button>
               )}
+            {isEndUser && (
+              <div className="mt-6 border-t border-[#EAE6DF] pt-5">
+                <h3 className="text-sm font-semibold text-[#1A1A1A]">Want updates on WhatsApp?</h3>
+                <p className="text-sm text-[#666] mt-1">WhatsApp notifications are optional. Everything continues here on the website.</p>
+                <button onClick={() => { setWaNumber(book.user?.whatsappNumber || ""); setWaLink(""); setShowWaModal(true); }} className="mt-3 bg-[#1A1A1A] text-white px-4 py-2 rounded-md text-sm font-medium">{book.whatsappStatus === 'LINK_GENERATED' ? "View WhatsApp instructions" : "Get updates on WhatsApp"}</button>
+              </div>
+            )}
             </div>
             
             {book.whatsappMessages?.length === 0 ? (
@@ -612,53 +635,51 @@ export default function PictureBookDetailPage() {
               </button>
             </div>
             
+            {isEndUser ? (
+              <div className="p-6">
+                <p className="text-sm text-[#666] leading-relaxed">
+                  We’ll send relevant Picture Book updates on WhatsApp. The website will continue working normally even if you do not send the message.
+                </p>
+                <ol className="mt-5 space-y-3 text-sm text-[#1A1A1A] list-decimal list-inside">
+                  <li>Enter or confirm your WhatsApp number.</li>
+                  <li>Click “Continue to WhatsApp”.</li>
+                  <li>WhatsApp will open with a pre-filled message.</li>
+                  <li>Press “Send” in WhatsApp to start receiving updates.</li>
+                </ol>
+                {!waLink ? (
+                  <>
+                    <label className="block text-sm font-medium text-[#1A1A1A] mt-6 mb-2" htmlFor="whatsapp-number">WhatsApp number</label>
+                    <input id="whatsapp-number" type="tel" value={waNumber} onChange={(e) => setWaNumber(e.target.value)} placeholder="+1234567890" className="w-full px-4 py-3 rounded-md border border-[#EAE6DF] bg-white text-sm outline-none focus:border-[#C9A84C]" />
+                  </>
+                ) : (
+                  <p className="mt-6 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] p-3 text-sm text-[#666]">Your WhatsApp link is ready. Open WhatsApp and press Send there.</p>
+                )}
+                <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-[#EAE6DF]">
+                  <button type="button" onClick={handleWhatsappDecline} className="px-5 py-2.5 rounded-md text-sm font-medium text-[#666]">Not now</button>
+                  {!waLink ? (
+                    <button type="button" onClick={handleWhatsappOptIn} disabled={sendingWa || !waNumber.trim()} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white disabled:opacity-50">{sendingWa ? "Preparing..." : "Continue"}</button>
+                  ) : (
+                    <a href={waLink} target="_blank" rel="noopener noreferrer" onClick={() => setShowWaModal(false)} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white">Continue to WhatsApp</a>
+                  )}
+                </div>
+              </div>
+            ) : (
             <form onSubmit={handleSendWa} className="p-6">
               <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-[#1A1A1A] mb-3">Message Type</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setWaType("DEFAULT")}
-                      className={`py-2.5 px-4 rounded-lg border text-sm font-medium transition-colors ${
-                        waType === "DEFAULT" 
-                          ? "bg-[#FAF9F6] border-[#C9A84C] text-[#C9A84C]" 
-                          : "bg-white border-[#EAE6DF] text-[#666] hover:bg-gray-50"
-                      }`}
-                    >
-                      Default Template
-                    </button>
+                  <div>
                     <button
                       type="button"
                       onClick={() => setWaType("CUSTOM")}
-                      className={`py-2.5 px-4 rounded-lg border text-sm font-medium transition-colors ${
-                        waType === "CUSTOM" 
-                          ? "bg-[#FAF9F6] border-[#C9A84C] text-[#C9A84C]" 
-                          : "bg-white border-[#EAE6DF] text-[#666] hover:bg-gray-50"
-                      }`}
+                      className="py-2.5 px-4 rounded-lg border border-[#C9A84C] bg-[#FAF9F6] text-[#C9A84C] text-sm font-medium"
                     >
-                      Custom Message
+                      Custom free-form message
                     </button>
                   </div>
                 </div>
 
-                {waType === "DEFAULT" ? (
-                  <div className="bg-[#FAF9F6] p-4 rounded-lg border border-[#EAE6DF]">
-                    <div className="flex items-start gap-2 mb-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#C9A84C] mt-0.5" />
-                      <span className="text-sm font-semibold text-[#1A1A1A]">Standard Drive Link Template</span>
-                    </div>
-                    <p className="text-sm text-[#666] leading-relaxed ml-6">
-                      Sends the configured default welcome message automatically interpolating the customer's name, book title, and Drive Upload Link.
-                    </p>
-                    {!book.driveLink && (
-                      <div className="mt-3 ml-6 text-xs text-rose-600 bg-rose-50 px-3 py-2 rounded-md border border-rose-100 font-medium">
-                        Warning: Drive Link has not been generated yet. The message will say "Not generated yet".
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div>
+                <div>
                     <label className="block text-sm font-medium text-[#1A1A1A] mb-2">Custom Message Content</label>
                     <textarea 
                       required
@@ -669,10 +690,9 @@ export default function PictureBookDetailPage() {
                       className="w-full px-4 py-3 rounded-lg border border-[#EAE6DF] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none text-sm text-[#1A1A1A] resize-y bg-white"
                     />
                     <p className="text-xs text-[#999] mt-2">
-                      This will be sent exactly as typed to {book.endUser?.whatsappNumber || "the customer"}.
+                      This will be sent exactly as typed to {book.user?.whatsappNumber || "the customer"}.
                     </p>
-                  </div>
-                )}
+                </div>
               </div>
 
               <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-[#EAE6DF]">
@@ -693,6 +713,7 @@ export default function PictureBookDetailPage() {
                 </button>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}

@@ -54,6 +54,22 @@ export class PictureBooksController {
     return this.pictureBooksService.resend(id, user);
   }
 
+  @Post(':id/whatsapp-opt-in')
+  @HttpCode(HttpStatus.OK)
+  whatsappOptIn(
+    @Param('id') id: string,
+    @Body('whatsappNumber') whatsappNumber: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.pictureBooksService.createWhatsappOptIn(id, whatsappNumber, user);
+  }
+
+  @Post(':id/whatsapp-decline')
+  @HttpCode(HttpStatus.OK)
+  whatsappDecline(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.pictureBooksService.declineWhatsapp(id, user);
+  }
+
   @Patch(':id/status')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)

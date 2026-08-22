@@ -12,35 +12,6 @@ export class MockWhatsAppProvider implements WhatsAppProvider {
     this.failureRate = failureRate;
   }
 
-  async sendTemplateMessage(
-    to: string,
-    clientName: string,
-    driveLink: string,
-  ): Promise<WhatsAppSendResult> {
-    // Simulate network latency
-    await this.delay(200 + Math.random() * 300);
-
-    // Simulate occasional failures for testing retry logic
-    if (Math.random() < this.failureRate) {
-      return {
-        success: false,
-        error: 'Mock provider: simulated transient failure',
-      };
-    }
-
-    const messageId = `mock_wamid_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-    console.log(
-      `[MockWhatsApp] ✅ Sent to ${to} (${clientName}): ${messageId}`,
-    );
-    console.log(`[MockWhatsApp]    Drive link: ${driveLink}`);
-
-    return {
-      success: true,
-      messageId,
-    };
-  }
-
   async sendTextMessage(to: string, text: string): Promise<WhatsAppSendResult> {
     console.log(`\n[MOCK WHATSAPP] Sending TEXT to ${to}:`);
     console.log(text);

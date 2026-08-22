@@ -21,7 +21,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   // Modals state
   const [waModalOpen, setWaModalOpen] = useState(false);
   const [selectedPbId, setSelectedPbId] = useState<string | null>(null);
-  const [waType, setWaType] = useState<"default" | "custom">("default");
+  const [waType, setWaType] = useState<"custom">("custom");
   const [customMsg, setCustomMsg] = useState("");
 
   const loadCustomer = async () => {
@@ -101,12 +101,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     if (!accessToken || !selectedPbId) return;
     setSubmittingId(`wa-${selectedPbId}`);
     try {
-      if (waType === "default") {
-        await apiFetch(`/whatsapp/send-default/${selectedPbId}`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-      } else {
+      if (waType === "custom") {
         await apiFetch(`/whatsapp/send-custom/${selectedPbId}`, {
           method: "POST",
           headers: {
@@ -439,29 +434,14 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#1A1A1A] mb-2">Message Type</label>
-                <div className="flex rounded-md shadow-sm">
-                  <button
-                    onClick={() => setWaType("default")}
-                    className={`flex-1 py-2 text-sm font-medium border ${waType === 'default' ? 'bg-[#FAF9F6] border-[#C9A84C] text-[#C9A84C] z-10' : 'bg-white border-[#EAE6DF] text-[#666]'} rounded-l-md transition-colors`}
-                  >
-                    Default Template
-                  </button>
-                  <button
-                    onClick={() => setWaType("custom")}
-                    className={`flex-1 py-2 text-sm font-medium border-y border-r ${waType === 'custom' ? 'bg-[#FAF9F6] border-l border-[#C9A84C] border-y-[#C9A84C] border-r-[#C9A84C] text-[#C9A84C] z-10' : 'bg-white border-[#EAE6DF] text-[#666]'} rounded-r-md transition-colors`}
-                  >
-                    Custom Text
-                  </button>
+                <div>
+                  <div className="inline-flex py-2 px-3 text-sm font-medium border border-[#C9A84C] rounded-md bg-[#FAF9F6] text-[#C9A84C]">
+                    Custom free-form text
+                  </div>
                 </div>
               </div>
 
-              {waType === "default" ? (
-                <div className="bg-blue-50 text-blue-800 p-4 rounded-md text-sm flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                  <p>This will send the Default WhatsApp Message Template defined in Settings, and automatically substitute the customer's name, book title, status, and Google Drive link.</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
+              <div className="space-y-2">
                   <label className="block text-sm font-medium text-[#1A1A1A]">Custom Message</label>
                   <textarea 
                     value={customMsg}
@@ -469,8 +449,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                     className="w-full border border-[#EAE6DF] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] min-h-[100px] resize-y"
                     placeholder="Type your message here..."
                   />
-                </div>
-              )}
+              </div>
             </div>
             
             <div className="px-6 py-4 border-t border-[#EAE6DF] bg-[#FAF9F6] flex justify-end gap-3">

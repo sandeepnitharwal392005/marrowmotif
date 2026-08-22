@@ -8,8 +8,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "",
-    whatsappNumber: ""
+    password: ""
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,8 +31,7 @@ export default function RegisterPage() {
         method: "POST",
         body: JSON.stringify(payload)
       });
-      // Registration successful, OTP sent. Redirect to verify.
-      router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+      router.push("/login?registered=true");
     } catch (err: any) {
       setError(
         err?.status >= 500
@@ -74,10 +72,6 @@ export default function RegisterPage() {
               <div>
                 <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Password *</label>
                 <input type="password" name="password" required minLength={8} value={formData.password} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="••••••••" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">WhatsApp Number *</label>
-                <input type="tel" name="whatsappNumber" required value={formData.whatsappNumber} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" placeholder="+1234567890" />
               </div>
             </div>
 

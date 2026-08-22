@@ -33,6 +33,16 @@ enum WhatsAppMessageStatus {
   FAILED
 }
 
+enum WhatsAppOptInStatus {
+  NOT_REQUESTED
+  DECLINED
+  LINK_GENERATED
+  MESSAGE_NOT_RECEIVED
+  CONVERSATION_INITIATED
+  UPDATE_SENT
+  PROCESSING_FAILED
+}
+
 enum DeliveryPreference {
   HOME_DELIVERY
   BEFORE_DEPARTURE
@@ -97,6 +107,11 @@ model PictureBook {
   driveStatus     DriveStatus?
   driveError      String?
   jobId           String?
+  whatsappStatus  WhatsAppOptInStatus @default(NOT_REQUESTED)
+  whatsappLinkGeneratedAt DateTime?
+  whatsappMessageReceivedAt DateTime?
+  lastInboundMessageAt DateTime?
+  whatsappConversationOpenUntil DateTime?
   
   // Delivery Info
   deliveryPreference DeliveryPreference?
@@ -158,6 +173,11 @@ model WhatsAppMessage {
   errorMessage      String?
   attempts          Int                   @default(0)
   sentAt            DateTime?
+  direction         String              @default("OUTBOUND")
+  body              String?
+  senderNumber      String?
+  providerEventId   String?
+  idempotencyKey    String?             @unique
   
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
@@ -166,7 +186,23 @@ model WhatsAppMessage {
 
   @@index([pictureBookId])
   @@index([status])
+  @@unique([providerEventId])
   @@map("whatsapp_messages")
+}
+
+model WhatsAppWebhookEvent {
+  id              String   @id @default(cuid())
+  providerEventId String   @unique
+  senderNumber    String?
+  body            String?
+  matched         Boolean  @default(false)
+  matchedPictureBookId String?
+  processingStatus String  @default("RECEIVED")
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  @@index([senderNumber])
+  @@map("whatsapp_webhook_events")
 }
 
 model ActivityLog {

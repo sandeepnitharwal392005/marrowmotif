@@ -99,7 +99,7 @@ export class PictureBooksService {
 
       return pictureBook;
     } catch (e: any) {
-      throw new BadRequestException('DEBUG_CREATE: ' + e.message);
+      throw new BadRequestException('We could not create the Picture Book. Please try again.');
     }
   }
 
@@ -158,7 +158,11 @@ export class PictureBooksService {
           orderBy: { requestedAt: 'desc' },
         },
         user: {
-          select: { id: true, name: true, email: true, referredById: true },
+          select: {
+            id: true, name: true, email: true, referredById: true,
+            whatsappNumber: true, addressLine1: true, addressLine2: true,
+            city: true, state: true, postalCode: true, country: true,
+          },
         },
       },
     });
@@ -173,6 +177,44 @@ export class PictureBooksService {
     }
 
     return pictureBook;
+  }
+
+  async createWhatsappOptIn(
+    id: string,
+    whatsappNumber: string | undefined,
+    user: { id: string; role: Role },
+  ) {
+    const pictureBook = await this.findOne(id, user);
+    const number = whatsappNumber?.trim() || pictureBook.user.whatsappNumber;
+    if (!number) throw new BadRequestException('A WhatsApp number is required');
+
+    await this.prisma.user.update({
+      where: { id: pictureBook.userId },
+      data: { whatsappNumber: number },
+    });
+
+    const businessNumber = (process.env.WHATSAPP_BUSINESS_NUMBER || '').replace(/[^0-9]/g, '');
+    if (!businessNumber) throw new BadRequestException('WhatsApp updates are temporarily unavailable');
+
+    const message = `Picture Book: ${pictureBook.title}\n\nHi Marrowmotif, I’d like to receive updates about my picture book “${pictureBook.title}” on WhatsApp.\nPlease send me the photo upload link when it’s ready.`;
+    const link = `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
+    await this.prisma.pictureBook.update({
+      where: { id },
+      data: { whatsappStatus: 'LINK_GENERATED', whatsappLinkGeneratedAt: new Date() },
+    });
+    await this.prisma.activityLog.create({
+      data: { pictureBookId: id, action: 'WHATSAPP_OPT_IN_LINK_GENERATED', details: 'Customer chose optional WhatsApp updates.' },
+    });
+    return { link, whatsappStatus: 'LINK_GENERATED' };
+  }
+
+  async declineWhatsapp(id: string, user: { id: string; role: Role }) {
+    await this.findOne(id, user);
+    await this.prisma.pictureBook.update({ where: { id }, data: { whatsappStatus: 'DECLINED' } });
+    await this.prisma.activityLog.create({
+      data: { pictureBookId: id, action: 'WHATSAPP_DECLINED', details: 'Customer chose to continue without WhatsApp.' },
+    });
+    return { whatsappStatus: 'DECLINED' };
   }
 
   async resend(id: string, user: { id: string; role: Role }) {
