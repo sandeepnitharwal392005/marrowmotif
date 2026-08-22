@@ -194,7 +194,10 @@ export default function DashboardPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#FAF9F6] border-b border-[#EAE6DF]">
-                  {["Name", "WhatsApp", "Status", "Drive Link", "Created", ""].map((h) => (
+                  {(isEndUser
+                    ? ["Title", "Status", "Drive Link", "Created", ""]
+                    : ["Name", "WhatsApp", "Status", "Drive Link", "Created", ""]
+                  ).map((h) => (
                     <th key={h} className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">
                       {h}
                     </th>
@@ -204,13 +207,21 @@ export default function DashboardPage() {
               <tbody className="divide-y divide-[#EAE6DF]">
                 {books.map((book: any) => (
                   <tr key={book.id} className="hover:bg-[#FAF9F6] transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-[#1A1A1A]">{book.user?.name || "Customer"}</div>
-                      <div className="text-xs text-[#666] mt-0.5">{book.title}</div>
-                    </td>
-                    <td className="px-6 py-4 text-[#4A4A4A] font-medium">
-                      {book.user?.whatsappNumber || "N/A"}
-                    </td>
+                    {isEndUser ? (
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-[#1A1A1A]">{book.title}</div>
+                      </td>
+                    ) : (
+                      <>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-[#1A1A1A]">{book.user?.name || "Customer"}</div>
+                          <div className="text-xs text-[#666] mt-0.5">{book.title}</div>
+                        </td>
+                        <td className="px-6 py-4 text-[#4A4A4A] font-medium">
+                          {book.user?.whatsappNumber || "N/A"}
+                        </td>
+                      </>
+                    )}
                     <td className="px-6 py-4">
                       <StatusBadge status={book.status} />
                     </td>

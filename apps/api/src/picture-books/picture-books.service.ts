@@ -47,6 +47,23 @@ export class PictureBooksService {
         },
       });
 
+      if (dto.deliveryPreference === 'HOME_DELIVERY' && dto.deliveryAddressLine1) {
+        const userRec = await this.prisma.user.findUnique({ where: { id: targetUserId } });
+        if (userRec && !userRec.addressLine1) {
+          await this.prisma.user.update({
+            where: { id: targetUserId },
+            data: {
+              addressLine1: dto.deliveryAddressLine1,
+              addressLine2: dto.deliveryAddressLine2,
+              city: dto.deliveryCity,
+              state: dto.deliveryState,
+              postalCode: dto.deliveryPostalCode,
+              country: dto.deliveryCountry,
+            },
+          });
+        }
+      }
+
       const automationJob = await this.prisma.automationJob.create({
         data: {
           pictureBookId: pictureBook.id,

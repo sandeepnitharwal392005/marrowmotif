@@ -127,21 +127,21 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Phone</label>
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">Phone <span className="text-[10px] lowercase normal-case text-gray-400">(Read-only)</span></label>
             <input 
               type="tel"
               value={profile?.phone || ''}
-              onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+              disabled
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">WhatsApp Number</label>
+            <label className="block text-xs font-medium text-[#999999] uppercase tracking-wider mb-1">WhatsApp Number <span className="text-[10px] lowercase normal-case text-gray-400">(Read-only)</span></label>
             <input 
               type="tel"
               value={profile?.whatsappNumber || ''}
-              onChange={(e) => setProfile({ ...profile, whatsappNumber: e.target.value })}
-              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm focus:ring-[#C9A84C] focus:border-[#C9A84C]"
+              disabled
+              className="w-full px-3 py-2 border border-[#EAE6DF] rounded-md text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
             />
           </div>
         </div>

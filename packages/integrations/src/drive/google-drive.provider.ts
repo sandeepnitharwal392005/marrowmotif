@@ -31,13 +31,9 @@ export class GoogleDriveProvider implements DriveProvider {
   }
 
   async createClientFolder(
-    clientName: string,
-    bookingRef: string,
+    folderName: string,
   ): Promise<DriveFolderResult> {
     try {
-      const folderName = bookingRef
-        ? `${clientName} - ${bookingRef}`
-        : clientName;
 
       // Check for existing folder (idempotency)
       const existing = await this.findExistingFolder(folderName);

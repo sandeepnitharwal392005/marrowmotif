@@ -7,19 +7,17 @@ import { DriveProvider } from './drive.provider';
  */
 export class MockDriveProvider implements DriveProvider {
   async createClientFolder(
-    clientName: string,
-    bookingRef: string,
+    folderName: string,
   ): Promise<DriveFolderResult> {
     // Simulate API latency
     await this.delay(300 + Math.random() * 400);
 
-    const slug = this.toSlug(clientName);
-    const refSlug = bookingRef ? bookingRef.toLowerCase() : `demo-${Date.now()}`;
+    const slug = this.toSlug(folderName);
     const folderId = `demo_folder_${Math.random().toString(36).slice(2, 14)}`;
-    const shareLink = `https://demo-drive.local/client/${slug}-${refSlug}`;
+    const shareLink = `https://demo-drive.local/client/${slug}`;
 
     console.log(
-      `[MockDrive] ✅ Created folder for "${clientName}" (${bookingRef}): ${shareLink}`,
+      `[MockDrive] ✅ Created folder for "${folderName}": ${shareLink}`,
     );
 
     return {

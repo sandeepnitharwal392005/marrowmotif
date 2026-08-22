@@ -2,7 +2,6 @@ import { DriveFolderResult } from '@travel/types';
 
 export interface DriveProvider {
   createClientFolder(
-    clientName: string,
-    bookingRef: string,
+    folderName: string,
   ): Promise<DriveFolderResult>;
 }
