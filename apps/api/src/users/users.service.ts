@@ -208,7 +208,7 @@ export class UsersService {
         const providers = createProviders();
         await providers.whatsApp.sendTextMessage(
           data.whatsappNumber,
-          `Your Marrowotif verification code is: ${otpCode}. It expires in 10 minutes.`,
+          `Your Marrowmotif verification code is: ${otpCode}. It expires in 10 minutes.`,
         );
       } catch (err) {
         console.error('Failed to send WhatsApp OTP:', err);
@@ -307,7 +307,7 @@ export class UsersService {
       const providers = createProviders();
       await providers.whatsApp.sendTextMessage(
         user.whatsappNumber,
-        `Your Marrowotif verification code is: ${otpCode}. It expires in 10 minutes.`,
+        `Your Marrowmotif verification code is: ${otpCode}. It expires in 10 minutes.`,
       );
     } catch (err) {
       console.error('Failed to send WhatsApp OTP:', err);
@@ -353,7 +353,7 @@ export class UsersService {
       if (data.whatsappNumber) {
         await providers.whatsApp.sendTextMessage(
           data.whatsappNumber,
-          `Welcome to Marrowotif, ${data.name}! Set up your Guide account here: ${link}`,
+          `Welcome to Marrowmotif, ${data.name}! Set up your Guide account here: ${link}`,
         );
       }
     } catch (err) {
@@ -397,7 +397,7 @@ export class UsersService {
 
       await providers.whatsApp.sendTextMessage(
         data.whatsappNumber,
-        `Hello ${data.customerName || data.name}! ${guide.name} has invited you to create your Picture Book with Marrowotif. Register here: ${link}`,
+        `Hello ${data.customerName || data.name}! ${guide.name} has invited you to create your Picture Book with Marrowmotif. Register here: ${link}`,
       );
     } catch (err) {
       console.error('Failed to send Referral link:', err);

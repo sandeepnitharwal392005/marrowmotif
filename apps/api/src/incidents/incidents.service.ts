@@ -20,7 +20,7 @@ export class IncidentsService {
   async create(dto: CreateIncidentDto, user: { id: string; role: Role }) {
     if (user.role !== Role.END_USER) {
       throw new ForbiddenException(
-        'Only END_USER can create incidents via this endpoint',
+        'This endpoint is only available to customers',
       );
     }
 

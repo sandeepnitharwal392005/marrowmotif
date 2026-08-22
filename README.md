@@ -1,34 +1,34 @@
-# Marrowotif — Where Memory Meets Craft
+# Marrowmotif — Where Memory Meets Craft
 
-Marrowotif is a modern **Picture Book Platform** connecting customers with curated, crafted memories. It enables End Users to request bespoke picture books, securely upload their photos, and track the physical delivery of their handcrafted memories. 
+Marrowmotif is a modern **Picture Book Platform** connecting customers with curated, crafted memories. It enables Customers to request bespoke picture books, securely upload their photos, and track the physical delivery of their handcrafted memories. 
 
-Marrowotif is **not** a travel booking platform. It focuses entirely on memory curation, physical book production, and communication.
+Marrowmotif is **not** a travel booking platform. It focuses entirely on memory curation, physical book production, and communication.
 
 ---
 
 ## 🚀 Business Model & User Journey
 
-The Marrowotif platform enforces strict Role-Based Access Control (RBAC) across three primary actors:
+The Marrowmotif platform enforces strict Role-Based Access Control (RBAC) across three primary actors:
 
-1. **End User**: The customer requesting the Picture Book.
-2. **Guide**: A referral partner (e.g., a tour guide) who refers customers to Marrowotif but has restricted access to their private data.
+1. **Customer**: The customer requesting the Picture Book.
+2. **Guide**: A referral partner (e.g., a tour guide) who refers customers to Marrowmotif but has restricted access to their private data.
 3. **Admin**: The business operator responsible for producing the books, managing communications, and driving the backend processes.
 
 ### Complete Customer Journey
 1. **Referral (Optional):** A Guide refers a customer.
-2. **Account Creation:** The End User creates an account (or is registered via referral).
-3. **Picture Book Creation:** The End User creates one or multiple Picture Books (e.g., "My Safari Trip", "Wedding Memories").
+2. **Account Creation:** The Customer creates an account (or is registered via referral).
+3. **Picture Book Creation:** The Customer creates one or multiple Picture Books (e.g., "My Safari Trip", "Wedding Memories").
 4. **Drive Generation (Admin):** The Admin securely triggers the creation of a unique Google Drive upload folder dedicated specifically to that Picture Book.
 5. **Photo Upload:** The customer receives the Drive link and uploads their photos.
 6. **Production (Admin):** The Admin updates the production status of the Picture Book (e.g., `IN_PRODUCTION`, `COMPLETED`).
-7. **Communication (Admin/Automated):** The Admin triggers automated WhatsApp notifications or sends custom manual messages using the Marrowotif business credentials.
-8. **Delivery:** The End User views tracking/delivery information directly on their dashboard.
+7. **Communication (Admin/Automated):** The Admin triggers automated WhatsApp notifications or sends custom manual messages using the Marrowmotif business credentials.
+8. **Delivery:** The Customer views tracking/delivery information directly on their dashboard.
 
 ---
 
 ## 🛠 Architecture
 
-Marrowotif utilizes a heavily decoupled, asynchronous architecture to ensure the frontend and API remain fast while offloading heavy operations (like Google Drive API and WhatsApp API) to a background worker.
+Marrowmotif utilizes a heavily decoupled, asynchronous architecture to ensure the frontend and API remain fast while offloading heavy operations (like Google Drive API and WhatsApp API) to a background worker.
 
 ```text
                     ┌──────────────┐
@@ -67,10 +67,10 @@ Marrowotif utilizes a heavily decoupled, asynchronous architecture to ensure the
 
 ### ✅ Implemented
 - **Full Authentication Flow:** Registration, login, JWT rotation, and silent token refreshing via cookies/headers.
-- **Role-Based Access Control (RBAC):** Backend-enforced guards prevent End Users from hitting Admin routes and Guides from viewing un-referred customers.
-- **Picture Book Lifecycle:** End Users can create books and specify delivery addresses; Admins can view and update their status.
+- **Role-Based Access Control (RBAC):** Backend-enforced guards prevent Customers from hitting Admin routes and Guides from viewing un-referred customers.
+- **Picture Book Lifecycle:** Customers can create books and specify delivery addresses; Admins can view and update their status.
 - **Asynchronous Worker:** BullMQ properly queues and executes Google Drive folder generation.
-- **IT Incidents:** End Users can report technical issues, which Admins can view and update.
+- **IT Incidents:** Customers can report technical issues, which Admins can view and update.
 - **Products Management:** Admins can create and edit catalog products.
 - **Settings:** Admin settings successfully persist to the database.
 - **Customer Search:** Debounced asynchronous search enforces proper pagination and limits without database crashes.

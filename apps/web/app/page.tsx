@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Marrowotif — Where Memory Meets Craft',
+  title: 'Marrowmotif — Where Memory Meets Craft',
   description: 'We create beautiful Picture Books from your travel memories.',
 };
 
@@ -38,7 +38,7 @@ export default function HomePage() {
       <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(250, 249, 246, 0.9)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
         <nav className="container-pad" style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72 }}>
           <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span className="font-serif" style={{ fontSize: '1.75rem', fontWeight: 600, color: '#1A1A1A', letterSpacing: '-0.02em' }}>Marrowotif</span>
+            <span className="font-serif" style={{ fontSize: '1.75rem', fontWeight: 600, color: '#1A1A1A', letterSpacing: '-0.02em' }}>Marrowmotif</span>
           </Link>
 
           {/* Desktop nav */}
@@ -154,7 +154,7 @@ export default function HomePage() {
           Preserve your story.
         </h2>
         <p style={{ color: '#666', fontSize: '1.1rem', marginBottom: '2.5rem', maxWidth: 500, margin: '0 auto 2.5rem' }}>
-          Join Marrowotif and start building your first Picture Book today.
+          Join Marrowmotif and start building your first Picture Book today.
         </p>
         <Link href="/login?register=true" className="btn-primary" style={{ fontSize: '1.1rem', padding: '1rem 3rem', background: '#1A1A1A', color: '#FFF', borderRadius: '4px' }}>
           Get Started
@@ -165,7 +165,7 @@ export default function HomePage() {
       <footer style={{ borderTop: '1px solid rgba(0,0,0,0.05)', padding: '3rem 0', background: '#FFF' }}>
         <div className="container-pad" style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="font-serif" style={{ color: '#1A1A1A', fontWeight: 600, fontSize: '1.25rem' }}>Marrowotif</span>
+            <span className="font-serif" style={{ color: '#1A1A1A', fontWeight: 600, fontSize: '1.25rem' }}>Marrowmotif</span>
           </div>
           <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
             <Link href="#how-it-works" style={{ color: '#666', textDecoration: 'none', fontSize: '0.9rem' }}>How it Works</Link>
@@ -173,7 +173,7 @@ export default function HomePage() {
             <Link href="/login" style={{ color: '#666', textDecoration: 'none', fontSize: '0.9rem' }}>Sign In</Link>
           </div>
           <p style={{ fontSize: '0.85rem', color: '#999' }}>
-            © {new Date().getFullYear()} Marrowotif. Where Memory Meets Craft.
+            © {new Date().getFullYear()} Marrowmotif. Where Memory Meets Craft.
           </p>
         </div>
       </footer>

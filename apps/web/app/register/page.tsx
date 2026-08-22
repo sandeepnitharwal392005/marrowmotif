@@ -54,7 +54,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-xl">
         <div className="text-center mb-10">
           <Link href="/" className="inline-flex items-center gap-3 mb-4">
-            <span className="font-serif text-[#1A1A1A] text-2xl font-semibold tracking-tight">Marrowotif</span>
+            <span className="font-serif text-[#1A1A1A] text-2xl font-semibold tracking-tight">Marrowmotif</span>
           </Link>
           <h1 className="text-2xl font-semibold text-[#1A1A1A] mb-2 font-serif">Create an Account</h1>
           <p className="text-[#666666] text-sm">Join us to craft your memories</p>

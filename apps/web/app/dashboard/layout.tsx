@@ -36,7 +36,7 @@ function DashboardNav() {
       { href: "/dashboard/settings", label: "Settings", icon: Settings },
     ];
   } else {
-    // END_USER
+    // Customer (default role)
     navItems = [
       { href: "/dashboard", label: "Dashboard", icon: Home },
       { href: "/dashboard/clients", label: "My Picture Books", icon: BookOpen },
@@ -53,7 +53,7 @@ function DashboardNav() {
         <div className="p-6 border-b border-[#EAE6DF]">
           <Link href="/" className="flex items-center gap-3">
             <div>
-              <div className="text-xl font-semibold text-[#1A1A1A] font-serif tracking-tight">Marrowotif</div>
+              <div className="text-xl font-semibold text-[#1A1A1A] font-serif tracking-tight">Marrowmotif</div>
               <div className="text-xs text-[#666] font-medium mt-0.5">
                 {user?.role === 'ADMIN' ? 'Admin Portal' : user?.role === 'GUIDE' ? 'Guide Portal' : 'User Portal'}
               </div>
@@ -99,7 +99,9 @@ function DashboardNav() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-[#1A1A1A] truncate">{user?.name}</div>
-              <div className="text-xs text-[#999] uppercase tracking-wider mt-0.5">{user?.role}</div>
+              <div className="text-xs text-[#999] uppercase tracking-wider mt-0.5">
+                {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'GUIDE' ? 'Guide' : 'Customer'}
+              </div>
             </div>
             <button onClick={handleLogout} className="p-2 text-[#999] hover:text-[#1A1A1A] hover:bg-[#F5F3EC] rounded-lg transition-colors">
               <LogOut className="w-4 h-4" />
@@ -111,7 +113,7 @@ function DashboardNav() {
       {/* Mobile Top App Bar */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-[#EAE6DF] z-40 flex items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3">
-          <span className="text-lg font-serif font-semibold text-[#1A1A1A] tracking-tight">Marrowotif</span>
+          <span className="text-lg font-serif font-semibold text-[#1A1A1A] tracking-tight">Marrowmotif</span>
         </Link>
         <button onClick={handleLogout} className="p-2 text-[#666] hover:text-[#1A1A1A] rounded-full bg-[#F5F3EC]">
           <LogOut className="w-4 h-4" />

@@ -26,8 +26,8 @@ export default async function ProductsPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
-              style={{ background: "linear-gradient(135deg, #C9A84C, #E4C97E)", color: "#0B1628" }}>W</div>
-            <span className="font-semibold text-white">Wanderlust Journeys</span>
+             style={{ background: "linear-gradient(135deg, #C9A84C, #E4C97E)", color: "#0B1628" }}>M</div>
+            <span className="font-semibold text-white">Marrowmotif</span>
           </Link>
           <Link href="/login" className="btn-primary text-sm px-4 py-2">Guide Login</Link>
         </div>

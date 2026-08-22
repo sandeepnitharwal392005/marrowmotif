@@ -4,12 +4,12 @@ import { AuthProvider } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Wanderlust Journeys",
-    default: "Wanderlust Journeys — Premium Travel Experiences",
+    template: "%s | Marrowmotif",
+    default: "Marrowmotif — Where Memory Meets Craft",
   },
   description:
-    "Discover extraordinary travel experiences. Expert-guided tours to the world's most breathtaking destinations.",
-  keywords: ["travel", "tours", "adventure", "guided tours"],
+    "Beautiful, heirloom-quality Picture Books crafted from your travel memories. Request yours today.",
+  keywords: ["picture books", "memory books", "photo books", "travel memories", "keepsake"],
 };
 
 import { Toaster } from "sonner";

@@ -1,6 +1,6 @@
 # Railway Deployment Guide (Monorepo)
 
-Currently, the Morrowotif project is a monorepo containing multiple applications (API, Web, Worker). By default, Railway's auto-detect will usually only run the first application it finds (like the API) if you deploy the root repository as a single service. 
+Currently, the Marrowmotif project is a monorepo containing multiple applications (API, Web, Worker). By default, Railway's auto-detect will usually only run the first application it finds (like the API) if you deploy the root repository as a single service. 
 
 To ensure the **Drive Generation & WhatsApp Worker** runs properly and picks up jobs from the queue, you must create a separate service in Railway.
 
