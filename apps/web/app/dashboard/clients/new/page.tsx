@@ -20,8 +20,16 @@ export default function NewPictureBookPage() {
     departureTime: "",
     flightNumber: "",
     departureAirport: "",
+    deliveryAddressLine1: "",
+    deliveryAddressLine2: "",
+    deliveryCity: "",
+    deliveryState: "",
+    deliveryPostalCode: "",
+    deliveryCountry: "",
     userId: "", // For Admin selection
   });
+  const [profile, setProfile] = useState<any>(null);
+  const [addressOption, setAddressOption] = useState<"DEFAULT" | "CUSTOM">("DEFAULT");
   const [usersList, setUsersList] = useState<any[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -38,6 +46,15 @@ export default function NewPictureBookPage() {
           setForm(f => ({ ...f, deliveryPreference: "BEFORE_DEPARTURE" }));
         } else if (!data.homeDelivery && !data.beforeDepartureDelivery) {
           setForm(f => ({ ...f, deliveryPreference: "" }));
+        }
+
+        if (user?.role === "END_USER") {
+          const res = await apiFetch(`/users/${user.id}`, { headers: { Authorization: `Bearer ${accessToken}` } });
+          setProfile(res);
+          const hasSavedAddress = res.addressLine1 && res.city && res.country;
+          if (!hasSavedAddress) {
+            setAddressOption("CUSTOM");
+          }
         }
       } catch (err) {
         // Ignored, defaults to true
@@ -87,6 +104,22 @@ export default function NewPictureBookPage() {
       const payload = { ...form };
       if (!isAdmin) {
         delete (payload as any).userId;
+      }
+
+      if (isEndUser && payload.deliveryPreference === 'HOME_DELIVERY' && addressOption === 'DEFAULT' && profile) {
+        payload.deliveryAddressLine1 = profile.addressLine1 || "";
+        payload.deliveryAddressLine2 = profile.addressLine2 || "";
+        payload.deliveryCity = profile.city || "";
+        payload.deliveryState = profile.state || "";
+        payload.deliveryPostalCode = profile.postalCode || "";
+        payload.deliveryCountry = profile.country || "";
+      } else if (payload.deliveryPreference === 'BEFORE_DEPARTURE') {
+        payload.deliveryAddressLine1 = "";
+        payload.deliveryAddressLine2 = "";
+        payload.deliveryCity = "";
+        payload.deliveryState = "";
+        payload.deliveryPostalCode = "";
+        payload.deliveryCountry = "";
       }
 
       // Remove any empty strings to avoid class-validator errors on optional fields like departureDate
@@ -258,6 +291,56 @@ export default function NewPictureBookPage() {
                           </label>
                         )}
                       </div>
+                    </div>
+                  )}
+
+                  {form.deliveryPreference === 'HOME_DELIVERY' && (
+                    <div className="bg-[#FAF9F6] p-4 rounded-lg border border-[#EAE6DF] space-y-4">
+                      <h4 className="text-sm font-medium text-[#1A1A1A]">Delivery Address</h4>
+                      
+                      {profile?.addressLine1 && profile?.city && profile?.country ? (
+                        <div className="space-y-3">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" checked={addressOption === 'DEFAULT'} onChange={() => setAddressOption('DEFAULT')} className="text-[#C9A84C] focus:ring-[#C9A84C]" />
+                            <span className="text-sm text-[#1A1A1A]">Use Default Address</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" checked={addressOption === 'CUSTOM'} onChange={() => setAddressOption('CUSTOM')} className="text-[#C9A84C] focus:ring-[#C9A84C]" />
+                            <span className="text-sm text-[#1A1A1A]">Use Custom Address</span>
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-[#666] mb-2">No saved address found. Please enter a delivery address.</div>
+                      )}
+
+                      {addressOption === 'CUSTOM' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                          <div className="sm:col-span-2">
+                            <label className="block text-xs font-medium text-[#666] mb-1">Address Line 1 *</label>
+                            <input type="text" required value={form.deliveryAddressLine1} onChange={e => setForm(f => ({ ...f, deliveryAddressLine1: e.target.value }))} className="w-full px-3 py-2 rounded-md bg-white border border-[#EAE6DF] text-sm text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none" />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-xs font-medium text-[#666] mb-1">Address Line 2 (Optional)</label>
+                            <input type="text" value={form.deliveryAddressLine2} onChange={e => setForm(f => ({ ...f, deliveryAddressLine2: e.target.value }))} className="w-full px-3 py-2 rounded-md bg-white border border-[#EAE6DF] text-sm text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none" />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-[#666] mb-1">City *</label>
+                            <input type="text" required value={form.deliveryCity} onChange={e => setForm(f => ({ ...f, deliveryCity: e.target.value }))} className="w-full px-3 py-2 rounded-md bg-white border border-[#EAE6DF] text-sm text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none" />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-[#666] mb-1">State/Province *</label>
+                            <input type="text" required value={form.deliveryState} onChange={e => setForm(f => ({ ...f, deliveryState: e.target.value }))} className="w-full px-3 py-2 rounded-md bg-white border border-[#EAE6DF] text-sm text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none" />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-[#666] mb-1">Postal Code *</label>
+                            <input type="text" required value={form.deliveryPostalCode} onChange={e => setForm(f => ({ ...f, deliveryPostalCode: e.target.value }))} className="w-full px-3 py-2 rounded-md bg-white border border-[#EAE6DF] text-sm text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none" />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-[#666] mb-1">Country *</label>
+                            <input type="text" required value={form.deliveryCountry} onChange={e => setForm(f => ({ ...f, deliveryCountry: e.target.value }))} className="w-full px-3 py-2 rounded-md bg-white border border-[#EAE6DF] text-sm text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none" />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

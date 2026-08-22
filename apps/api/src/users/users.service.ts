@@ -163,6 +163,7 @@ export class UsersService {
         state: true,
         postalCode: true,
         country: true,
+        whatsappNumber: true,
       },
     });
     if (!targetUser) throw new NotFoundException('User not found');
