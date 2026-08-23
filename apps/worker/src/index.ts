@@ -162,17 +162,27 @@ async function processWelcomeMessage(job: Job) {
 
 async function processManualWhatsApp(job: Job) {
   const { pictureBookId, messageContent, idempotencyKey } = job.data as { pictureBookId: string, messageContent: string, idempotencyKey?: string };
-  console.log(`\n[Worker] 📱 Sending manual WhatsApp for pictureBook ${pictureBookId}`);
+  console.log(`\n[Worker] 📱 Processing job ${job.id} for pictureBook ${pictureBookId}`);
+  console.log(`[Worker] Message: ${messageContent.substring(0, 100)}...`);
 
   const pictureBook = await prisma.pictureBook.findUnique({
     where: { id: pictureBookId },
     include: { user: true },
   });
 
-  if (!pictureBook) throw new Error(`PictureBook ${pictureBookId} not found`);
+  if (!pictureBook) {
+    console.error(`[Worker] PictureBook ${pictureBookId} not found`);
+    throw new Error(`PictureBook ${pictureBookId} not found`);
+  }
   const whatsappNumber = pictureBook.user.whatsappNumber;
-  if (!whatsappNumber) throw new Error(`User does not have a WhatsApp number`);
+  if (!whatsappNumber) {
+    console.error(`[Worker] User ${pictureBook.user.id} has no WhatsApp number`);
+    throw new Error(`User does not have a WhatsApp number`);
+  }
+  console.log(`[Worker] Checking conversation window...`);
+  console.log(`[Worker] Status: ${pictureBook.whatsappStatus}, lastInbound: ${pictureBook.lastInboundMessageAt}, windowOpenUntil: ${pictureBook.whatsappConversationOpenUntil}`);
   if (pictureBook.whatsappStatus !== 'CONVERSATION_INITIATED' || !pictureBook.lastInboundMessageAt || !pictureBook.whatsappConversationOpenUntil || pictureBook.whatsappConversationOpenUntil <= new Date()) {
+    console.error(`[Worker] WhatsApp customer-service window is not open`);
     throw new Error('WhatsApp customer-service window is not open');
   }
 
@@ -194,12 +204,15 @@ async function processManualWhatsApp(job: Job) {
     waResult = { success: true, messageId: `synthetic-manual-msg-${Date.now()}` };
   } else {
     try {
+      console.log(`[Worker] Sending WhatsApp to ${whatsappNumber}...`);
       const waProvider = whatsApp;
       waResult = await waProvider.sendTextMessage(
         whatsappNumber,
         messageContent
       );
+      console.log(`[Worker] WhatsApp send result:`, JSON.stringify(waResult));
     } catch (e: any) {
+      console.error(`[Worker] WhatsApp send error:`, e.message);
       waResult = { success: false, error: e.message };
     }
   }
