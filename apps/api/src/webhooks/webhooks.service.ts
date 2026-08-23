@@ -37,15 +37,29 @@ export class WebhooksService {
             await this.prisma.whatsAppWebhookEvent.create({
               data: { providerEventId: eventId, senderNumber, body: bodyText },
             });
-            const user = await this.prisma.user.findFirst({
-              where: { whatsappNumber: { in: [senderNumber, `+${senderNumber}`] } },
+            // Normalize phone number comparison by stripping non-digits from stored numbers
+            const users = await this.prisma.$queryRaw<Array<{ id: string }>>`
+              SELECT id FROM "users" 
+              WHERE "whatsappNumber" IS NOT NULL 
+              AND regexp_replace("whatsappNumber", '[^0-9]', '', 'g') = ${senderNumber}
+              LIMIT 1
+            `;
+            if (users.length === 0) {
+              console.log(`[Webhook] No user found for number: ${senderNumber}`);
+              await this.prisma.whatsAppWebhookEvent.update({ where: { providerEventId: eventId }, data: { processingStatus: 'UNMATCHED' } });
+              continue;
+            }
+            const user = await this.prisma.user.findUnique({
+              where: { id: users[0].id },
               include: { pictureBooks: { orderBy: { updatedAt: 'desc' }, take: 1 } },
             });
             const pictureBook = user?.pictureBooks[0];
             if (!pictureBook) {
+              console.log(`[Webhook] User ${user?.id} has no PictureBook`);
               await this.prisma.whatsAppWebhookEvent.update({ where: { providerEventId: eventId }, data: { processingStatus: 'UNMATCHED' } });
               continue;
             }
+            console.log(`[Webhook] Matched sender ${senderNumber} to user ${user.id}, pictureBook ${pictureBook.id}`);
             if (message.type !== 'text' || !bodyText.trim()) {
               await this.prisma.whatsAppWebhookEvent.update({ where: { providerEventId: eventId }, data: { processingStatus: 'INVALID' } });
               continue;
