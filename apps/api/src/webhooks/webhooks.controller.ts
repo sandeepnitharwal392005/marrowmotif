@@ -5,6 +5,7 @@ import {
   Query,
   Req,
   Res,
+  Body,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -26,6 +27,31 @@ export class WebhooksController {
   @Roles(Role.ADMIN)
   listWhatsappEvents() {
     return this.webhooksService.listWhatsappEvents();
+  }
+
+  /**
+   * Test endpoint to simulate inbound WhatsApp message (no signature required)
+   */
+  @Public()
+  @Post('whatsapp/test')
+  @HttpCode(HttpStatus.OK)
+  testWebhook(@Body() body: any) {
+    console.log('[Webhook Test] Simulating inbound message');
+    return this.webhooksService.handleWhatsapp({
+      object: 'whatsapp_business_account',
+      entry: [{
+        changes: [{
+          value: {
+            messages: [{
+              id: `test-${Date.now()}`,
+              from: body.from || '9199xxxxxxxx',
+              type: 'text',
+              text: { body: body.message || 'Picture book updates' }
+            }]
+          }
+        }]
+      }]
+    });
   }
   /**
    * WhatsApp webhook verification (GET)
@@ -53,12 +79,24 @@ export class WebhooksController {
   @Post('whatsapp')
   @HttpCode(HttpStatus.OK)
   handleWebhook(@Req() req: Request) {
+    console.log('[Webhook] Received POST request');
+    console.log('[Webhook] Headers:', JSON.stringify(req.headers));
     const signature = req.header('x-hub-signature-256');
     const appSecret = process.env.WHATSAPP_APP_SECRET;
     const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
-    if (!signature || !appSecret || !rawBody) return { status: 'ignored' };
+    console.log(`[Webhook] signature: ${signature ? 'present' : 'missing'}`);
+    console.log(`[Webhook] appSecret: ${appSecret ? 'present' : 'missing'}`);
+    console.log(`[Webhook] rawBody: ${rawBody ? 'present' : 'missing'}`);
+    if (!signature || !appSecret || !rawBody) {
+      console.log('[Webhook] Ignoring request - missing signature, appSecret, or rawBody');
+      return { status: 'ignored' };
+    }
     const expected = `sha256=${createHmac('sha256', appSecret).update(rawBody).digest('hex')}`;
-    if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return { status: 'ignored' };
+    if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+      console.log('[Webhook] Ignoring request - signature mismatch');
+      return { status: 'ignored' };
+    }
+    console.log('[Webhook] Signature verified, processing...');
     return this.webhooksService.handleWhatsapp(req.body);
   }
 }

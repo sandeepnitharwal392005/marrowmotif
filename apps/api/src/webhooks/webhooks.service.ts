@@ -15,7 +15,12 @@ export class WebhooksService {
   }
 
   async handleWhatsapp(body: any) {
-    if (body?.object !== 'whatsapp_business_account') return { status: 'ignored' };
+    console.log('[Webhook] handleWhatsapp called');
+    console.log('[Webhook] Full body:', JSON.stringify(body, null, 2).substring(0, 2000));
+    if (body?.object !== 'whatsapp_business_account') {
+      console.log('[Webhook] Ignoring - object is not whatsapp_business_account:', body?.object);
+      return { status: 'ignored' };
+    }
 
     for (const entry of body.entry || []) {
       for (const change of entry.changes || []) {
@@ -86,6 +91,7 @@ export class WebhooksService {
               ? `Your photo upload folder for “${pictureBook.title}” is ready!\n\nPlease upload your photos here:\n${pictureBook.driveLink}\n\nOnce your photos are uploaded, we’ll use them to create your picture book.`
               : `Your picture book is still being prepared. We’ll send your photo upload link here as soon as it’s ready.\n\nYou can also check the Picture Book page on our website for the latest status.`;
             await this.queue.add('send-manual-whatsapp', { pictureBookId: pictureBook.id, messageContent: response, idempotencyKey: `wa-inbound-reply-${eventId}` }, { jobId: `wa-inbound-reply-${eventId}`, attempts: 3, removeOnComplete: false, removeOnFail: false });
+            console.log(`[Webhook] Queued reply job for pictureBook ${pictureBook.id}`);
           } catch (error: any) {
             if (error?.code === 'P2002') continue;
             console.error('[Webhook] WhatsApp event processing failed:', error?.message || 'unknown error');
