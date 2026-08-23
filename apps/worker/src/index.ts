@@ -161,43 +161,62 @@ async function processWelcomeMessage(job: Job) {
 }
 
 async function processManualWhatsApp(job: Job) {
-  const { pictureBookId, messageContent, idempotencyKey } = job.data as { pictureBookId: string, messageContent: string, idempotencyKey?: string };
-  console.log(`\n[Worker] 📱 Processing job ${job.id} for pictureBook ${pictureBookId}`);
+  const { pictureBookId, messageContent, idempotencyKey, toNumber: directNumber } = job.data as { pictureBookId: string | null, messageContent: string, idempotencyKey?: string, toNumber?: string };
+  console.log(`\n[Worker] 📱 Processing job ${job.id}`);
   console.log(`[Worker] Message: ${messageContent.substring(0, 100)}...`);
 
-  const pictureBook = await prisma.pictureBook.findUnique({
-    where: { id: pictureBookId },
-    include: { user: true },
-  });
+  let whatsappNumber: string | null = null;
+  let pictureBook: any = null;
 
-  if (!pictureBook) {
-    console.error(`[Worker] PictureBook ${pictureBookId} not found`);
-    throw new Error(`PictureBook ${pictureBookId} not found`);
+  if (directNumber) {
+    whatsappNumber = directNumber;
+    console.log(`[Worker] Using direct number: ${whatsappNumber}`);
   }
-  const whatsappNumber = pictureBook.user.whatsappNumber;
-  if (!whatsappNumber) {
-    console.error(`[Worker] User ${pictureBook.user.id} has no WhatsApp number`);
-    throw new Error(`User does not have a WhatsApp number`);
+
+  if (pictureBookId) {
+    pictureBook = await prisma.pictureBook.findUnique({
+      where: { id: pictureBookId },
+      include: { user: true },
+    });
+
+    if (!pictureBook) {
+      console.error(`[Worker] PictureBook ${pictureBookId} not found`);
+      throw new Error(`PictureBook ${pictureBookId} not found`);
+    }
+    if (!whatsappNumber) {
+      whatsappNumber = pictureBook.user.whatsappNumber;
+      if (!whatsappNumber) {
+        console.error(`[Worker] User ${pictureBook.user.id} has no WhatsApp number`);
+        throw new Error(`User does not have a WhatsApp number`);
+      }
+      console.log(`[Worker] Checking conversation window...`);
+      console.log(`[Worker] Status: ${pictureBook.whatsappStatus}, lastInbound: ${pictureBook.lastInboundMessageAt}, windowOpenUntil: ${pictureBook.whatsappConversationOpenUntil}`);
+      if (pictureBook.whatsappStatus !== 'CONVERSATION_INITIATED' || !pictureBook.lastInboundMessageAt || !pictureBook.whatsappConversationOpenUntil || pictureBook.whatsappConversationOpenUntil <= new Date()) {
+        console.error(`[Worker] WhatsApp customer-service window is not open`);
+        throw new Error('WhatsApp customer-service window is not open');
+      }
+    } else {
+      console.log(`[Worker] Skipping conversation window check (cross-user match)`);
+    }
+  } else if (!directNumber) {
+    console.error(`[Worker] No pictureBookId or toNumber provided`);
+    throw new Error('No pictureBookId or toNumber provided');
   }
-  console.log(`[Worker] Checking conversation window...`);
-  console.log(`[Worker] Status: ${pictureBook.whatsappStatus}, lastInbound: ${pictureBook.lastInboundMessageAt}, windowOpenUntil: ${pictureBook.whatsappConversationOpenUntil}`);
-  if (pictureBook.whatsappStatus !== 'CONVERSATION_INITIATED' || !pictureBook.lastInboundMessageAt || !pictureBook.whatsappConversationOpenUntil || pictureBook.whatsappConversationOpenUntil <= new Date()) {
-    console.error(`[Worker] WhatsApp customer-service window is not open`);
-    throw new Error('WhatsApp customer-service window is not open');
-  }
+
+  console.log(`[Worker] Target number: ${whatsappNumber}`);
 
   let waMessage = idempotencyKey
     ? await prisma.whatsAppMessage.upsert({
       where: { idempotencyKey },
       update: {},
-      create: { pictureBookId, status: 'QUEUED', attempts: 0, idempotencyKey, body: messageContent },
+      create: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, idempotencyKey, body: messageContent, senderNumber: whatsappNumber },
     })
-    : await prisma.whatsAppMessage.create({ data: { pictureBookId, status: 'QUEUED', attempts: 0, body: messageContent } });
+    : await prisma.whatsAppMessage.create({ data: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, body: messageContent, senderNumber: whatsappNumber } });
 
   if (['SENT', 'DELIVERED', 'READ'].includes(waMessage.status)) return { success: true, messageId: waMessage.providerMessageId };
 
   let waResult;
-  const isSynthetic = whatsappNumber === '+15550000000' || pictureBook.user.email === 'production-test@marrowotif.internal';
+  const isSynthetic = whatsappNumber === '+15550000000' || (pictureBook?.user?.email === 'production-test@marrowotif.internal');
   
   if (isSynthetic) {
     console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking manual WhatsApp to ${whatsappNumber}`);

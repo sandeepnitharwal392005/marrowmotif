@@ -167,7 +167,7 @@ model Product {
 
 model WhatsAppMessage {
   id                String                @id @default(cuid())
-  pictureBookId     String
+  pictureBookId     String?
   status            WhatsAppMessageStatus @default(QUEUED)
   providerMessageId String?
   errorMessage      String?
@@ -182,7 +182,7 @@ model WhatsAppMessage {
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
 
-  pictureBook       PictureBook           @relation(fields: [pictureBookId], references: [id], onDelete: Cascade)
+  pictureBook       PictureBook?          @relation(fields: [pictureBookId], references: [id], onDelete: Cascade)
 
   @@index([pictureBookId])
   @@index([status])
