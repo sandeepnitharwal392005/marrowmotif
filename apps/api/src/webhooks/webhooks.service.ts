@@ -39,14 +39,14 @@ export class WebhooksService {
             });
             const user = await this.prisma.user.findFirst({
               where: { whatsappNumber: { in: [senderNumber, `+${senderNumber}`] } },
-              include: { pictureBooks: { where: { whatsappStatus: { in: ['LINK_GENERATED', 'CONVERSATION_INITIATED'] } }, orderBy: { updatedAt: 'desc' }, take: 1 } },
+              include: { pictureBooks: { orderBy: { updatedAt: 'desc' }, take: 1 } },
             });
             const pictureBook = user?.pictureBooks[0];
             if (!pictureBook) {
               await this.prisma.whatsAppWebhookEvent.update({ where: { providerEventId: eventId }, data: { processingStatus: 'UNMATCHED' } });
               continue;
             }
-            if (message.type !== 'text' || !bodyText.trim() || !/picture book|updates|upload link/i.test(bodyText)) {
+            if (message.type !== 'text' || !bodyText.trim()) {
               await this.prisma.whatsAppWebhookEvent.update({ where: { providerEventId: eventId }, data: { processingStatus: 'INVALID' } });
               continue;
             }

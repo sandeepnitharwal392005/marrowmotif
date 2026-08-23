@@ -4,9 +4,11 @@ The website is the complete Picture Book workflow. Creating a book, preparing it
 
 ## Customer flow
 
-The Picture Book page offers **Get updates on WhatsApp**. Only that explicit action saves the optional number and creates a pre-filled `wa.me` link. Opening the link is not treated as a received message; the customer must press **Send** in WhatsApp. The web page continues independently and always displays the Drive link and upload instructions when ready.
+The Picture Book page offers **Get updates on WhatsApp**. That explicit action saves the optional number and creates a pre-filled `wa.me` link. Opening the link is not treated as a received message; the customer must press **Send** in WhatsApp. The web page continues independently and always displays the Drive link and upload instructions when ready.
 
-Website status and WhatsApp status are stored separately. Inbound messages are accepted only when the sender matches a saved number and a Picture Book with an initiated opt-in. Every inbound event is stored for audit. Unmatched, malformed, and unsolicited events are stored as unmatched and receive no automatic reply.
+Customers can also initiate the conversation directly from WhatsApp by sending a message to the business number. When the sender's number matches a saved user with a Picture Book, the conversation is automatically initiated and a reply is sent.
+
+Website status and WhatsApp status are stored separately. Inbound messages are accepted when the sender matches a saved number and a Picture Book. Every inbound event is stored for audit. Unmatched, malformed, and unsolicited events are stored as unmatched and receive no automatic reply.
 
 ## Minimum Meta setup
 
