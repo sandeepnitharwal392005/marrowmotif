@@ -20,9 +20,11 @@ function StatCard({ label, value, color, icon: Icon }: { label: string; value: n
 }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "ACTIVE") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5"/> Active</span>;
-  if (status === "PENDING") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200"><Clock className="w-3.5 h-3.5"/> Pending</span>;
-  if (status === "FAILED") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200"><XCircle className="w-3.5 h-3.5"/> Failed</span>;
+  if (["READY", "COMPLETED"].includes(status)) return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5"/> {status === "READY" ? "Ready" : "Completed"}</span>;
+  if (status === "CANCELLED") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200"><XCircle className="w-3.5 h-3.5"/> Cancelled</span>;
+  if (status === "UPLOAD_PENDING") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200"><Clock className="w-3.5 h-3.5"/> Photos needed</span>;
+  if (status === "REQUESTED") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200"><Clock className="w-3.5 h-3.5"/> Getting started</span>;
+  if (["PHOTOS_UPLOADED", "UNDER_REVIEW", "IN_PRODUCTION"].includes(status)) return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"><Clock className="w-3.5 h-3.5"/> In progress</span>;
   return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">{status}</span>;
 }
 
@@ -83,15 +85,18 @@ export default function DashboardPage() {
   const isGuide = user?.role === "GUIDE";
   const isAdmin = user?.role === "ADMIN";
   const isEndUser = user?.role === "END_USER";
+  const firstName = user?.name?.trim().split(/\s+/)[0];
 
   return (
     <div className="p-6 sm:p-10 max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-[#1A1A1A] tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-serif text-[#1A1A1A] tracking-tight">
+            {isEndUser && firstName ? `Welcome back, ${firstName}` : "Dashboard"}
+          </h1>
           <p className="text-[#666] text-sm mt-1">
-            {isGuide ? "Your customer referrals overview" : isEndUser ? "Your Picture Books" : "Platform overview"}
+            {isGuide ? "Your customer referrals overview" : isEndUser ? "Everything you need to create and follow your Picture Books." : "Platform overview"}
           </p>
         </div>
         <Link href={isGuide ? "/dashboard/referrals/new" : "/dashboard/clients/new"} className="bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-2.5 flex items-center justify-center font-medium shadow-sm">
@@ -110,10 +115,10 @@ export default function DashboardPage() {
           </>
         ) : (
           <>
-            <StatCard label="Total Books" value={stats.totalBooks} color="#C9A84C" icon={BookOpen} />
-            <StatCard label="Active" value={stats.activeBooks} color="#10B981" icon={CheckCircle2} />
-            <StatCard label="Pending" value={stats.pendingBooks} color="#F59E0B" icon={Clock} />
-            <StatCard label="Failed" value={stats.failedBooks} color="#EF4444" icon={XCircle} />
+            <StatCard label={isEndUser ? "My Picture Books" : "Total Books"} value={stats.totalBooks} color="#C9A84C" icon={BookOpen} />
+            <StatCard label={isEndUser ? "In progress" : "Active"} value={stats.activeBooks} color="#10B981" icon={CheckCircle2} />
+            <StatCard label={isEndUser ? "Getting started" : "Pending"} value={stats.pendingBooks} color="#F59E0B" icon={Clock} />
+            <StatCard label={isEndUser ? "Need attention" : "Failed"} value={stats.failedBooks} color="#EF4444" icon={XCircle} />
           </>
         )}
       </div>
@@ -121,9 +126,9 @@ export default function DashboardPage() {
       {/* Recent Activity Section */}
       <div className="bg-white border border-[#EAE6DF] rounded-xl overflow-hidden shadow-sm">
         <div className="p-6 border-b border-[#EAE6DF] flex items-center justify-between">
-          <h2 className="text-xl font-serif text-[#1A1A1A] flex items-center gap-2">
-            <FileText className="w-5 h-5 text-[#C9A84C]" />
-            Recent {isGuide ? "Referrals" : "Picture Books"}
+            <h2 className="text-xl font-serif text-[#1A1A1A] flex items-center gap-2">
+              <FileText className="w-5 h-5 text-[#C9A84C]" />
+            {isEndUser ? "Your Picture Books" : `Recent ${isGuide ? "Referrals" : "Picture Books"}`}
           </h2>
           <Link href={isGuide ? "/dashboard/referrals" : "/dashboard/clients"} className="text-sm font-medium text-[#C9A84C] hover:text-[#B08D38] transition-colors flex items-center">
             View all <ChevronRight className="w-4 h-4 ml-1" />
@@ -181,9 +186,9 @@ export default function DashboardPage() {
             <div className="w-16 h-16 rounded-full bg-[#FAF9F6] flex items-center justify-center mb-4">
               <BookOpen className="w-8 h-8 text-[#CCC]" />
             </div>
-            <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">No items yet</h3>
+            <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">{isEndUser ? "Your story starts here" : "No items yet"}</h3>
             <p className="text-[#666] text-sm max-w-sm mb-6">
-              {isEndUser ? "Create your first Picture Book." : "No picture books in the system yet."}
+              {isEndUser ? "Create a Picture Book, upload your favourite photos, and follow every step in one place." : "No picture books in the system yet."}
             </p>
             <Link href="/dashboard/clients/new" className="bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-2.5 flex items-center shadow-sm">
               <Plus className="w-4 h-4 mr-2" /> Get Started

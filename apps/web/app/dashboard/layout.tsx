@@ -99,9 +99,11 @@ function DashboardNav() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-[#1A1A1A] truncate">{user?.name}</div>
-              <div className="text-xs text-[#999] uppercase tracking-wider mt-0.5">
-                {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'GUIDE' ? 'Guide' : 'Customer'}
-              </div>
+              {user?.role !== "END_USER" && (
+                <div className="text-xs text-[#999] uppercase tracking-wider mt-0.5">
+                  {user?.role === "ADMIN" ? "Admin" : "Guide"}
+                </div>
+              )}
             </div>
             <button onClick={handleLogout} className="p-2 text-[#999] hover:text-[#1A1A1A] hover:bg-[#F5F3EC] rounded-lg transition-colors">
               <LogOut className="w-4 h-4" />
