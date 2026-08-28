@@ -25,6 +25,7 @@ export function createProviders() {
       return new MetaWhatsAppProvider({
         accessToken: requireEnv('WHATSAPP_ACCESS_TOKEN'),
         phoneNumberId: requireEnv('WHATSAPP_PHONE_NUMBER_ID'),
+        apiVersion: process.env.WHATSAPP_GRAPH_API_VERSION || 'v24.0',
       });
     },
     get drive() {

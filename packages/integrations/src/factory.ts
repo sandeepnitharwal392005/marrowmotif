@@ -35,6 +35,7 @@ export function createProviders(): Providers {
   const whatsApp = new MetaWhatsAppProvider({
     accessToken: requireEnv('WHATSAPP_ACCESS_TOKEN'),
     phoneNumberId: requireEnv('WHATSAPP_PHONE_NUMBER_ID'),
+    apiVersion: process.env.WHATSAPP_GRAPH_API_VERSION || 'v24.0',
   });
 
   const drive = new GoogleDriveProvider({
