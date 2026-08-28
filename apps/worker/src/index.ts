@@ -4,7 +4,11 @@ import { PrismaClient } from '@prisma/client';
 import { createProviders } from './providers';
 
 const prisma = new PrismaClient();
-const { whatsApp, drive, isDemoMode } = createProviders();
+// Keep providers lazy. In production their getters validate credentials only
+// when that integration is used, so a missing Drive credential cannot stop the
+// worker from processing a WhatsApp reply (and vice versa).
+const providers = createProviders();
+const { isDemoMode } = providers;
 const queueConnection = { url: process.env.REDIS_URL || 'redis://localhost:6379' };
 const automationQueue = new Queue('google-drive', { connection: queueConnection });
 
@@ -87,7 +91,7 @@ async function processWelcomeMessage(job: Job) {
       } else {
         console.log(`[Worker] 📁 Creating Drive folder for "${pictureBook.title}"`);
         // Lazy loading happens here! If provider fails, it throws!
-        const driveProvider = drive; 
+        const driveProvider = providers.drive;
         
         const shortCode = pictureBook.id.substring(pictureBook.id.length - 4).toUpperCase();
         const folderName = `${pictureBook.title}-${pictureBook.user.name}-${shortCode}`;
@@ -224,7 +228,7 @@ async function processManualWhatsApp(job: Job) {
   } else {
     try {
       console.log(`[Worker] Sending WhatsApp to ${whatsappNumber}...`);
-      const waProvider = whatsApp;
+      const waProvider = providers.whatsApp;
       waResult = await waProvider.sendTextMessage(
         whatsappNumber,
         messageContent
