@@ -152,8 +152,10 @@ export class UsersService {
         referrals: { select: { id: true, name: true } },
         pictureBooks: {
           include: {
-            messages: true,
-            activityLogs: true,
+            // The admin UI uses the first message as the current delivery state,
+            // so relation ordering must be explicit rather than database-dependent.
+            messages: { orderBy: { createdAt: 'desc' } },
+            activityLogs: { orderBy: { createdAt: 'desc' } },
           },
           orderBy: { createdAt: 'desc' }
         },

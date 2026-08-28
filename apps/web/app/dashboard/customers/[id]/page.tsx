@@ -24,6 +24,11 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [waType, setWaType] = useState<"custom">("custom");
   const [customMsg, setCustomMsg] = useState("");
 
+  const getLatestWhatsAppMessage = (pictureBook: any) =>
+    [...(pictureBook.messages || [])].sort(
+      (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )[0];
+
   const loadCustomer = async () => {
     if (!accessToken) return;
     try {
@@ -333,19 +338,19 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                       <div className="border-t border-[#EAE6DF] pt-3">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium text-[#1A1A1A] flex items-center gap-1.5"><MessageSquare className="w-4 h-4 text-[#999]"/> Welcome WhatsApp</span>
-                          {pb.messages?.[0] ? (
+                          {getLatestWhatsAppMessage(pb) ? (
                             <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                              ['SENT', 'DELIVERED', 'READ'].includes(pb.messages[0].status) ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                              pb.messages[0].status === 'FAILED' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                              ['SENT', 'DELIVERED', 'READ'].includes(getLatestWhatsAppMessage(pb).status) ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                              getLatestWhatsAppMessage(pb).status === 'FAILED' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
                               'bg-amber-100 text-amber-800 border border-amber-200'
                             }`}>
-                              {pb.messages[0].status}
+                              {getLatestWhatsAppMessage(pb).status}
                             </span>
                           ) : <span className="text-xs text-[#999] italic">Not queued</span>}
                         </div>
-                        {pb.messages?.[0]?.status === 'FAILED' && pb.messages[0].errorMessage && (
+                        {getLatestWhatsAppMessage(pb)?.status === 'FAILED' && getLatestWhatsAppMessage(pb).errorMessage && (
                           <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 mt-2">
-                            {pb.messages[0].errorMessage}
+                            {getLatestWhatsAppMessage(pb).errorMessage}
                           </div>
                         )}
                       </div>
@@ -371,7 +376,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         className="bg-[#1A1A1A] hover:bg-[#333] text-white px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2"
                       >
                         <MessageSquare className="w-4 h-4" />
-                        {pb.messages?.[0]?.status === 'FAILED' ? 'Retry WhatsApp Message' : 'Send WhatsApp Message'}
+                        {getLatestWhatsAppMessage(pb)?.status === 'FAILED' ? 'Retry WhatsApp Message' : 'Send WhatsApp Message'}
                       </button>
                     </div>
                   </div>
@@ -397,10 +402,13 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                           )}
                           <div>
                             <div className="text-[#1A1A1A] font-medium">
-                              {item._type === 'wa' ? `WhatsApp: ${item.status}` : item.action}
+                              {item._type === 'wa' ? `${item.direction === 'INBOUND' ? 'WhatsApp received' : 'WhatsApp sent'}: ${item.status}` : item.action}
                             </div>
                             <div className="text-[#666] text-xs mt-0.5">
-                              {item._type === 'wa' ? (item.errorMessage ? <span className="text-rose-600">Error: {item.errorMessage}</span> : `Attempts: ${item.attempts}`) : item.details}
+                              {item._type === 'wa' ? (
+                                item.errorMessage ? <span className="text-rose-600">Error: {item.errorMessage}</span> :
+                                <>{item.body && <span className="block break-words">{item.body}</span>}<span>Attempts: {item.attempts}</span></>
+                              ) : item.details}
                             </div>
                             <div className="text-[#999] text-xs mt-1">
                               {item._date.toLocaleString()}

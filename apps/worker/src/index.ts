@@ -165,7 +165,7 @@ async function processWelcomeMessage(job: Job) {
 }
 
 async function processManualWhatsApp(job: Job) {
-  const { pictureBookId, messageContent, idempotencyKey, toNumber: directNumber } = job.data as { pictureBookId: string | null, messageContent: string, idempotencyKey?: string, toNumber?: string };
+  const { pictureBookId, messageContent, idempotencyKey, toNumber: directNumber, whatsAppMessageId } = job.data as { pictureBookId: string | null, messageContent: string, idempotencyKey?: string, toNumber?: string, whatsAppMessageId?: string };
   console.log(`\n[Worker] 📱 Processing job ${job.id}`);
   console.log(`[Worker] Message: ${messageContent.substring(0, 100)}...`);
 
@@ -209,13 +209,19 @@ async function processManualWhatsApp(job: Job) {
 
   console.log(`[Worker] Target number: ${whatsappNumber}`);
 
-  let waMessage = idempotencyKey
-    ? await prisma.whatsAppMessage.upsert({
+  // Admin-originated messages already have a QUEUED record.  Other automated
+  // paths continue to create their own record here.
+  let waMessage = whatsAppMessageId
+    ? await prisma.whatsAppMessage.findUnique({ where: { id: whatsAppMessageId } })
+    : idempotencyKey
+      ? await prisma.whatsAppMessage.upsert({
       where: { idempotencyKey },
       update: {},
       create: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, idempotencyKey, body: messageContent, senderNumber: whatsappNumber },
-    })
-    : await prisma.whatsAppMessage.create({ data: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, body: messageContent, senderNumber: whatsappNumber } });
+      })
+      : await prisma.whatsAppMessage.create({ data: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, body: messageContent, senderNumber: whatsappNumber } });
+
+  if (!waMessage) throw new Error(`WhatsApp message ${whatsAppMessageId} not found`);
 
   if (['SENT', 'DELIVERED', 'READ'].includes(waMessage.status)) return { success: true, messageId: waMessage.providerMessageId };
 

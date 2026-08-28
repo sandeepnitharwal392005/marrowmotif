@@ -43,10 +43,25 @@ export class WhatsAppService {
     if (pictureBook.whatsappStatus !== 'CONVERSATION_INITIATED' || !pictureBook.lastInboundMessageAt || !pictureBook.whatsappConversationOpenUntil || pictureBook.whatsappConversationOpenUntil <= new Date()) {
       throw new ForbiddenException('WhatsApp conversation window has expired. A free-form message cannot be sent right now.');
     }
+
+    // Persist the outgoing message before handing it to BullMQ.  Previously the
+    // worker created this row, leaving a race where an admin saw "queued" but
+    // no WhatsApp log until the worker happened to start.  The row is also the
+    // durable audit record if the worker is delayed or unavailable.
+    const whatsappMessage = await this.prisma.whatsAppMessage.create({
+      data: {
+        pictureBookId,
+        status: 'QUEUED',
+        attempts: 0,
+        direction: 'OUTBOUND',
+        body: messageContent.trim(),
+        senderNumber: pictureBook.user.whatsappNumber,
+      },
+    });
     const jobId = `manual-wa-${pictureBookId}-${Date.now()}`;
     await this.automationQueue.add(
       'send-manual-whatsapp',
-      { pictureBookId, messageContent },
+      { pictureBookId, messageContent: messageContent.trim(), whatsAppMessageId: whatsappMessage.id },
       {
         jobId,
         attempts: 1, // Manual messages don't usually retry automatically to avoid spam
@@ -72,6 +87,6 @@ export class WhatsAppService {
       details: { messageSnippet: messageContent.substring(0, 50) },
     });
 
-    return { message: 'Message queued successfully' };
+    return { message: 'Message queued successfully', messageId: whatsappMessage.id };
   }
 }
