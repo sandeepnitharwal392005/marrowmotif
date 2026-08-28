@@ -58,7 +58,9 @@ export default function PictureBookDetailPage() {
   const [showWaModal, setShowWaModal] = useState(false);
   const [waNumber, setWaNumber] = useState("");
   const [waLink, setWaLink] = useState("");
-  const [waType, setWaType] = useState<"DEFAULT" | "CUSTOM">("DEFAULT");
+  // Admin messages are always free-form messages.  Starting in DEFAULT meant
+  // the form could report success without ever calling the send endpoint.
+  const [waType, setWaType] = useState<"CUSTOM">("CUSTOM");
   const [customMsg, setCustomMsg] = useState("");
   const [sendingWa, setSendingWa] = useState(false);
 
@@ -158,16 +160,14 @@ export default function PictureBookDetailPage() {
     if (!accessToken || !id) return;
     setSendingWa(true);
     try {
-      if (waType === "CUSTOM") {
-        await apiFetch(`/whatsapp/send-custom/${id}`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}` 
-          },
-          body: JSON.stringify({ message: customMsg })
-        });
-      }
+      await apiFetch(`/whatsapp/send-custom/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ message: customMsg.trim() })
+      });
       toast.success("WhatsApp message queued");
       setShowWaModal(false);
       setCustomMsg("");
@@ -218,7 +218,11 @@ export default function PictureBookDetailPage() {
     <div className="p-8 text-center text-[#999]">Picture Book not found.</div>
   );
 
-  const lastMsg = book.whatsappMessages?.[0];
+  // The API relation is named `messages`; the old `whatsappMessages` name
+  // silently evaluated to undefined and left the Communication Log blank.
+  const whatsappMessages = [...(book.messages || [])].sort(
+    (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
   const isFailed = book.driveStatus === "FAILED";
   const isEndUser = user?.role === "END_USER";
 
@@ -490,14 +494,14 @@ export default function PictureBookDetailPage() {
             )}
             </div>
             
-            {book.whatsappMessages?.length === 0 ? (
+            {whatsappMessages.length === 0 ? (
               <div className="p-8 rounded-xl border border-dashed border-[#EAE6DF] bg-[#FAF9F6] flex flex-col items-center justify-center text-center">
                 <Smartphone className="w-8 h-8 text-[#CCC] mb-3" />
                 <p className="text-[#999] text-sm">No messages have been logged yet.</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {book.whatsappMessages?.map((msg: any) => (
+                {whatsappMessages.map((msg: any) => (
                   <div key={msg.id} className="p-4 rounded-lg bg-[#FAF9F6] border border-[#EAE6DF] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-start sm:items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
@@ -510,7 +514,9 @@ export default function PictureBookDetailPage() {
                          <Send className="w-4 h-4" />}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-[#1A1A1A] capitalize">{msg.status.toLowerCase()}</div>
+                        <div className="text-sm font-medium text-[#1A1A1A]">
+                          {msg.direction === 'INBOUND' ? 'Received' : 'Sent'}: {msg.status.toLowerCase()}
+                        </div>
                         <div className="text-xs text-[#999] flex items-center gap-1.5 mt-0.5">
                           <span>{new Date(msg.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                           {msg.attempts > 1 && (
@@ -522,6 +528,9 @@ export default function PictureBookDetailPage() {
                         </div>
                       </div>
                     </div>
+                    {msg.body && !msg.errorMessage && (
+                      <div className="text-xs text-[#666] max-w-xs break-words">{msg.body}</div>
+                    )}
                     {msg.errorMessage && (
                       <div className="text-xs text-rose-600 bg-rose-50 px-3 py-2 rounded-lg max-w-xs break-words border border-rose-100">
                         {msg.errorMessage}

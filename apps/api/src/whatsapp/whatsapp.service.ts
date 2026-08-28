@@ -59,16 +59,28 @@ export class WhatsAppService {
       },
     });
     const jobId = `manual-wa-${pictureBookId}-${Date.now()}`;
-    await this.automationQueue.add(
-      'send-manual-whatsapp',
-      { pictureBookId, messageContent: messageContent.trim(), whatsAppMessageId: whatsappMessage.id },
-      {
-        jobId,
-        attempts: 1, // Manual messages don't usually retry automatically to avoid spam
-        removeOnComplete: false,
-        removeOnFail: false,
-      },
-    );
+    try {
+      await this.automationQueue.add(
+        'send-manual-whatsapp',
+        { pictureBookId, messageContent: messageContent.trim(), whatsAppMessageId: whatsappMessage.id },
+        {
+          jobId,
+          attempts: 1, // Manual messages don't usually retry automatically to avoid spam
+          removeOnComplete: false,
+          removeOnFail: false,
+        },
+      );
+    } catch (error: any) {
+      // Do not leave an admin-facing record in QUEUED when Redis is unavailable.
+      await this.prisma.whatsAppMessage.update({
+        where: { id: whatsappMessage.id },
+        data: {
+          status: 'FAILED',
+          errorMessage: `Could not queue message: ${error?.message || 'Unknown queue error'}`,
+        },
+      });
+      throw error;
+    }
 
     await this.prisma.activityLog.create({
       data: {
