@@ -2,12 +2,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { PhoneNumberFields, normalizePhoneNumber } from "@/components/PhoneNumberFields";
 
 export default function NewGuidePage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    whatsappNumber: ""
+    whatsappCountryCode: "+1",
+    whatsappLocalNumber: ""
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ export default function NewGuidePage() {
       const { apiFetch } = await import("@/lib/api");
       await apiFetch("/users/guides", {
         method: "POST",
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, whatsappNumber: normalizePhoneNumber(formData.whatsappCountryCode, formData.whatsappLocalNumber) })
       });
       router.push("/dashboard/users");
     } catch (err: any) {
@@ -52,10 +54,7 @@ export default function NewGuidePage() {
             <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Email Address *</label>
             <input type="email" name="email" required value={formData.email} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none" placeholder="jane@example.com" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-[#4A4A4A] mb-2">WhatsApp Number *</label>
-            <input type="tel" name="whatsappNumber" required value={formData.whatsappNumber} onChange={handleChange} className="w-full px-4 py-2.5 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none" placeholder="+1234567890" />
-          </div>
+          <PhoneNumberFields countryCode={formData.whatsappCountryCode} phoneNumber={formData.whatsappLocalNumber} onCountryCodeChange={(value) => setFormData((previous) => ({ ...previous, whatsappCountryCode: value }))} onPhoneNumberChange={(value) => setFormData((previous) => ({ ...previous, whatsappLocalNumber: value }))} />
 
           {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">{error}</div>}
 

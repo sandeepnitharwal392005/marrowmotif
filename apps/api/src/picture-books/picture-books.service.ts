@@ -185,7 +185,7 @@ export class PictureBooksService {
     user: { id: string; role: Role },
   ) {
     const pictureBook = await this.findOne(id, user);
-    const number = whatsappNumber?.trim() || pictureBook.user.whatsappNumber;
+    const number = (whatsappNumber?.replace(/[^0-9]/g, '') || pictureBook.user.whatsappNumber?.replace(/[^0-9]/g, '')) || undefined;
     if (!number) throw new BadRequestException('A WhatsApp number is required');
 
     await this.prisma.user.update({
@@ -196,7 +196,7 @@ export class PictureBooksService {
     const businessNumber = (process.env.WHATSAPP_BUSINESS_NUMBER || '').replace(/[^0-9]/g, '');
     if (!businessNumber) throw new BadRequestException('WhatsApp updates are temporarily unavailable');
 
-    const message = `Picture Book: ${pictureBook.title}\n\nHi Marrowmotif, I’d like to receive updates about my picture book “${pictureBook.title}” on WhatsApp.\nPlease send me the photo upload link when it’s ready.`;
+    const message = `Update on "${pictureBook.title}"`;
     const link = `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
     await this.prisma.pictureBook.update({
       where: { id },

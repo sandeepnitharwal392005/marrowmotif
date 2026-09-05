@@ -40,7 +40,7 @@ export class WhatsAppService {
     });
     if (!pictureBook) throw new NotFoundException('PictureBook not found');
     if (!pictureBook.user.whatsappNumber) throw new ForbiddenException('Customer has not opted in to WhatsApp updates');
-    if (pictureBook.whatsappStatus !== 'CONVERSATION_INITIATED' || !pictureBook.lastInboundMessageAt || !pictureBook.whatsappConversationOpenUntil || pictureBook.whatsappConversationOpenUntil <= new Date()) {
+    if (!['CONVERSATION_INITIATED', 'UPDATE_SENT'].includes(pictureBook.whatsappStatus) || !pictureBook.lastInboundMessageAt || !pictureBook.whatsappConversationOpenUntil || pictureBook.whatsappConversationOpenUntil <= new Date()) {
       throw new ForbiddenException('WhatsApp conversation window has expired. A free-form message cannot be sent right now.');
     }
 

@@ -3,6 +3,22 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 
+export const STANDARD_UPDATE_REQUEST = /^update\s+on\s+["“”'](.+?)["“”']\s*$/i;
+
+export function getPictureBookStatusMessage(title: string, status: string) {
+  const wording: Record<string, string> = {
+    REQUESTED: 'is being prepared',
+    UPLOAD_PENDING: 'is ready for your photos',
+    PHOTOS_UPLOADED: 'is in production',
+    UNDER_REVIEW: 'is in production',
+    IN_PRODUCTION: 'is in production',
+    READY: 'is ready',
+    COMPLETED: 'is complete',
+    CANCELLED: 'needs attention from our team',
+  };
+  return `Your Picture Book "${title}" ${wording[status] || 'is being prepared'}.\n\nWe'll keep you updated as it progresses.`;
+}
+
 @Injectable()
 export class WebhooksService {
   constructor(
@@ -56,31 +72,16 @@ export class WebhooksService {
             }
             const user = await this.prisma.user.findUnique({
               where: { id: users[0].id },
-              include: { pictureBooks: { orderBy: { updatedAt: 'desc' }, take: 1 } },
+              include: { pictureBooks: { include: { messages: true }, orderBy: { updatedAt: 'desc' } } },
             });
-            let pictureBook: any = user?.pictureBooks[0];
-            if (!pictureBook && message.type === 'text' && bodyText.trim()) {
-              const titleMatch = bodyText.match(/Picture Book:\s*(.+?)(?:\n\n|\n|$)/i);
-              if (titleMatch) {
-                const title = titleMatch[1].trim();
-                console.log(`[Webhook] Looking for pictureBook with title: ${title}`);
-                pictureBook = await this.prisma.pictureBook.findFirst({
-                  where: { title: { contains: title, mode: 'insensitive' } },
-                  orderBy: { updatedAt: 'desc' },
-                });
-                if (pictureBook) {
-                  console.log(`[Webhook] Found pictureBook ${pictureBook.id} by title match`);
-                }
-              }
-            }
+            const requestedTitle = STANDARD_UPDATE_REQUEST.exec(bodyText.trim())?.[1]?.trim();
+            let pictureBook: any = requestedTitle
+              ? user?.pictureBooks.find((item: any) => item.title.localeCompare(requestedTitle, undefined, { sensitivity: 'accent' }) === 0)
+              : user?.pictureBooks[0];
             if (!pictureBook) {
               console.log(`[Webhook] User ${user?.id} has no PictureBook`);
               await this.prisma.whatsAppWebhookEvent.update({ where: { providerEventId: eventId }, data: { processingStatus: 'NO_PICTURE_BOOK' } });
-              if (message.type === 'text' && bodyText.trim()) {
-                const response = `Hi ${user?.name || 'there'}! Thanks for your interest in Marrowmotif. It looks like you don't have a Picture Book with us yet.\n\nVisit our website to create your Picture Book and then opt in for WhatsApp updates!\n\nhttps://marrowotif-six.vercel.app`;
-                await this.queue.add('send-manual-whatsapp', { pictureBookId: null, messageContent: response, toNumber: user?.whatsappNumber, idempotencyKey: `wa-no-pb-reply-${eventId}` }, { jobId: `wa-no-pb-reply-${eventId}`, attempts: 3, removeOnComplete: false, removeOnFail: false });
-                console.log(`[Webhook] Queued no-PictureBook reply to user ${user?.id}`);
-              }
+              // No auto-reply — admin handles manually
               continue;
             }
             console.log(`[Webhook] Matched sender ${senderNumber} to user ${user?.id}, pictureBook ${pictureBook.id}`);
@@ -99,18 +100,35 @@ export class WebhooksService {
                 attempts: 1,
               },
             });
-            if (!pictureBook) continue;
 
             await this.prisma.pictureBook.update({
               where: { id: pictureBook.id },
               data: { whatsappStatus: 'CONVERSATION_INITIATED', whatsappMessageReceivedAt: new Date(), lastInboundMessageAt: new Date(), whatsappConversationOpenUntil: new Date(Date.now() + 24 * 60 * 60 * 1000) },
             });
             await this.prisma.whatsAppWebhookEvent.update({ where: { providerEventId: eventId }, data: { matched: true, matchedPictureBookId: pictureBook.id, processingStatus: 'MATCHED' } });
-            const response = pictureBook.driveLink
-              ? `Your photo upload folder for "${pictureBook.title}" is ready!\n\nPlease upload your photos here:\n${pictureBook.driveLink}\n\nOnce your photos are uploaded, we'll use them to create your picture book.`
-              : `Your picture book is still being prepared. We'll send your photo upload link here as soon as it's ready.\n\nYou can also check the Picture Book page on our website for the latest status.`;
-            await this.queue.add('send-manual-whatsapp', { pictureBookId: pictureBook.id, messageContent: response, toNumber: senderNumber, idempotencyKey: `wa-inbound-reply-${eventId}` }, { jobId: `wa-inbound-reply-${eventId}`, attempts: 3, removeOnComplete: false, removeOnFail: false });
-            console.log(`[Webhook] Queued reply job for pictureBook ${pictureBook.id}`);
+
+            const isStandardUpdate = Boolean(requestedTitle && requestedTitle.localeCompare(pictureBook.title, undefined, { sensitivity: 'accent' }) === 0);
+
+            if (!isStandardUpdate) {
+              await this.prisma.whatsAppWebhookEvent.update({ where: { providerEventId: eventId }, data: { processingStatus: 'ADMIN_ATTENTION' } });
+              console.log(`[Webhook] Unrecognized WhatsApp message for ${pictureBook.id} — flagged for admin attention`);
+              continue;
+            }
+
+            await this.prisma.pictureBook.update({ where: { id: pictureBook.id }, data: { whatsappStatus: 'UPDATE_SENT' } });
+
+            const driveLinkAlreadySent = pictureBook.messages?.some((item: any) =>
+              item.direction === 'OUTBOUND' && item.body?.includes(pictureBook.driveLink || '__missing_drive_link__')
+            );
+            if (pictureBook.driveLink && !driveLinkAlreadySent) {
+              const response = `Your upload link for "${pictureBook.title}" is ready:\n${pictureBook.driveLink}`;
+              await this.queue.add('send-manual-whatsapp', { pictureBookId: pictureBook.id, messageContent: response, toNumber: senderNumber, idempotencyKey: `wa-drive-ready-${pictureBook.id}` }, { jobId: `wa-drive-ready-${pictureBook.id}`, attempts: 3, removeOnComplete: false, removeOnFail: false });
+              console.log(`[Webhook] Queued update response for pictureBook ${pictureBook.id}`);
+            } else {
+              const response = getPictureBookStatusMessage(pictureBook.title, pictureBook.status);
+              await this.queue.add('send-manual-whatsapp', { pictureBookId: pictureBook.id, messageContent: response, toNumber: senderNumber, idempotencyKey: `wa-inbound-reply-${eventId}` }, { jobId: `wa-inbound-reply-${eventId}`, attempts: 3, removeOnComplete: false, removeOnFail: false });
+              console.log(`[Webhook] Queued status response for pictureBook ${pictureBook.id}`);
+            }
           } catch (error: any) {
             if (error?.code === 'P2002') continue;
             console.error('[Webhook] WhatsApp event processing failed:', error?.message || 'unknown error');

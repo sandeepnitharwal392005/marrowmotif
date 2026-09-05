@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { usersApi } from "@/lib/api";
-import { ArrowLeft, UserPlus, Phone, Mail, CheckCircle2, Info } from "lucide-react";
+import { ArrowLeft, UserPlus, Mail, CheckCircle2 } from "lucide-react";
+import { PhoneNumberFields, normalizePhoneNumber } from "@/components/PhoneNumberFields";
 
 export default function NewReferralPage() {
   const { accessToken } = useAuth();
@@ -12,7 +13,8 @@ export default function NewReferralPage() {
 
   const [form, setForm] = useState({ 
     customerName: "", 
-    whatsappNumber: "", 
+    whatsappCountryCode: "+1",
+    whatsappLocalNumber: "", 
     email: "",
   });
   
@@ -26,7 +28,7 @@ export default function NewReferralPage() {
     setErrorMessage("");
     
     try {
-      await usersApi.referCustomer(accessToken, form);
+      await usersApi.referCustomer(accessToken, { ...form, whatsappNumber: normalizePhoneNumber(form.whatsappCountryCode, form.whatsappLocalNumber) });
       setStatus("success");
       setTimeout(() => router.push(`/dashboard/referrals`), 1500);
     } catch (err: any) {
@@ -82,30 +84,7 @@ export default function NewReferralPage() {
                 </div>
               </div>
 
-              <div>
-                <label htmlFor="customer-whatsapp" className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                  WhatsApp Number <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Phone className="h-5 w-5 text-[#999]" />
-                  </div>
-                  <input
-                    id="customer-whatsapp"
-                    type="tel"
-                    required
-                    pattern="^\+[1-9]\d{6,14}$"
-                    value={form.whatsappNumber}
-                    onChange={(e) => setForm((f) => ({ ...f, whatsappNumber: e.target.value }))}
-                    className="w-full pl-11 pr-4 py-3 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
-                    placeholder="+1234567890"
-                  />
-                </div>
-                <p className="text-xs text-[#666] mt-2 flex items-start gap-1.5">
-                  <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 opacity-70" />
-                  Include country code (e.g. +1 for US/Canada, +44 for UK).
-                </p>
-              </div>
+              <PhoneNumberFields label="WhatsApp Number" countryCode={form.whatsappCountryCode} phoneNumber={form.whatsappLocalNumber} onCountryCodeChange={(value) => setForm((previous) => ({ ...previous, whatsappCountryCode: value }))} onPhoneNumberChange={(value) => setForm((previous) => ({ ...previous, whatsappLocalNumber: value }))} />
 
               <div>
                 <label htmlFor="customer-email" className="block text-sm font-medium text-[#1A1A1A] mb-2">
