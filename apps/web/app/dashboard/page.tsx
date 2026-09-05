@@ -7,13 +7,13 @@ import { Plus, ChevronRight, CheckCircle2, Clock, XCircle, FileText, Send, Smart
 
 function StatCard({ label, value, color, icon: Icon }: { label: string; value: number; color: string; icon: any }) {
   return (
-    <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl relative overflow-hidden group shadow-sm transition-shadow hover:shadow-md">
-      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-        <Icon className="w-16 h-16" style={{ color }} />
+    <div className="bg-white p-4 sm:p-6 border border-[#EAE6DF] rounded-xl relative overflow-hidden group shadow-xs transition-shadow hover:shadow-sm">
+      <div className="absolute top-0 right-0 p-3 sm:p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+        <Icon className="w-12 h-12 sm:w-16 sm:h-16" style={{ color }} />
       </div>
       <div className="relative z-10">
-        <div className="text-3xl font-bold mb-1 tracking-tight" style={{ color }}>{value}</div>
-        <div className="text-sm font-medium text-[#666] uppercase tracking-wider">{label}</div>
+        <div className="text-2xl sm:text-3xl font-bold mb-1 tracking-tight" style={{ color }}>{value}</div>
+        <div className="text-[11px] sm:text-xs font-semibold text-[#666] uppercase tracking-wider">{label}</div>
       </div>
     </div>
   );
@@ -99,19 +99,19 @@ export default function DashboardPage() {
             {isGuide ? "Your customer referrals overview" : isEndUser ? "Everything you need to create and follow your Picture Books." : "Platform overview"}
           </p>
         </div>
-        <Link href={isGuide ? "/dashboard/referrals/new" : "/dashboard/clients/new"} className="bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-2.5 flex items-center justify-center font-medium shadow-sm">
+        <Link href={isGuide ? "/dashboard/referrals/new" : "/dashboard/clients/new"} className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium shadow-sm">
           <Plus className="w-4 h-4 mr-2" /> 
           {isGuide ? "Refer Customer" : isEndUser ? "Create Picture Book" : "Add Picture Book"}
         </Link>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {isGuide ? (
           <>
             <StatCard label="Total Referrals" value={referralStats.totalReferred} color="#C9A84C" icon={Users} />
             <StatCard label="Registered" value={referralStats.registered} color="#10B981" icon={CheckCircle2} />
-            <StatCard label="Pending Registration" value={referralStats.pendingRegistration} color="#F59E0B" icon={Clock} />
+            <StatCard label="Pending" value={referralStats.pendingRegistration} color="#F59E0B" icon={Clock} />
           </>
         ) : (
           <>
@@ -125,12 +125,12 @@ export default function DashboardPage() {
 
       {/* Recent Activity Section */}
       <div className="bg-white border border-[#EAE6DF] rounded-xl overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-[#EAE6DF] flex items-center justify-between">
-            <h2 className="text-xl font-serif text-[#1A1A1A] flex items-center gap-2">
+        <div className="p-4 sm:p-6 border-b border-[#EAE6DF] flex items-center justify-between">
+            <h2 className="text-lg sm:text-xl font-serif text-[#1A1A1A] flex items-center gap-2">
               <FileText className="w-5 h-5 text-[#C9A84C]" />
             {isEndUser ? "Your Picture Books" : `Recent ${isGuide ? "Referrals" : "Picture Books"}`}
           </h2>
-          <Link href={isGuide ? "/dashboard/referrals" : "/dashboard/clients"} className="text-sm font-medium text-[#C9A84C] hover:text-[#B08D38] transition-colors flex items-center">
+          <Link href={isGuide ? "/dashboard/referrals" : "/dashboard/clients"} className="text-xs sm:text-sm font-medium text-[#C9A84C] hover:text-[#B08D38] transition-colors flex items-center">
             View all <ChevronRight className="w-4 h-4 ml-1" />
           </Link>
         </div>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
           </div>
         ) : isGuide ? (
           referrals.length === 0 ? (
-            <div className="p-16 flex flex-col items-center justify-center text-center">
+            <div className="p-12 sm:p-16 flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-full bg-[#FAF9F6] flex items-center justify-center mb-4">
                 <Users className="w-8 h-8 text-[#CCC]" />
               </div>
@@ -155,31 +155,50 @@ export default function DashboardPage() {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-[#FAF9F6] border-b border-[#EAE6DF]">
-                    <th className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">Name</th>
-                    <th className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">WhatsApp</th>
-                    <th className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">Registration Status</th>
-                    <th className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">Created</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#EAE6DF]">
-                  {referrals.map((ref: any) => (
-                    <tr key={ref.id} className="hover:bg-[#FAF9F6] transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-[#1A1A1A]">{ref.name || "Customer"}</div>
-                        <div className="text-xs text-[#666] mt-0.5">{ref.email}</div>
-                      </td>
-                      <td className="px-6 py-4 text-[#4A4A4A] font-medium">{ref.whatsappNumber || ref.phone || "N/A"}</td>
-                      <td className="px-6 py-4"><UserRegistrationBadge passwordHash={ref.passwordHash} /></td>
-                      <td className="px-6 py-4 text-xs font-medium text-[#666]">{new Date(ref.createdAt).toLocaleDateString()}</td>
+            <>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#FAF9F6] border-b border-[#EAE6DF]">
+                      <th className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">Name</th>
+                      <th className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">WhatsApp</th>
+                      <th className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">Registration Status</th>
+                      <th className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">Created</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-[#EAE6DF]">
+                    {referrals.map((ref: any) => (
+                      <tr key={ref.id} className="hover:bg-[#FAF9F6] transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-[#1A1A1A]">{ref.name || "Customer"}</div>
+                          <div className="text-xs text-[#666] mt-0.5">{ref.email}</div>
+                        </td>
+                        <td className="px-6 py-4 text-[#4A4A4A] font-medium">{ref.whatsappNumber || ref.phone || "N/A"}</td>
+                        <td className="px-6 py-4"><UserRegistrationBadge passwordHash={ref.passwordHash} /></td>
+                        <td className="px-6 py-4 text-xs font-medium text-[#666]">{new Date(ref.createdAt).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="md:hidden divide-y divide-[#EAE6DF]">
+                {referrals.map((ref: any) => (
+                  <div key={ref.id} className="p-4 hover:bg-[#FAF9F6] transition-colors">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-[#1A1A1A]">{ref.name || "Customer"}</div>
+                        <div className="text-xs text-[#666] mt-0.5 truncate">{ref.email}</div>
+                      </div>
+                      <UserRegistrationBadge passwordHash={ref.passwordHash} />
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-[#666] mt-2 pt-2 border-t border-[#EAE6DF]/60">
+                      <span>{ref.whatsappNumber || ref.phone || "No phone"}</span>
+                      <span>{new Date(ref.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )
         ) : books.length === 0 ? (
           <div className="p-16 flex flex-col items-center justify-center text-center">
@@ -195,8 +214,9 @@ export default function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#FAF9F6] border-b border-[#EAE6DF]">
                   {(isEndUser
@@ -253,6 +273,25 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
+          <div className="md:hidden divide-y divide-[#EAE6DF]">
+            {books.map((book: any) => (
+              <Link key={book.id} href={`/dashboard/clients/${book.id}`} className="block p-4 hover:bg-[#FAF9F6] active:bg-[#F5F3EC] transition-colors">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-[#1A1A1A] break-words">{book.title}</div>
+                    {!isEndUser && <div className="mt-1 text-xs text-[#666] truncate">{book.user?.name || "Customer"}</div>}
+                  </div>
+                  <ChevronRight className="w-5 h-5 shrink-0 text-[#999]" />
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <StatusBadge status={book.status} />
+                  {book.driveLink && <span className="text-xs font-medium text-blue-600">Upload link ready</span>}
+                  <span className="text-xs text-[#666]">{new Date(book.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          </>
         )}
       </div>
     </div>

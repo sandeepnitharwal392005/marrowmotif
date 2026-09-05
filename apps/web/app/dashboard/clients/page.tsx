@@ -46,14 +46,14 @@ export default function PictureBooksPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-[#1A1A1A] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A] tracking-tight">
             Picture Books
           </h1>
-          <p className="text-[#666] text-sm mt-1">
+          <p className="text-[#666] text-xs sm:text-sm mt-1">
             Manage your Picture Books and automation status
           </p>
         </div>
-        <Link href="/dashboard/clients/new" className="bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-2.5 flex items-center justify-center font-medium shadow-sm">
+        <Link href="/dashboard/clients/new" className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium shadow-sm">
           <Plus className="w-4 h-4 mr-2" /> 
           {isEndUser ? "Create Picture Book" : "Add Picture Book"}
         </Link>
@@ -148,24 +148,27 @@ export default function PictureBooksPage() {
             <div className="md:hidden flex flex-col divide-y divide-[#EAE6DF]">
               {filtered.map((book) => (
                 <Link href={`/dashboard/clients/${book.id}`} key={book.id} className="p-4 hover:bg-[#FAF9F6] transition-colors active:bg-[#F5F3EC]">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <div className="font-semibold text-[#1A1A1A] text-base">{book.title}</div>
-                      <div className="flex flex-col gap-1 mt-1.5">
-                        <div className="text-xs text-[#666] flex items-center gap-1.5">
-                          <Smartphone className="w-3.5 h-3.5" /> {book.user?.whatsappNumber || "N/A"}
-                        </div>
-                      </div>
+                  <div className="flex justify-between items-start mb-2.5">
+                    <div className="min-w-0 pr-2">
+                      <div className="font-semibold text-[#1A1A1A] text-base leading-snug break-words">{book.title}</div>
+                      {book.user && !isEndUser && (
+                        <div className="text-xs text-[#666] mt-0.5 truncate">{book.user.name}</div>
+                      )}
                     </div>
-                    <ChevronRight className="w-5 h-5 text-[#999] mt-1" />
+                    <ChevronRight className="w-5 h-5 text-[#999] shrink-0 mt-0.5" />
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <StatusBadge status={book.status} />
-                    {book.driveLink && (
-                      <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider flex items-center gap-1">
-                        <HardDrive className="w-3 h-3" /> Drive Ready
-                      </span>
-                    )}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={book.status} />
+                      {book.driveLink && (
+                        <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                          <HardDrive className="w-3 h-3" /> Ready
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-[#888]">
+                      {new Date(book.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </span>
                   </div>
                 </Link>
               ))}

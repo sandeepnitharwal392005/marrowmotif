@@ -57,17 +57,17 @@ export default function IncidentsPage() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 sm:p-10 max-w-7xl mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-[#1A1A1A] tracking-tight">IT Support</h1>
-          <p className="text-[#666] text-sm mt-1">
+          <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A] tracking-tight">IT Support</h1>
+          <p className="text-[#666] text-xs sm:text-sm mt-1">
             {isAdmin ? "Manage and resolve customer support tickets." : "Report an issue or check the status of your support tickets."}
           </p>
         </div>
         {!isAdmin && (
-          <Link href="/dashboard/incidents/new" className="bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-2.5 flex items-center justify-center font-medium shadow-sm">
+          <Link href="/dashboard/incidents/new" className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium shadow-sm">
             <Plus className="w-4 h-4 mr-2" /> 
             Report Issue
           </Link>
@@ -97,7 +97,7 @@ export default function IncidentsPage() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-[#FAF9F6] border-b border-[#EAE6DF]">
@@ -138,6 +138,29 @@ export default function IncidentsPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="md:hidden divide-y divide-[#EAE6DF]">
+              {incidents.map((incident) => (
+                <button
+                  key={incident.id}
+                  type="button"
+                  onClick={() => router.push(`/dashboard/incidents/${incident.id}`)}
+                  className="w-full p-4 text-left hover:bg-[#FAF9F6] active:bg-[#F5F3EC] transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-semibold text-[#1A1A1A] break-words">{incident.title}</div>
+                      {incident.pictureBook && <div className="mt-1 text-xs text-[#666] truncate">Book: {incident.pictureBook.title}</div>}
+                    </div>
+                    <ChevronRight className="w-5 h-5 shrink-0 text-[#999]" />
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <StatusBadge status={incident.status} />
+                    <PriorityBadge priority={incident.priority} />
+                    <span className="text-xs text-[#666]">{new Date(incident.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                  </div>
+                </button>
+              ))}
             </div>
             
             <Pagination meta={meta} onPageChange={setPage} />

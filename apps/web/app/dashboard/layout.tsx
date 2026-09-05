@@ -23,8 +23,8 @@ function DashboardNav() {
       { href: "/dashboard/clients", label: "Picture Books", icon: BookOpen },
       { href: "/dashboard/users", label: "Users", icon: Shield },
       { href: "/dashboard/products", label: "Products", icon: Map },
-      { href: "/dashboard/contact", label: "Public Inquiries", icon: MessageSquare },
-      { href: "/dashboard/incidents", label: "IT Support", icon: Shield },
+      { href: "/dashboard/contact", label: "Inquiries", icon: MessageSquare },
+      { href: "/dashboard/incidents", label: "Support", icon: Shield },
       { href: "/dashboard/audit", label: "Audit Logs", icon: ClipboardList },
       { href: "/dashboard/settings", label: "Settings", icon: Settings },
     ];
@@ -39,9 +39,9 @@ function DashboardNav() {
     // Customer (default role)
     navItems = [
       { href: "/dashboard", label: "Dashboard", icon: Home },
-      { href: "/dashboard/clients", label: "My Picture Books", icon: BookOpen },
-      { href: "/dashboard/clients/new", label: "Create Book", icon: PlusCircle },
-      { href: "/dashboard/incidents", label: "IT Support", icon: Shield },
+      { href: "/dashboard/clients", label: "My Books", icon: BookOpen },
+      { href: "/dashboard/clients/new", label: "Create", icon: PlusCircle },
+      { href: "/dashboard/incidents", label: "Support", icon: Shield },
       { href: "/dashboard/settings", label: "Settings", icon: Settings },
     ];
   }
@@ -114,31 +114,50 @@ function DashboardNav() {
 
       {/* Mobile Top App Bar */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-[#EAE6DF] z-40 flex items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-2.5">
           <span className="text-lg font-serif font-semibold text-[#1A1A1A] tracking-tight">Marrowmotif</span>
+          <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-[#FAF9F6] border border-[#EAE6DF] text-[#666]">
+            {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'GUIDE' ? 'Guide' : 'Portal'}
+          </span>
         </Link>
-        <button onClick={handleLogout} className="p-2 text-[#666] hover:text-[#1A1A1A] rounded-full bg-[#F5F3EC]">
-          <LogOut className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="text-right hidden xs:block">
+            <div className="text-xs font-medium text-[#1A1A1A] max-w-[120px] truncate">{user?.name}</div>
+          </div>
+          <button 
+            onClick={handleLogout} 
+            title="Log Out"
+            className="p-2 text-[#666] hover:text-[#1A1A1A] active:bg-[#EAE6DF] rounded-full bg-[#FAF9F6] border border-[#EAE6DF] transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 sm:h-20 bg-white/95 backdrop-blur-xl border-t border-[#EAE6DF] z-40 flex items-center justify-around px-2 sm:px-6 pb-safe shadow-lg">
-        {navItems.slice(0, 4).map((item) => {
+      <nav aria-label="Dashboard navigation" className="lg:hidden fixed bottom-0 left-0 right-0 h-[calc(4.25rem+env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-xl border-t border-[#EAE6DF] z-40 flex items-center justify-around px-2 pb-safe shadow-lg">
+        {navItems.slice(0, 5).map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${
-                isActive ? "text-[#C9A84C]" : "text-[#999] hover:text-[#666]"
+              className={`flex flex-col items-center justify-center min-w-0 flex-1 h-full py-1 gap-1 transition-all active:scale-95 ${
+                isActive ? "text-[#C9A84C]" : "text-[#888] hover:text-[#1A1A1A]"
               }`}
             >
-              <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${isActive ? "fill-gold/10" : ""}`} />
-              <span className="text-[10px] font-medium tracking-wide">{item.label}</span>
+              <div className="relative">
+                <Icon className={`w-5 h-5 transition-transform ${isActive ? "scale-110" : ""}`} />
+                {isActive && (
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#C9A84C]" />
+                )}
+              </div>
+              <span className={`max-w-full truncate px-0.5 text-[10px] tracking-tight ${isActive ? "font-semibold text-[#1A1A1A]" : "font-normal"}`}>
+                {item.label}
+              </span>
             </Link>
-          )
+          );
         })}
       </nav>
     </>
@@ -176,8 +195,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <AuthGuard>
         <div className="flex min-h-screen bg-[#FAF9F6] text-[#1A1A1A]">
           <DashboardNav />
-          {/* Main content wrapper */}
-          <main className="flex-1 w-full max-w-full overflow-x-hidden pt-16 pb-20 lg:pt-0 lg:pb-0 h-screen overflow-y-auto">
+          {/* Main content wrapper with safe bottom padding for mobile navbar */}
+          <main className="flex-1 w-full max-w-full overflow-x-hidden pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pt-0 lg:pb-0 min-h-screen lg:h-screen overflow-y-auto">
             {children}
           </main>
         </div>

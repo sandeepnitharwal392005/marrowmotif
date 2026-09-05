@@ -47,6 +47,10 @@
     overflow-x: hidden;
   }
 
+  input, select, textarea {
+    font-size: 16px;
+  }
+
   /* Touch-friendly tap targets */
   button, a, [role="button"] {
     touch-action: manipulation;
@@ -355,6 +359,45 @@
   padding-left: 1rem;
   padding-right: 1rem;
 }
+
+/* Safe area insets */
+.pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+.pt-safe {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+.min-h-screen-safe {
+  min-height: 100dvh;
+}
+
+/* Mobile-specific spacing & typography */
+@media (max-width: 639px) {
+  .marketing-hero { min-height: 64dvh !important; padding-top: 3.5rem !important; padding-bottom: 3.5rem !important; }
+  .marketing-image { height: 32dvh !important; min-height: 14rem; }
+  .marketing-section { padding-top: 3.5rem !important; padding-bottom: 3.5rem !important; }
+  .marketing-heading { margin-bottom: 2rem !important; }
+  .marketing-card-content { padding: 1.25rem !important; }
+  
+  /* Prevent table overflows */
+  .table-responsive-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Touch active micro-animations */
+@media (hover: none) and (pointer: coarse) {
+  .card-hover:active {
+    transform: scale(0.99);
+    transition: transform 0.1s ease;
+  }
+  .btn-primary:active, .btn-secondary:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+}
+
 @media (min-width: 640px) {
   .container-pad { padding-left: 1.5rem; padding-right: 1.5rem; }
 }

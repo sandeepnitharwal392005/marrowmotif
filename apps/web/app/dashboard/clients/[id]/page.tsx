@@ -227,23 +227,23 @@ export default function PictureBookDetailPage() {
   const isEndUser = user?.role === "END_USER";
 
   return (
-    <div className="p-6 sm:p-10 max-w-5xl mx-auto space-y-8">
+    <div className="p-4 sm:p-10 max-w-5xl mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
-        <Link href="/dashboard/clients" className="inline-flex items-center text-[#666] text-sm font-medium hover:text-[#1A1A1A] transition-colors mb-4 group">
+        <Link href="/dashboard/clients" className="inline-flex items-center text-[#666] text-sm font-medium hover:text-[#1A1A1A] transition-colors mb-3 group">
           <ArrowLeft className="w-4 h-4 mr-1.5 group-hover:-translate-x-1 transition-transform" />
           Back to list
         </Link>
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-[#1A1A1A] tracking-tight">{book.title}</h1>
-            <p className="text-[#666] text-sm mt-1">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#1A1A1A] tracking-tight break-words">{book.title}</h1>
+            <p className="text-[#666] text-xs sm:text-sm mt-1">
               Created on {new Date(book.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
           
           {user?.role === "ADMIN" ? (
-            <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-[#666]">Status:</span>
               <select 
                 value={book.status}
@@ -435,20 +435,20 @@ export default function PictureBookDetailPage() {
                       className="w-full pl-4 pr-4 h-12 bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] rounded-md outline-none"
                     />
                   </div>
-                  <div className="flex gap-2">
+                <div className="flex gap-2">
                     <button 
                       onClick={() => navigator.clipboard.writeText(book.driveLink)}
-                      className="flex-1 sm:flex-none border border-[#EAE6DF] hover:bg-[#FAF9F6] text-[#1A1A1A] h-12 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 sm:flex-none border border-[#EAE6DF] hover:bg-[#FAF9F6] active:bg-[#F5F3EC] text-[#1A1A1A] h-12 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
                     >
-                      <Copy className="w-4 h-4" /> <span className="hidden sm:inline">Copy</span>
+                      <Copy className="w-4 h-4 text-[#666]" /> <span className="text-xs sm:text-sm">Copy Link</span>
                     </button>
                     <a 
                       href={book.driveLink} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex-1 sm:flex-none bg-[#1A1A1A] hover:bg-[#333] text-white h-12 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 sm:flex-none bg-[#1A1A1A] hover:bg-[#333] active:bg-black text-white h-12 px-5 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
                     >
-                      <ExternalLink className="w-4 h-4" /> <span className="hidden sm:inline">Open</span>
+                      <ExternalLink className="w-4 h-4" /> <span className="text-xs sm:text-sm">Open Folder</span>
                     </a>
                   </div>
                 </div>
@@ -663,7 +663,7 @@ export default function PictureBookDetailPage() {
                 ) : (
                   <p className="mt-6 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] p-3 text-sm text-[#666]">Your WhatsApp link is ready. Open WhatsApp and press Send there.</p>
                 )}
-                <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-[#EAE6DF]">
+            <div className="mt-8 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t border-[#EAE6DF]">
                   <button type="button" onClick={handleWhatsappDecline} className="px-5 py-2.5 rounded-md text-sm font-medium text-[#666]">Not now</button>
                   {!waLink ? (
                     <button type="button" onClick={handleWhatsappOptIn} disabled={sendingWa || !waNumber.trim()} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white disabled:opacity-50">{sendingWa ? "Preparing..." : "Continue"}</button>

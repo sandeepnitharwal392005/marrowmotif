@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { PublicNavbar } from '@/components/PublicNavbar';
+import { ArrowRight, BookOpen, UploadCloud, Sparkles } from 'lucide-react';
 
 export const metadata = {
   title: 'Marrowmotif — Where Memory Meets Craft',
@@ -33,114 +35,131 @@ const PRODUCTS = [
 
 export default function HomePage() {
   return (
-    <div style={{ background: '#FAF9F6', minHeight: '100dvh', color: '#1A1A1A' }}>
-      {/* ─── Navbar ──────────────────────────────────────────────── */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(250, 249, 246, 0.9)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-        <nav className="container-pad" style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72 }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span className="font-serif" style={{ fontSize: '1.75rem', fontWeight: 600, color: '#1A1A1A', letterSpacing: '-0.02em' }}>Marrowmotif</span>
-          </Link>
-
-          {/* Desktop nav */}
-          <div style={{ display: 'none', gap: '1.5rem', alignItems: 'center' }} className="desktop-nav">
-            <Link href="#how-it-works" style={{ color: '#4A4A4A', textDecoration: 'none', fontSize: '0.95rem', transition: 'color 0.2s' }}>How it Works</Link>
-            <Link href="#products" style={{ color: '#4A4A4A', textDecoration: 'none', fontSize: '0.95rem', transition: 'color 0.2s' }}>Our Books</Link>
-            <Link href="/contact" style={{ color: '#4A4A4A', textDecoration: 'none', fontSize: '0.95rem', transition: 'color 0.2s' }}>Contact</Link>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <Link href="/login" className="btn-secondary btn-sm" style={{ borderColor: '#1A1A1A', color: '#1A1A1A', background: 'transparent' }}>
-              Sign In
-            </Link>
-          </div>
-        </nav>
-      </header>
+    <div className="bg-[#FAF9F6] min-h-screen text-[#1A1A1A] flex flex-col">
+      {/* ─── Navbar with Mobile Drawer ─────────────────────────── */}
+      <PublicNavbar />
 
       {/* ─── Hero ────────────────────────────────────────────────── */}
-      <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', paddingTop: '6rem', paddingBottom: '6rem' }}>
-        <div className="container-pad animate-fadein" style={{ maxWidth: 800 }}>
-          <h1 className="font-serif" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 400, lineHeight: 1.1, marginBottom: '1.5rem', color: '#1A1A1A', letterSpacing: '-0.03em' }}>
-            Where Memory <br/> Meets Craft.
+      <section className="marketing-hero flex flex-col items-center justify-center text-center py-12 sm:py-24 px-4 sm:px-6 flex-1">
+        <div className="container-pad max-w-3xl animate-fadein">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium bg-black/5 text-[#4A4A4A] mb-6 border border-black/5">
+            <Sparkles className="w-3.5 h-3.5 text-[#C9A84C]" />
+            <span>Preserve Your Finest Memories</span>
+          </div>
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal leading-[1.15] mb-4 sm:mb-6 text-[#1A1A1A] tracking-tight">
+            Where Memory <br className="hidden sm:inline" /> Meets Craft.
           </h1>
-          <p style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.35rem)', color: '#4A4A4A', marginBottom: '2.5rem', lineHeight: 1.6, fontWeight: 300 }}>
+          <p className="text-base sm:text-xl text-[#4A4A4A] mb-8 sm:mb-10 leading-relaxed font-light max-w-2xl mx-auto">
             We create beautiful, heirloom-quality Picture Books from your travel memories. Because your stories deserve more than a screen.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <Link href="/login?register=true" className="btn-primary" style={{ fontSize: '1rem', padding: '1rem 2.5rem', background: '#1A1A1A', color: '#FFF', borderRadius: '4px' }}>
-              Create Your Book
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full sm:w-auto">
+            <Link 
+              href="/login?register=true" 
+              className="btn-primary w-full sm:w-auto text-base px-8 py-3.5 rounded-md shadow-sm flex items-center justify-center gap-2"
+            >
+              <span>Create Your Book</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link 
+              href="#how-it-works" 
+              className="btn-secondary w-full sm:w-auto text-base px-6 py-3.5 rounded-md flex items-center justify-center bg-white/60"
+            >
+              How it Works
             </Link>
           </div>
         </div>
       </section>
 
       {/* ─── Storytelling Image ────────────────────────────────────── */}
-      <section style={{ maxWidth: 1440, margin: '0 auto', padding: '0 1rem' }}>
-        <div style={{ width: '100%', height: '50vh', position: 'relative', overflow: 'hidden', borderRadius: '8px' }}>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 w-full mb-12 sm:mb-20">
+        <div className="marketing-image w-full h-[32vh] sm:h-[48vh] min-h-[14rem] sm:min-h-[22rem] relative overflow-hidden rounded-xl sm:rounded-2xl shadow-sm border border-black/5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={HERO_IMAGE}
-            alt="Photography"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            alt="Artisanal Memory Album"
+            className="w-full h-full object-cover"
           />
         </div>
       </section>
 
       {/* ─── How It Works ─────────────────────────────────────────── */}
-      <section id="how-it-works" className="container-pad" style={{ maxWidth: 1000, margin: '0 auto', paddingTop: '6rem', paddingBottom: '6rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 className="font-serif" style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 400, color: '#1A1A1A', marginBottom: '1rem' }}>
+      <section id="how-it-works" className="container-pad marketing-section max-w-5xl mx-auto py-12 sm:py-24 w-full">
+        <div className="marketing-heading text-center mb-10 sm:mb-16">
+          <h2 className="font-serif text-2xl sm:text-4xl font-normal text-[#1A1A1A] mb-2 sm:mb-3">
             The Journey to Print
           </h2>
-          <p style={{ color: '#4A4A4A', fontSize: '1.1rem' }}>A seamless process from your camera roll to your coffee table.</p>
+          <p className="text-[#666] text-sm sm:text-base max-w-md mx-auto">
+            A seamless process from your camera roll to your coffee table.
+          </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '3rem' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10">
           {[
-            { step: '01', title: 'Request a Book', desc: 'Sign in and create a new Picture Book project. Tell us about your journey.' },
-            { step: '02', title: 'Upload Photos', desc: 'Receive a secure, private upload link. Add your favorite moments straight from your device.' },
-            { step: '03', title: 'We Craft', desc: 'Our artisans design, print, and bind your memories into a beautiful, lasting keepsake.' },
-          ].map((item) => (
-            <div key={item.step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <div className="font-serif" style={{ fontSize: '2.5rem', color: '#C9A84C', marginBottom: '1rem' }}>{item.step}</div>
-              <h3 style={{ fontWeight: 500, color: '#1A1A1A', marginBottom: '0.75rem', fontSize: '1.25rem' }}>{item.title}</h3>
-              <p style={{ fontSize: '1rem', color: '#666', lineHeight: 1.6, fontWeight: 300 }}>{item.desc}</p>
-            </div>
-          ))}
+            { step: '01', icon: BookOpen, title: 'Request a Book', desc: 'Sign in and create a new Picture Book project. Tell us about your journey.' },
+            { step: '02', icon: UploadCloud, title: 'Upload Photos', desc: 'Receive a secure, private upload link. Add your favorite moments straight from your device.' },
+            { step: '03', icon: Sparkles, title: 'We Craft', desc: 'Our artisans design, print, and bind your memories into a beautiful, lasting keepsake.' },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.step} className="p-6 rounded-xl bg-white border border-[#EAE6DF] shadow-xs flex flex-col items-start card-hover">
+                <div className="flex items-center justify-between w-full mb-4">
+                  <span className="font-serif text-3xl font-bold text-[#C9A84C]">{item.step}</span>
+                  <div className="w-9 h-9 rounded-full bg-[#FAF9F6] border border-[#EAE6DF] flex items-center justify-center text-[#666]">
+                    <Icon className="w-4 h-4 text-[#C9A84C]" />
+                  </div>
+                </div>
+                <h3 className="font-serif font-semibold text-[#1A1A1A] mb-2 text-lg">{item.title}</h3>
+                <p className="text-sm text-[#666] leading-relaxed font-light">{item.desc}</p>
+              </div>
+            );
+          })}
         </div>
       </section>
 
       {/* ─── Products ─────────────────────────────────────────────── */}
-      <section id="products" style={{ background: '#F5F3EC', paddingTop: '6rem', paddingBottom: '6rem' }}>
-        <div className="container-pad" style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 className="font-serif" style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 400, color: '#1A1A1A', marginBottom: '1rem' }}>
+      <section id="products" className="marketing-section bg-[#F5F3EC] py-12 sm:py-24 border-y border-[#EAE6DF] w-full">
+        <div className="container-pad max-w-6xl mx-auto">
+          <div className="marketing-heading text-center mb-10 sm:mb-16">
+            <h2 className="font-serif text-2xl sm:text-4xl font-normal text-[#1A1A1A] mb-2 sm:mb-3">
               Our Picture Books
             </h2>
-            <p style={{ color: '#666', fontSize: '1.1rem' }}>Crafted with archival materials to last generations.</p>
+            <p className="text-[#666] text-sm sm:text-base">
+              Crafted with archival materials to last generations.
+            </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', gap: '2rem' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {PRODUCTS.map((product) => (
-              <div key={product.id} className="card-hover" style={{ background: '#FFF', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-                <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden' }}>
+              <div key={product.id} className="card-hover bg-white rounded-xl overflow-hidden border border-[#EAE6DF] shadow-xs flex flex-col">
+                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={product.image}
                     alt={product.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease' }}
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                     loading="lazy"
                   />
                 </div>
-                <div style={{ padding: '2rem' }}>
-                  <h3 className="font-serif" style={{ fontSize: '1.35rem', fontWeight: 500, color: '#1A1A1A', marginBottom: '0.5rem' }}>
-                    {product.title}
-                  </h3>
-                  <div style={{ fontSize: '1.1rem', color: '#C9A84C', marginBottom: '1rem' }}>
-                    ${product.price}
+                <div className="marketing-card-content p-5 sm:p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-baseline justify-between gap-2 mb-1.5">
+                      <h3 className="font-serif text-lg sm:text-xl font-medium text-[#1A1A1A]">
+                        {product.title}
+                      </h3>
+                      <div className="text-base font-semibold text-[#C9A84C] shrink-0">
+                        ${product.price}
+                      </div>
+                    </div>
+                    <p className="text-sm text-[#666] leading-relaxed font-light mb-4">
+                      {product.description}
+                    </p>
                   </div>
-                  <p style={{ fontSize: '0.95rem', color: '#666', lineHeight: 1.6, fontWeight: 300 }}>
-                    {product.description}
-                  </p>
+                  <Link 
+                    href="/login?register=true" 
+                    className="btn-secondary w-full text-center text-xs py-2.5 rounded-md hover:bg-[#FAF9F6] border-[#EAE6DF]"
+                  >
+                    Select Edition
+                  </Link>
                 </div>
               </div>
             ))}
@@ -149,43 +168,40 @@ export default function HomePage() {
       </section>
 
       {/* ─── CTA ─────────────────────────────────────────────────── */}
-      <section className="container-pad" style={{ maxWidth: 1280, margin: '0 auto', paddingTop: '8rem', paddingBottom: '8rem', textAlign: 'center' }}>
-        <h2 className="font-serif" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 400, color: '#1A1A1A', marginBottom: '1.5rem' }}>
+      <section className="container-pad marketing-section max-w-4xl mx-auto py-16 sm:py-28 text-center w-full">
+        <h2 className="font-serif text-2xl sm:text-4xl font-normal text-[#1A1A1A] mb-3 sm:mb-4">
           Preserve your story.
         </h2>
-        <p style={{ color: '#666', fontSize: '1.1rem', marginBottom: '2.5rem', maxWidth: 500, margin: '0 auto 2.5rem' }}>
-          Join Marrowmotif and start building your first Picture Book today.
+        <p className="text-[#666] text-sm sm:text-base mb-8 max-w-md mx-auto">
+          Join Marrowmotif and start building your first heirloom Picture Book today.
         </p>
-        <Link href="/login?register=true" className="btn-primary" style={{ fontSize: '1.1rem', padding: '1rem 3rem', background: '#1A1A1A', color: '#FFF', borderRadius: '4px' }}>
-          Get Started
+        <Link 
+          href="/login?register=true" 
+          className="btn-primary w-full sm:w-auto text-base px-10 py-3.5 rounded-md shadow-sm inline-flex items-center justify-center gap-2"
+        >
+          <span>Get Started</span>
+          <ArrowRight className="w-4 h-4" />
         </Link>
       </section>
 
       {/* ─── Footer ──────────────────────────────────────────────── */}
-      <footer style={{ borderTop: '1px solid rgba(0,0,0,0.05)', padding: '3rem 0', background: '#FFF' }}>
-        <div className="container-pad" style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="font-serif" style={{ color: '#1A1A1A', fontWeight: 600, fontSize: '1.25rem' }}>Marrowmotif</span>
+      <footer className="border-t border-[#EAE6DF] py-8 sm:py-12 bg-white mt-auto">
+        <div className="container-pad max-w-6xl mx-auto flex flex-col sm:flex-row gap-6 justify-between items-center text-center sm:text-left">
+          <div className="flex items-center gap-2">
+            <span className="font-serif text-lg font-semibold text-[#1A1A1A]">Marrowmotif</span>
           </div>
-          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-            <Link href="#how-it-works" style={{ color: '#666', textDecoration: 'none', fontSize: '0.9rem' }}>How it Works</Link>
-            <Link href="/contact" style={{ color: '#666', textDecoration: 'none', fontSize: '0.9rem' }}>Contact</Link>
-            <Link href="/login" style={{ color: '#666', textDecoration: 'none', fontSize: '0.9rem' }}>Sign In</Link>
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-[#666]">
+            <Link href="#how-it-works" className="hover:text-[#1A1A1A] transition-colors py-1">How it Works</Link>
+            <Link href="#products" className="hover:text-[#1A1A1A] transition-colors py-1">Our Books</Link>
+            <Link href="/products" className="hover:text-[#1A1A1A] transition-colors py-1">Tours</Link>
+            <Link href="/contact" className="hover:text-[#1A1A1A] transition-colors py-1">Contact</Link>
+            <Link href="/login" className="hover:text-[#1A1A1A] transition-colors py-1">Sign In</Link>
           </div>
-          <p style={{ fontSize: '0.85rem', color: '#999' }}>
-            © {new Date().getFullYear()} Marrowmotif. Where Memory Meets Craft.
+          <p className="text-xs text-[#999]">
+            © {new Date().getFullYear()} Marrowmotif. All rights reserved.
           </p>
         </div>
       </footer>
-
-      <style>{`
-        @media (min-width: 768px) {
-          .desktop-nav { display: flex !important; }
-        }
-        .card-hover:hover img { transform: scale(1.03); }
-        .btn-primary:hover { background: #333 !important; }
-        .btn-secondary:hover { background: rgba(0,0,0,0.05) !important; }
-      `}</style>
     </div>
   );
 }

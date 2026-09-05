@@ -20,18 +20,21 @@ export function Pagination({ meta, onPageChange }: PaginationProps) {
 
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-[#EAE6DF] bg-white rounded-b-xl">
-      <div className="flex flex-1 justify-between sm:hidden">
+      <div className="flex flex-1 items-center justify-between sm:hidden gap-2">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="relative inline-flex items-center rounded-md border border-[#EAE6DF] bg-white px-4 py-2 text-sm font-medium text-[#666666] hover:bg-[#FAF9F6] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="relative inline-flex items-center rounded-md border border-[#EAE6DF] bg-white px-3.5 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#FAF9F6] active:bg-[#F5F3EC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Previous
         </button>
+        <span className="text-xs text-[#666] font-medium">
+          Page {page} of {totalPages}
+        </span>
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="relative ml-3 inline-flex items-center rounded-md border border-[#EAE6DF] bg-white px-4 py-2 text-sm font-medium text-[#666666] hover:bg-[#FAF9F6] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="relative inline-flex items-center rounded-md border border-[#EAE6DF] bg-white px-3.5 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#FAF9F6] active:bg-[#F5F3EC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Next
         </button>

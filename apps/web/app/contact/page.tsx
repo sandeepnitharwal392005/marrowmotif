@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import { contactApi } from "@/lib/api";
+import { PublicNavbar } from "@/components/PublicNavbar";
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
@@ -24,25 +24,14 @@ export default function ContactPage() {
 
   return (
     <main className="min-h-screen" style={{ background: "#FAF9F6" }}>
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#FAF9F6] border-b border-[#EAE6DF]">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="font-serif text-[#1A1A1A] text-2xl font-semibold tracking-tight">Marrowmotif</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium text-[#1A1A1A] hover:text-[#C9A84C] transition-colors">Sign In</Link>
-            <Link href="/register" className="btn-primary text-sm px-4 py-2">Get Started</Link>
-          </div>
-        </div>
-      </nav>
+      <PublicNavbar />
 
-      <div className="max-w-5xl mx-auto px-6 py-20">
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-20">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           {/* Info */}
           <div>
-            <h1 className="text-4xl font-serif text-[#1A1A1A] mb-4 font-bold tracking-tight">Get In Touch</h1>
-            <p className="text-[#666666] text-lg mb-10 leading-relaxed">
+            <h1 className="text-3xl sm:text-4xl font-serif text-[#1A1A1A] mb-4 font-bold tracking-tight">Get In Touch</h1>
+            <p className="text-[#666666] text-base sm:text-lg mb-8 sm:mb-10 leading-relaxed">
               Have a question about your Picture Book or need help with a recent order? We're here to help.
             </p>
             <div className="space-y-6">
@@ -65,7 +54,7 @@ export default function ContactPage() {
           </div>
 
           {/* Form */}
-          <div className="bg-white border border-[#EAE6DF] rounded-xl p-8 shadow-sm">
+          <div className="bg-white border border-[#EAE6DF] rounded-xl p-5 sm:p-8 shadow-sm">
             {status === "success" ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100 text-3xl">

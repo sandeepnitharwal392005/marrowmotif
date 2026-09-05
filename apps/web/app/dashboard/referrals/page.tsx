@@ -49,7 +49,7 @@ export default function ReferralsPage() {
             Manage your referred customers
           </p>
         </div>
-        <Link href="/dashboard/referrals/new" className="bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-2.5 flex items-center justify-center font-medium shadow-sm">
+        <Link href="/dashboard/referrals/new" className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium shadow-sm">
           <Plus className="w-4 h-4 mr-2" /> 
           Refer Customer
         </Link>
@@ -65,7 +65,7 @@ export default function ReferralsPage() {
           placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-11 pr-4 py-2.5 rounded-md bg-white border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors shadow-sm"
+          className="w-full pl-11 pr-4 py-2.5 rounded-md bg-white border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors shadow-sm text-base sm:text-sm"
         />
       </div>
 
@@ -76,7 +76,7 @@ export default function ReferralsPage() {
             <div className="text-sm font-medium text-[#999] uppercase tracking-widest">Loading...</div>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-16 flex flex-col items-center justify-center text-center">
+          <div className="p-12 sm:p-16 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 rounded-full bg-[#FAF9F6] flex items-center justify-center mb-4">
               <Users className="w-8 h-8 text-[#CCC]" />
             </div>
@@ -87,14 +87,15 @@ export default function ReferralsPage() {
               {search ? `No items matched your search for "${search}".` : "Get started by referring a customer."}
             </p>
             {!search && (
-              <Link href="/dashboard/referrals/new" className="bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-2.5 flex items-center shadow-sm">
+              <Link href="/dashboard/referrals/new" className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center shadow-sm">
                 <Plus className="w-4 h-4 mr-2" /> Get Started
               </Link>
             )}
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-[#FAF9F6] border-b border-[#EAE6DF]">
@@ -121,6 +122,25 @@ export default function ReferralsPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card List */}
+            <div className="md:hidden divide-y divide-[#EAE6DF]">
+              {filtered.map((user) => (
+                <div key={user.id} className="p-4 hover:bg-[#FAF9F6] transition-colors">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="min-w-0">
+                      <div className="font-semibold text-[#1A1A1A] text-base">{user.name}</div>
+                      <div className="text-xs text-[#666] mt-0.5 truncate">{user.email}</div>
+                    </div>
+                    <UserRegistrationBadge passwordHash={user.passwordHash} />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-[#666] mt-2.5 pt-2 border-t border-[#EAE6DF]/60">
+                    <span className="font-medium text-[#4A4A4A]">{user.whatsappNumber || user.phone || "No phone"}</span>
+                    <span>{new Date(user.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                  </div>
+                </div>
+              ))}
             </div>
             
             {!loading && filtered.length > 0 && (

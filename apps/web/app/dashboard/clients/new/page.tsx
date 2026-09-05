@@ -140,23 +140,23 @@ export default function NewPictureBookPage() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-xl mx-auto flex flex-col min-h-[calc(100vh-8rem)] lg:min-h-0">
+    <div className="p-4 sm:p-10 max-w-xl mx-auto flex flex-col min-h-[calc(100vh-8rem)] lg:min-h-0">
       <div className="mb-6 sm:mb-8">
-        <Link href="/dashboard/clients" className="inline-flex items-center text-[#666] text-sm font-medium hover:text-[#1A1A1A] transition-colors mb-4 group">
+        <Link href="/dashboard/clients" className="inline-flex items-center text-[#666] text-sm font-medium hover:text-[#1A1A1A] transition-colors mb-3 group">
           <ArrowLeft className="w-4 h-4 mr-1.5 group-hover:-translate-x-1 transition-transform" />
           Back to list
         </Link>
-        <h1 className="text-3xl font-serif text-[#1A1A1A] tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A] tracking-tight">
           Create Picture Book
         </h1>
-        <p className="text-[#666] text-sm mt-2 leading-relaxed">
+        <p className="text-[#666] text-xs sm:text-sm mt-1.5 leading-relaxed">
           {isAdmin 
             ? "Create a Picture Book project and assign it to an existing customer."
             : "Give your new Picture Book a title. We’ll prepare your photo upload folder on the website."}
         </p>
       </div>
 
-      <div className="bg-white border border-[#EAE6DF] rounded-xl p-6 sm:p-8 flex-1 sm:flex-none flex flex-col shadow-sm">
+      <div className="bg-white border border-[#EAE6DF] rounded-xl p-5 sm:p-8 flex-1 sm:flex-none flex flex-col shadow-sm">
         {status === "success" ? (
           <div className="flex flex-col items-center justify-center py-12 text-center flex-1">
             <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 border border-emerald-100">
@@ -299,7 +299,7 @@ export default function NewPictureBookPage() {
                   )}
 
                   {form.deliveryPreference === 'HOME_DELIVERY' && (
-                    <div className="bg-[#FAF9F6] p-4 rounded-lg border border-[#EAE6DF] space-y-4">
+              <div className="bg-[#FAF9F6] p-4 rounded-lg border border-[#EAE6DF] space-y-4">
                       <h4 className="text-sm font-medium text-[#1A1A1A]">Delivery Address</h4>
                       
                       {profile?.addressLine1 && profile?.city && profile?.country ? (
@@ -351,7 +351,7 @@ export default function NewPictureBookPage() {
                   {form.deliveryPreference === 'BEFORE_DEPARTURE' && (
                     <div className="bg-[#FAF9F6] p-4 rounded-lg border border-[#EAE6DF] space-y-4">
                       <h4 className="text-sm font-medium text-[#1A1A1A]">Departure Details</h4>
-                      <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-medium text-[#666] mb-1">Departure Date *</label>
                           <input type="date" required value={form.departureDate} onChange={e => setForm(f => ({ ...f, departureDate: e.target.value }))} className="w-full px-3 py-2 rounded-md bg-white border border-[#EAE6DF] text-sm text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none" />

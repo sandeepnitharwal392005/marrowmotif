@@ -146,18 +146,18 @@ export default function NewIncidentPage() {
             </div>
           </div>
 
-          <div className="pt-4 flex items-center justify-end border-t border-[#EAE6DF] gap-3">
+          <div className="pt-4 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end border-t border-[#EAE6DF] gap-3">
             <button
               type="button"
               onClick={() => router.back()}
-              className="px-5 py-2.5 text-sm font-medium text-[#666] hover:text-[#1A1A1A] transition-colors"
+              className="w-full sm:w-auto px-5 py-3 sm:py-2.5 text-sm font-medium text-[#666] hover:text-[#1A1A1A] transition-colors border border-[#EAE6DF] rounded-lg bg-white"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 bg-[#1A1A1A] text-white rounded-lg text-sm font-medium hover:bg-[#333] transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm"
+              className="w-full sm:w-auto px-6 py-3 sm:py-2.5 bg-[#1A1A1A] text-white rounded-lg text-sm font-medium hover:bg-[#333] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
             >
               {submitting ? (
                 <>
