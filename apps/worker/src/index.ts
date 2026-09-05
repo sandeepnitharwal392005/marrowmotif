@@ -131,11 +131,6 @@ async function processWelcomeMessage(job: Job) {
       });
     }
 
-    if (pictureBook.whatsappStatus === 'UPDATE_SENT' && pictureBook.user.whatsappNumber && driveLink) {
-      const messageContent = `Your photo upload folder for “${pictureBook.title}” is ready!\n\nPlease upload your photos here:\n${driveLink}\n\nOnce your photos are uploaded, we’ll use them to create your picture book.`;
-      await automationQueue.add('send-manual-whatsapp', { pictureBookId, messageContent, idempotencyKey: `wa-drive-ready-${pictureBookId}` }, { jobId: `wa-drive-ready-${pictureBookId}`, attempts: 3, removeOnComplete: false, removeOnFail: false });
-    }
-
   } catch (error: any) {
     console.error(`[Worker] ❌ Error in drive generation: ${error.message}`);
     

@@ -50,7 +50,7 @@ export default function PictureBooksPage() {
             Picture Books
           </h1>
           <p className="text-[#666] text-xs sm:text-sm mt-1">
-            Manage your Picture Books and automation status
+            {isEndUser ? "View your Picture Books" : "Manage your Picture Books"}
           </p>
         </div>
         <Link href="/dashboard/clients/new" className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium shadow-sm">

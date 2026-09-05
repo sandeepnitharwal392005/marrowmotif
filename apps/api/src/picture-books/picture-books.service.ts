@@ -136,7 +136,9 @@ export class PictureBooksService {
       ]);
 
       return {
-        data,
+        data: user.role === Role.END_USER
+          ? data.map(({ messages, ...book }) => book)
+          : data,
         meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
       };
     } catch (e: any) {
@@ -174,6 +176,11 @@ export class PictureBooksService {
     }
     if (user.role === Role.GUIDE) {
       throw new ForbiddenException('Guides do not have access to Picture Books');
+    }
+
+    if (user.role === Role.END_USER) {
+      const { messages, activityLogs, automationJobs, ...customerBook } = pictureBook;
+      return customerBook;
     }
 
     return pictureBook;

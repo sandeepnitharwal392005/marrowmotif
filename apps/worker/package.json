@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "ts-node --transpile-only -r dotenv/config src/index.ts",
     "build": "prisma generate --schema ../../packages/database/prisma/schema.prisma && npx esbuild src/index.ts --bundle --external:@prisma/client --external:pg --external:argon2 --external:bullmq --platform=node --outfile=dist/index.js",
-    "start": "prisma migrate resolve --applied 20260815220000_initial_schema --schema ../../packages/database/prisma/schema.prisma || true; prisma migrate deploy --schema ../../packages/database/prisma/schema.prisma && node dist/index.js",
+    "start": "prisma migrate deploy --schema ../../packages/database/prisma/schema.prisma && node dist/index.js",
     "test": "jest --passWithNoTests"
   },
   "dependencies": {

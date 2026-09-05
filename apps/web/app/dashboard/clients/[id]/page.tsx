@@ -4,10 +4,8 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { pictureBooksApi, apiFetch } from "@/lib/api";
-import { ArrowLeft, User, Mail, CheckCircle2, Clock, CheckCircle, Smartphone, HardDrive, RefreshCw, Copy, ExternalLink, XCircle, Send, BookOpen } from "lucide-react";
+import { ArrowLeft, User, Mail, CheckCircle2, Clock, CheckCircle, Smartphone, HardDrive, RefreshCw, Copy, ExternalLink, XCircle, BookOpen } from "lucide-react";
 import { toast } from "sonner";
-import { PhoneNumberFields, normalizePhoneNumber } from "@/components/PhoneNumberFields";
-
 import { ErrorState } from "@/components/ui/ErrorState";
 
 function TimelineStep({ label, description, state }: { label: string; description?: string; state: "pending" | "active" | "completed" | "failed" }) {
@@ -53,9 +51,6 @@ export default function PictureBookDetailPage() {
   const [retrying, setRetrying] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [generatingDrive, setGeneratingDrive] = useState(false);
-  const [openingWhatsApp, setOpeningWhatsApp] = useState(false);
-  const [whatsappCountryCode, setWhatsappCountryCode] = useState("+1");
-  const [whatsappLocalNumber, setWhatsappLocalNumber] = useState("");
 
   async function load() {
     if (!accessToken || !id) return;
@@ -146,22 +141,6 @@ export default function PictureBookDetailPage() {
   );
 
   const isFailed = book.driveStatus === "FAILED";
-  const isEndUser = user?.role === "END_USER";
-
-  async function openWhatsAppUpdates() {
-    if (!accessToken || !id) return;
-    setOpeningWhatsApp(true);
-    try {
-      const number = book.user.whatsappNumber || normalizePhoneNumber(whatsappCountryCode, whatsappLocalNumber);
-      if (!number) throw new Error('Enter a WhatsApp number to continue');
-      const result = await pictureBooksApi.whatsappOptIn(accessToken, id, number);
-      if (!result.link) throw new Error('WhatsApp updates are temporarily unavailable');
-      window.location.assign(result.link);
-    } catch (err: any) {
-      setOpeningWhatsApp(false);
-      toast.error('WhatsApp updates are temporarily unavailable', { description: err.message });
-    }
-  }
 
   return (
     <div className="p-4 sm:p-10 max-w-5xl mx-auto space-y-6 sm:space-y-8">
@@ -292,7 +271,7 @@ export default function PictureBookDetailPage() {
             </div>
           </div>
 
-          <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm bg-gradient-to-b from-[#FAF9F6] to-white">
+          {user?.role === "ADMIN" && <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm bg-gradient-to-b from-[#FAF9F6] to-white">
             <h2 className="font-serif text-[#1A1A1A] text-lg mb-6 flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-[#C9A84C]" /> Automation Status
             </h2>
@@ -345,7 +324,7 @@ export default function PictureBookDetailPage() {
                 </button>
               </div>
             )}
-          </div>
+          </div>}
 
         </div>
 
@@ -389,6 +368,24 @@ export default function PictureBookDetailPage() {
                     </a>
                   </div>
                 </div>
+                {user?.role === "ADMIN" && (
+                  <div className="mt-4 p-4 rounded-lg border border-amber-200 bg-amber-50">
+                    <div className="text-sm font-medium text-[#1A1A1A] mb-2">Prepared WhatsApp message</div>
+                    <textarea
+                      readOnly
+                      rows={3}
+                      value={`Your upload link for "${book.title}" is ready:\n${book.driveLink}`}
+                      className="w-full px-3 py-2 rounded-md border border-amber-200 bg-white text-sm text-[#1A1A1A] resize-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(`Your upload link for "${book.title}" is ready:\n${book.driveLink}`).then(() => toast.success("WhatsApp message copied"))}
+                      className="mt-2 inline-flex items-center gap-2 border border-[#EAE6DF] bg-white hover:bg-[#FAF9F6] text-[#1A1A1A] px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      <Copy className="w-4 h-4" /> Copy message
+                    </button>
+                  </div>
+                )}
                 
               </div>
             ) : (
@@ -408,33 +405,6 @@ export default function PictureBookDetailPage() {
               </div>
             )}
           </div>
-
-          {/* Standard WhatsApp update request. The website never sends the message. */}
-          {isEndUser && (
-            <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
-              <h2 className="font-serif text-[#1A1A1A] text-lg mb-2 flex items-center gap-2">
-                <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Need Help?
-              </h2>
-              <p className="text-sm text-[#666] mb-4 leading-relaxed">
-                We&apos;ll send you Picture Book updates here. WhatsApp will open with a message ready for you to review and send.
-              </p>
-              {!book.user?.whatsappNumber && (
-                <div className="mb-4">
-                  <PhoneNumberFields countryCode={whatsappCountryCode} phoneNumber={whatsappLocalNumber} onCountryCodeChange={setWhatsappCountryCode} onPhoneNumberChange={setWhatsappLocalNumber} />
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={openWhatsAppUpdates}
-                disabled={openingWhatsApp}
-                className="inline-flex items-center gap-2 bg-[#1A1A1A] hover:bg-[#333] text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors disabled:opacity-70"
-              >
-                <Smartphone className="w-4 h-4" />
-                {openingWhatsApp ? 'Opening WhatsApp...' : 'Continue with WhatsApp'}
-              </button>
-              <p className="text-xs text-[#999] mt-3">Press Send in WhatsApp to request your update.</p>
-            </div>
-          )}
 
         </div>
       </div>

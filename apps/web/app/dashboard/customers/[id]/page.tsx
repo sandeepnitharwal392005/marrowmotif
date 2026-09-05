@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, User, Mail, Smartphone, MapPin, 
   HardDrive, ShieldAlert,
-  Calendar, Plane, RefreshCw, Send
+  Calendar, Plane, RefreshCw, Copy
 } from "lucide-react";
 
 function isStandardUpdateMessage(body: string | null | undefined, title: string) {
@@ -22,7 +22,6 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [customer, setCustomer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
-  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   // Modals state — removed WhatsApp modal (admin handles via WhatsApp directly)
 
@@ -99,27 +98,6 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       setSubmittingId(null);
     }
   }
-
-  async function sendReply(pbId: string) {
-    const message = replyDrafts[pbId]?.trim();
-    if (!accessToken || !message) return;
-    setSubmittingId(`reply-${pbId}`);
-    try {
-      await apiFetch(`/whatsapp/send-custom/${pbId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ message }),
-      });
-      setReplyDrafts((drafts) => ({ ...drafts, [pbId]: "" }));
-      toast.success("WhatsApp reply queued");
-      await loadCustomer();
-    } catch (err: any) {
-      toast.error("Failed to send WhatsApp reply", { description: err.message });
-    } finally {
-      setSubmittingId(null);
-    }
-  }
-
 
   if (user?.role !== "ADMIN") {
     return (
@@ -334,26 +312,10 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         <div>
                           <h4 className="text-sm font-semibold text-[#1A1A1A] mb-3 uppercase tracking-wider">WhatsApp attention</h4>
                           <div className="bg-white p-4 rounded-lg border border-amber-200 space-y-3">
-                            <p className="text-xs text-[#666]">The customer sent a message. Reply manually in WhatsApp or send a reply from here.</p>
+                            <p className="text-xs text-[#666]">The customer sent a message that needs a manual response in WhatsApp.</p>
                             {pb.messages.filter((message: any) => message.direction === "INBOUND" && !isStandardUpdateMessage(message.body, pb.title)).slice(0, 3).map((message: any) => (
                               <div key={message.id} className="text-sm text-[#1A1A1A] bg-[#FAF9F6] border border-[#EAE6DF] rounded-md p-3 whitespace-pre-wrap">{message.body}</div>
                             ))}
-                            <textarea
-                              value={replyDrafts[pb.id] || ""}
-                              onChange={(event) => setReplyDrafts((drafts) => ({ ...drafts, [pb.id]: event.target.value }))}
-                              maxLength={4096}
-                              rows={3}
-                              placeholder="Write a custom reply..."
-                              className="w-full px-3 py-2 rounded-md border border-[#EAE6DF] text-sm outline-none focus:border-[#C9A84C]"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => sendReply(pb.id)}
-                              disabled={!replyDrafts[pb.id]?.trim() || submittingId === `reply-${pb.id}`}
-                              className="inline-flex items-center gap-2 bg-[#1A1A1A] text-white px-3 py-2 rounded-md text-sm font-medium disabled:opacity-50"
-                            >
-                              <Send className="w-3.5 h-3.5" /> {submittingId === `reply-${pb.id}` ? "Sending..." : "Send reply"}
-                            </button>
                           </div>
                         </div>
                       )}
