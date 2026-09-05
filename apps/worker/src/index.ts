@@ -37,12 +37,13 @@ async function processWelcomeMessage(job: Job) {
 
   // Load automation job
   let automationJob = null;
+  const automationStartedAt = new Date();
   if (automationJobId) {
     automationJob = await prisma.automationJob.findUnique({ where: { id: automationJobId } });
     if (automationJob) {
       await prisma.automationJob.update({
         where: { id: automationJobId },
-        data: { status: 'PROCESSING', startedAt: new Date(), attemptNumber: job.attemptsMade + 1 }
+        data: { status: 'PROCESSING', startedAt: automationStartedAt, attemptNumber: job.attemptsMade + 1 }
       });
     }
   }
@@ -123,7 +124,7 @@ async function processWelcomeMessage(job: Job) {
     }
 
     if (automationJobId) {
-      const durationMs = Date.now() - automationJob!.startedAt!.getTime();
+      const durationMs = Date.now() - automationStartedAt.getTime();
       await prisma.automationJob.update({
         where: { id: automationJobId },
         data: { status: 'SUCCESS', completedAt: new Date(), durationMs, externalRef: driveLink }
@@ -146,8 +147,8 @@ async function processWelcomeMessage(job: Job) {
       data: { pictureBookId, action: 'DRIVE_GENERATION_FAILED', details: error.message }
     });
 
-    if (automationJobId) {
-      const durationMs = Date.now() - automationJob!.startedAt!.getTime();
+    if (automationJobId && automationJob) {
+      const durationMs = Date.now() - automationStartedAt.getTime();
       await prisma.automationJob.update({
         where: { id: automationJobId },
         data: { status: 'FAILED', completedAt: new Date(), durationMs, failureReason: error.message }
