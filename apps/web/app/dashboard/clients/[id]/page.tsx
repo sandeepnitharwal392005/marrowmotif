@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { pictureBooksApi, apiFetch } from "@/lib/api";
 import { ArrowLeft, User, Mail, CheckCircle2, Clock, CheckCircle, Smartphone, HardDrive, RefreshCw, Copy, ExternalLink, XCircle, BookOpen } from "lucide-react";
 import { toast } from "sonner";
+import { PhoneNumberFields, normalizePhoneNumber } from "@/components/PhoneNumberFields";
 import { ErrorState } from "@/components/ui/ErrorState";
 
 function TimelineStep({ label, description, state }: { label: string; description?: string; state: "pending" | "active" | "completed" | "failed" }) {
@@ -51,6 +52,9 @@ export default function PictureBookDetailPage() {
   const [retrying, setRetrying] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [generatingDrive, setGeneratingDrive] = useState(false);
+  const [openingWhatsApp, setOpeningWhatsApp] = useState(false);
+  const [whatsappCountryCode, setWhatsappCountryCode] = useState("+1");
+  const [whatsappLocalNumber, setWhatsappLocalNumber] = useState("");
 
   async function load() {
     if (!accessToken || !id) return;
@@ -141,6 +145,21 @@ export default function PictureBookDetailPage() {
   );
 
   const isFailed = book.driveStatus === "FAILED";
+
+  async function openWhatsAppUpdates() {
+    if (!accessToken || !id) return;
+    setOpeningWhatsApp(true);
+    try {
+      const number = book.user?.whatsappNumber || normalizePhoneNumber(whatsappCountryCode, whatsappLocalNumber);
+      if (!number) throw new Error("Enter a WhatsApp number to continue");
+      const result = await pictureBooksApi.whatsappOptIn(accessToken, id, number);
+      if (!result.link) throw new Error("WhatsApp updates are temporarily unavailable");
+      window.location.assign(result.link);
+    } catch (err: any) {
+      setOpeningWhatsApp(false);
+      toast.error("WhatsApp updates are temporarily unavailable", { description: err.message });
+    }
+  }
 
   return (
     <div className="p-4 sm:p-10 max-w-5xl mx-auto space-y-6 sm:space-y-8">
@@ -405,6 +424,31 @@ export default function PictureBookDetailPage() {
               </div>
             )}
           </div>
+
+          {user?.role === "END_USER" && (
+            <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
+              <h2 className="font-serif text-[#1A1A1A] text-lg mb-2 flex items-center gap-2">
+                <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Get Updates on WhatsApp
+              </h2>
+              <p className="text-sm text-[#666] mb-4 leading-relaxed">
+                We&apos;ll open WhatsApp with a message ready for you to review. Press Send there to request your Picture Book update.
+              </p>
+              {!book.user?.whatsappNumber && (
+                <div className="mb-4">
+                  <PhoneNumberFields countryCode={whatsappCountryCode} phoneNumber={whatsappLocalNumber} onCountryCodeChange={setWhatsappCountryCode} onPhoneNumberChange={setWhatsappLocalNumber} />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={openWhatsAppUpdates}
+                disabled={openingWhatsApp}
+                className="inline-flex items-center gap-2 bg-[#1A1A1A] hover:bg-[#333] text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors disabled:opacity-70"
+              >
+                <Smartphone className="w-4 h-4" />
+                {openingWhatsApp ? "Opening WhatsApp..." : "Continue with WhatsApp"}
+              </button>
+            </div>
+          )}
 
         </div>
       </div>
