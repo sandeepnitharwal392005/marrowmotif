@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { pictureBooksApi, apiFetch } from "@/lib/api";
 import { ArrowLeft, User, Mail, CheckCircle2, Clock, CheckCircle, Smartphone, HardDrive, RefreshCw, Copy, ExternalLink, XCircle, Send, BookOpen } from "lucide-react";
 import { toast } from "sonner";
+import { PhoneNumberFields, normalizePhoneNumber } from "@/components/PhoneNumberFields";
 
 import { ErrorState } from "@/components/ui/ErrorState";
 
@@ -57,10 +58,21 @@ export default function PictureBookDetailPage() {
   // WhatsApp Modal State
   const [showWaModal, setShowWaModal] = useState(false);
   const [waNumber, setWaNumber] = useState("");
+  const [waCountryCode, setWaCountryCode] = useState("+1");
+  const [waLocalNumber, setWaLocalNumber] = useState("");
   const [waLink, setWaLink] = useState("");
   const [waType, setWaType] = useState<"DEFAULT" | "CUSTOM">("DEFAULT");
   const [customMsg, setCustomMsg] = useState("");
   const [sendingWa, setSendingWa] = useState(false);
+
+  function setWhatsAppFields(value: string) {
+    const digits = value.replace(/[^0-9]/g, "");
+    const countryCode = digits.startsWith("91") ? "+91" : digits.startsWith("44") ? "+44" : digits.length === 11 && digits.startsWith("1") ? "+1" : "+1";
+    const localNumber = countryCode === "+1" && digits.length === 11 ? digits.slice(1) : digits.slice(countryCode.length - 1);
+    setWaCountryCode(countryCode);
+    setWaLocalNumber(localNumber);
+    setWaNumber(digits);
+  }
 
   async function load() {
     if (!accessToken || !id) return;
@@ -79,7 +91,7 @@ export default function PictureBookDetailPage() {
 
   useEffect(() => {
     if (searchParams.get("whatsapp") === "1" && book && user?.role === "END_USER") {
-      setWaNumber(book.user?.whatsappNumber || "");
+      setWhatsAppFields(book.user?.whatsappNumber || "");
       setShowWaModal(true);
     }
   }, [searchParams, book, user?.role]);
@@ -183,7 +195,8 @@ export default function PictureBookDetailPage() {
     if (!accessToken || !id) return;
     setSendingWa(true);
     try {
-      const result = await pictureBooksApi.whatsappOptIn(accessToken, id, waNumber || undefined);
+      const number = normalizePhoneNumber(waCountryCode, waLocalNumber);
+      const result = await pictureBooksApi.whatsappOptIn(accessToken, id, number || undefined);
       setWaLink(result.link);
       await load();
     } catch (err: any) {
@@ -492,14 +505,6 @@ export default function PictureBookDetailPage() {
               <h2 className="font-serif text-[#1A1A1A] text-lg flex items-center gap-2">
                 <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Communication Log
               </h2>
-              {user?.role === "ADMIN" && (
-                <button 
-                  onClick={() => setShowWaModal(true)}
-                  className="bg-[#FAF9F6] border border-[#EAE6DF] hover:bg-gray-50 text-[#1A1A1A] text-sm font-medium px-3 py-1.5 rounded-md transition-colors flex items-center gap-2"
-                >
-                  <Send className="w-3.5 h-3.5 text-[#C9A84C]" /> Send Message
-                </button>
-              )}
             </div>
             
             {book.whatsappMessages?.length === 0 ? (
@@ -551,7 +556,7 @@ export default function PictureBookDetailPage() {
                 <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Want updates on WhatsApp?
               </h2>
               <p className="text-sm text-[#666] mt-1">WhatsApp notifications are optional. Everything continues here on the website.</p>
-              <button onClick={() => { setWaNumber(book.user?.whatsappNumber || ""); setWaLink(""); setShowWaModal(true); }} className="mt-3 bg-[#1A1A1A] text-white px-4 py-2 rounded-md text-sm font-medium">
+                <button onClick={() => { setWhatsAppFields(book.user?.whatsappNumber || ""); setWaLink(""); setShowWaModal(true); }} className="mt-3 bg-[#1A1A1A] text-white px-4 py-2 rounded-md text-sm font-medium">
                 {book.whatsappStatus === 'LINK_GENERATED' ? "View WhatsApp instructions" : "Get updates on WhatsApp"}
               </button>
             </div>
@@ -672,8 +677,14 @@ export default function PictureBookDetailPage() {
                 </ol>
                 {!waLink ? (
                   <>
-                    <label className="block text-sm font-medium text-[#1A1A1A] mt-6 mb-2" htmlFor="whatsapp-number">WhatsApp number</label>
-                    <input id="whatsapp-number" type="tel" value={waNumber} onChange={(e) => setWaNumber(e.target.value)} placeholder="+1234567890" className="w-full px-4 py-3 rounded-md border border-[#EAE6DF] bg-white text-sm outline-none focus:border-[#C9A84C]" />
+                    <div className="mt-6">
+                      <PhoneNumberFields
+                        countryCode={waCountryCode}
+                        phoneNumber={waLocalNumber}
+                        onCountryCodeChange={(value) => { setWaCountryCode(value); setWaNumber(normalizePhoneNumber(value, waLocalNumber)); }}
+                        onPhoneNumberChange={(value) => { setWaLocalNumber(value); setWaNumber(normalizePhoneNumber(waCountryCode, value)); }}
+                      />
+                    </div>
                   </>
                 ) : (
                   <p className="mt-6 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] p-3 text-sm text-[#666]">Your WhatsApp link is ready. Open WhatsApp and press Send there.</p>
@@ -681,7 +692,7 @@ export default function PictureBookDetailPage() {
                 <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-[#EAE6DF]">
                   <button type="button" onClick={handleWhatsappDecline} className="px-5 py-2.5 rounded-md text-sm font-medium text-[#666]">Not now</button>
                   {!waLink ? (
-                    <button type="button" onClick={handleWhatsappOptIn} disabled={sendingWa || !waNumber.trim()} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white disabled:opacity-50">{sendingWa ? "Preparing..." : "Continue"}</button>
+                    <button type="button" onClick={handleWhatsappOptIn} disabled={sendingWa || !waCountryCode || !waLocalNumber} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white disabled:opacity-50">{sendingWa ? "Preparing..." : "Continue"}</button>
                   ) : (
                     <a href={waLink} target="_blank" rel="noopener noreferrer" onClick={() => setShowWaModal(false)} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white">Continue to WhatsApp</a>
                   )}
