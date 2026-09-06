@@ -4,11 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { createProviders } from './providers';
 
 const prisma = new PrismaClient();
-// Keep providers lazy. In production their getters validate credentials only
-// when that integration is used, so a missing Drive credential cannot stop the
-// worker from processing a WhatsApp reply (and vice versa).
-const providers = createProviders();
-const { isDemoMode } = providers;
+const { whatsApp, drive, isDemoMode } = createProviders();
 const queueConnection = { url: process.env.REDIS_URL || 'redis://localhost:6379' };
 const automationQueue = new Queue('google-drive', { connection: queueConnection });
 
@@ -37,13 +33,12 @@ async function processWelcomeMessage(job: Job) {
 
   // Load automation job
   let automationJob = null;
-  const automationStartedAt = new Date();
   if (automationJobId) {
     automationJob = await prisma.automationJob.findUnique({ where: { id: automationJobId } });
     if (automationJob) {
       await prisma.automationJob.update({
         where: { id: automationJobId },
-        data: { status: 'PROCESSING', startedAt: automationStartedAt, attemptNumber: job.attemptsMade + 1 }
+        data: { status: 'PROCESSING', startedAt: new Date(), attemptNumber: job.attemptsMade + 1 }
       });
     }
   }
@@ -92,7 +87,7 @@ async function processWelcomeMessage(job: Job) {
       } else {
         console.log(`[Worker] 📁 Creating Drive folder for "${pictureBook.title}"`);
         // Lazy loading happens here! If provider fails, it throws!
-        const driveProvider = providers.drive;
+        const driveProvider = drive; 
         
         const shortCode = pictureBook.id.substring(pictureBook.id.length - 4).toUpperCase();
         const folderName = `${pictureBook.title}-${pictureBook.user.name}-${shortCode}`;
@@ -124,11 +119,16 @@ async function processWelcomeMessage(job: Job) {
     }
 
     if (automationJobId) {
-      const durationMs = Date.now() - automationStartedAt.getTime();
+      const durationMs = Date.now() - automationJob!.startedAt!.getTime();
       await prisma.automationJob.update({
         where: { id: automationJobId },
         data: { status: 'SUCCESS', completedAt: new Date(), durationMs, externalRef: driveLink }
       });
+    }
+
+    if (pictureBook.whatsappStatus === 'CONVERSATION_INITIATED' && pictureBook.user.whatsappNumber && driveLink) {
+      const messageContent = `Your photo upload folder for “${pictureBook.title}” is ready!\n\nPlease upload your photos here:\n${driveLink}\n\nOnce your photos are uploaded, we’ll use them to create your picture book.`;
+      await automationQueue.add('send-manual-whatsapp', { pictureBookId, messageContent, idempotencyKey: `wa-drive-ready-${pictureBookId}` }, { jobId: `wa-drive-ready-${pictureBookId}`, attempts: 3, removeOnComplete: false, removeOnFail: false });
     }
 
   } catch (error: any) {
@@ -142,8 +142,8 @@ async function processWelcomeMessage(job: Job) {
       data: { pictureBookId, action: 'DRIVE_GENERATION_FAILED', details: error.message }
     });
 
-    if (automationJobId && automationJob) {
-      const durationMs = Date.now() - automationStartedAt.getTime();
+    if (automationJobId) {
+      const durationMs = Date.now() - automationJob!.startedAt!.getTime();
       await prisma.automationJob.update({
         where: { id: automationJobId },
         data: { status: 'FAILED', completedAt: new Date(), durationMs, failureReason: error.message }
@@ -161,7 +161,7 @@ async function processWelcomeMessage(job: Job) {
 }
 
 async function processManualWhatsApp(job: Job) {
-  const { pictureBookId, messageContent, idempotencyKey, toNumber: directNumber, whatsAppMessageId } = job.data as { pictureBookId: string | null, messageContent: string, idempotencyKey?: string, toNumber?: string, whatsAppMessageId?: string };
+  const { pictureBookId, messageContent, idempotencyKey, toNumber: directNumber } = job.data as { pictureBookId: string | null, messageContent: string, idempotencyKey?: string, toNumber?: string };
   console.log(`\n[Worker] 📱 Processing job ${job.id}`);
   console.log(`[Worker] Message: ${messageContent.substring(0, 100)}...`);
 
@@ -205,19 +205,13 @@ async function processManualWhatsApp(job: Job) {
 
   console.log(`[Worker] Target number: ${whatsappNumber}`);
 
-  // Admin-originated messages already have a QUEUED record.  Other automated
-  // paths continue to create their own record here.
-  let waMessage = whatsAppMessageId
-    ? await prisma.whatsAppMessage.findUnique({ where: { id: whatsAppMessageId } })
-    : idempotencyKey
-      ? await prisma.whatsAppMessage.upsert({
+  let waMessage = idempotencyKey
+    ? await prisma.whatsAppMessage.upsert({
       where: { idempotencyKey },
       update: {},
       create: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, idempotencyKey, body: messageContent, senderNumber: whatsappNumber },
-      })
-      : await prisma.whatsAppMessage.create({ data: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, body: messageContent, senderNumber: whatsappNumber } });
-
-  if (!waMessage) throw new Error(`WhatsApp message ${whatsAppMessageId} not found`);
+    })
+    : await prisma.whatsAppMessage.create({ data: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, body: messageContent, senderNumber: whatsappNumber } });
 
   if (['SENT', 'DELIVERED', 'READ'].includes(waMessage.status)) return { success: true, messageId: waMessage.providerMessageId };
 
@@ -230,7 +224,7 @@ async function processManualWhatsApp(job: Job) {
   } else {
     try {
       console.log(`[Worker] Sending WhatsApp to ${whatsappNumber}...`);
-      const waProvider = providers.whatsApp;
+      const waProvider = whatsApp;
       waResult = await waProvider.sendTextMessage(
         whatsappNumber,
         messageContent

@@ -40,47 +40,20 @@ export class WhatsAppService {
     });
     if (!pictureBook) throw new NotFoundException('PictureBook not found');
     if (!pictureBook.user.whatsappNumber) throw new ForbiddenException('Customer has not opted in to WhatsApp updates');
-    if (!['CONVERSATION_INITIATED', 'UPDATE_SENT'].includes(pictureBook.whatsappStatus) || !pictureBook.lastInboundMessageAt || !pictureBook.whatsappConversationOpenUntil || pictureBook.whatsappConversationOpenUntil <= new Date()) {
+    if (pictureBook.whatsappStatus !== 'CONVERSATION_INITIATED' || !pictureBook.lastInboundMessageAt || !pictureBook.whatsappConversationOpenUntil || pictureBook.whatsappConversationOpenUntil <= new Date()) {
       throw new ForbiddenException('WhatsApp conversation window has expired. A free-form message cannot be sent right now.');
     }
-
-    // Persist the outgoing message before handing it to BullMQ.  Previously the
-    // worker created this row, leaving a race where an admin saw "queued" but
-    // no WhatsApp log until the worker happened to start.  The row is also the
-    // durable audit record if the worker is delayed or unavailable.
-    const whatsappMessage = await this.prisma.whatsAppMessage.create({
-      data: {
-        pictureBookId,
-        status: 'QUEUED',
-        attempts: 0,
-        direction: 'OUTBOUND',
-        body: messageContent.trim(),
-        senderNumber: pictureBook.user.whatsappNumber,
-      },
-    });
     const jobId = `manual-wa-${pictureBookId}-${Date.now()}`;
-    try {
-      await this.automationQueue.add(
-        'send-manual-whatsapp',
-        { pictureBookId, messageContent: messageContent.trim(), whatsAppMessageId: whatsappMessage.id },
-        {
-          jobId,
-          attempts: 1, // Manual messages don't usually retry automatically to avoid spam
-          removeOnComplete: false,
-          removeOnFail: false,
-        },
-      );
-    } catch (error: any) {
-      // Do not leave an admin-facing record in QUEUED when Redis is unavailable.
-      await this.prisma.whatsAppMessage.update({
-        where: { id: whatsappMessage.id },
-        data: {
-          status: 'FAILED',
-          errorMessage: `Could not queue message: ${error?.message || 'Unknown queue error'}`,
-        },
-      });
-      throw error;
-    }
+    await this.automationQueue.add(
+      'send-manual-whatsapp',
+      { pictureBookId, messageContent },
+      {
+        jobId,
+        attempts: 1, // Manual messages don't usually retry automatically to avoid spam
+        removeOnComplete: false,
+        removeOnFail: false,
+      },
+    );
 
     await this.prisma.activityLog.create({
       data: {
@@ -99,6 +72,6 @@ export class WhatsAppService {
       details: { messageSnippet: messageContent.substring(0, 50) },
     });
 
-    return { message: 'Message queued successfully', messageId: whatsappMessage.id };
+    return { message: 'Message queued successfully' };
   }
 }

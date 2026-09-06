@@ -6,14 +6,9 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, User, Mail, Smartphone, MapPin, 
-  HardDrive, ShieldAlert,
-  Calendar, Plane, RefreshCw, Copy
+  MessageSquare, HardDrive, ShieldAlert,
+  Calendar, Plane, RefreshCw, Send, CheckCircle2, AlertCircle
 } from "lucide-react";
-
-function isStandardUpdateMessage(body: string | null | undefined, title: string) {
-  const match = /^update\s+on\s+["“”'](.+?)["“”']\s*$/i.exec(body?.trim() || "");
-  return Boolean(match && match[1].trim().localeCompare(title, undefined, { sensitivity: "accent" }) === 0);
-}
 
 export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -23,8 +18,11 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [loading, setLoading] = useState(true);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
 
-  // Modals state — removed WhatsApp modal (admin handles via WhatsApp directly)
-
+  // Modals state
+  const [waModalOpen, setWaModalOpen] = useState(false);
+  const [selectedPbId, setSelectedPbId] = useState<string | null>(null);
+  const [waType, setWaType] = useState<"custom">("custom");
+  const [customMsg, setCustomMsg] = useState("");
 
   const loadCustomer = async () => {
     if (!accessToken) return;
@@ -94,6 +92,30 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       await loadCustomer();
     } catch (err: any) {
       toast.error("Failed to queue drive job", { description: err.message });
+    } finally {
+      setSubmittingId(null);
+    }
+  }
+
+  async function sendWhatsApp() {
+    if (!accessToken || !selectedPbId) return;
+    setSubmittingId(`wa-${selectedPbId}`);
+    try {
+      if (waType === "custom") {
+        await apiFetch(`/whatsapp/send-custom/${selectedPbId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}` 
+          },
+          body: JSON.stringify({ message: customMsg })
+        });
+      }
+      toast.success("WhatsApp message queued");
+      setWaModalOpen(false);
+      await loadCustomer();
+    } catch (err: any) {
+      toast.error("Failed to queue WhatsApp message", { description: err.message });
     } finally {
       setSubmittingId(null);
     }
@@ -308,31 +330,147 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         </div>
                       </div>
 
-                      {pb.messages?.some((message: any) => message.direction === "INBOUND" && !isStandardUpdateMessage(message.body, pb.title)) && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-[#1A1A1A] mb-3 uppercase tracking-wider">WhatsApp attention</h4>
-                          <div className="bg-white p-4 rounded-lg border border-amber-200 space-y-3">
-                            <p className="text-xs text-[#666]">The customer sent a message that needs a manual response in WhatsApp.</p>
-                            {pb.messages.filter((message: any) => message.direction === "INBOUND" && !isStandardUpdateMessage(message.body, pb.title)).slice(0, 3).map((message: any) => (
-                              <div key={message.id} className="text-sm text-[#1A1A1A] bg-[#FAF9F6] border border-[#EAE6DF] rounded-md p-3 whitespace-pre-wrap">{message.body}</div>
-                            ))}
-                          </div>
+                      <div className="border-t border-[#EAE6DF] pt-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-[#1A1A1A] flex items-center gap-1.5"><MessageSquare className="w-4 h-4 text-[#999]"/> Welcome WhatsApp</span>
+                          {pb.messages?.[0] ? (
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                              ['SENT', 'DELIVERED', 'READ'].includes(pb.messages[0].status) ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                              pb.messages[0].status === 'FAILED' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                              'bg-amber-100 text-amber-800 border border-amber-200'
+                            }`}>
+                              {pb.messages[0].status}
+                            </span>
+                          ) : <span className="text-xs text-[#999] italic">Not queued</span>}
                         </div>
-                      )}
+                        {pb.messages?.[0]?.status === 'FAILED' && pb.messages[0].errorMessage && (
+                          <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 mt-2">
+                            {pb.messages[0].errorMessage}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
+                  <div>
+                    <h4 className="text-sm font-semibold text-[#1A1A1A] mb-3 uppercase tracking-wider">Admin Actions</h4>
+                    <div className="flex flex-col gap-2">
+                      {!pb.driveStatus && (
+                        <button 
+                          onClick={() => createDriveLink(pb.id)}
+                          disabled={submittingId === `drive-${pb.id}`}
+                          className="bg-white border border-[#EAE6DF] hover:border-[#C9A84C] text-[#1A1A1A] hover:text-[#C9A84C] px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2"
+                        >
+                          {submittingId === `drive-${pb.id}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
+                          Generate Drive Link
+                        </button>
+                      )}
+                      
+                      <button 
+                        onClick={() => { setSelectedPbId(pb.id); setWaModalOpen(true); }}
+                        className="bg-[#1A1A1A] hover:bg-[#333] text-white px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        {pb.messages?.[0]?.status === 'FAILED' ? 'Retry WhatsApp Message' : 'Send WhatsApp Message'}
+                      </button>
                     </div>
                   </div>
                 </div>
 
-
+                {/* Activity Column */}
+                <div>
+                  <h4 className="text-sm font-semibold text-[#1A1A1A] mb-3 uppercase tracking-wider">Activity & Automation</h4>
+                  <div className="bg-white p-4 rounded-lg border border-[#EAE6DF] h-64 overflow-y-auto space-y-4">
+                    {/* Combine Activity Logs and WhatsApp Messages into a single timeline for the UI, sorted by date */}
+                    {[...(pb.activityLogs || []).map((l: any) => ({ ...l, _type: 'log', _date: new Date(l.createdAt) })), ...(pb.messages || []).map((m: any) => ({ ...m, _type: 'wa', _date: new Date(m.createdAt) }))]
+                      .sort((a, b) => b._date.getTime() - a._date.getTime())
+                      .map((item, i) => (
+                        <div key={i} className="flex gap-3 text-sm">
+                          {item._type === 'wa' ? (
+                            <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                              <MessageSquare className="w-4 h-4 text-emerald-600" />
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                              <RefreshCw className="w-4 h-4 text-gray-500" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="text-[#1A1A1A] font-medium">
+                              {item._type === 'wa' ? `WhatsApp: ${item.status}` : item.action}
+                            </div>
+                            <div className="text-[#666] text-xs mt-0.5">
+                              {item._type === 'wa' ? (item.errorMessage ? <span className="text-rose-600">Error: {item.errorMessage}</span> : `Attempts: ${item.attempts}`) : item.details}
+                            </div>
+                            <div className="text-[#999] text-xs mt-1">
+                              {item._date.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {((pb.activityLogs?.length || 0) + (pb.messages?.length || 0)) === 0 && (
+                        <div className="text-center text-[#999] italic mt-8">No activity recorded yet</div>
+                      )}
+                  </div>
+                </div>
               </div>
             </div>
           ))
         )}
       </div>
 
+      {/* WhatsApp Modal */}
+      {waModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-[#EAE6DF] flex justify-between items-center bg-[#FAF9F6]">
+              <h3 className="font-serif text-[#1A1A1A] text-lg flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-[#C9A84C]" />
+                Send WhatsApp
+              </h3>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">Message Type</label>
+                <div>
+                  <div className="inline-flex py-2 px-3 text-sm font-medium border border-[#C9A84C] rounded-md bg-[#FAF9F6] text-[#C9A84C]">
+                    Custom free-form text
+                  </div>
+                </div>
+              </div>
 
-
+              <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#1A1A1A]">Custom Message</label>
+                  <textarea 
+                    value={customMsg}
+                    onChange={(e) => setCustomMsg(e.target.value)}
+                    className="w-full border border-[#EAE6DF] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] min-h-[100px] resize-y"
+                    placeholder="Type your message here..."
+                  />
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-[#EAE6DF] bg-[#FAF9F6] flex justify-end gap-3">
+              <button 
+                onClick={() => setWaModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-[#666] hover:text-[#1A1A1A] transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={sendWhatsApp}
+                disabled={submittingId === `wa-${selectedPbId}` || (waType === "custom" && !customMsg.trim())}
+                className="bg-[#1A1A1A] hover:bg-[#333] text-white px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {submittingId === `wa-${selectedPbId}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                Send Message
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -25,14 +25,15 @@ export function createProviders() {
       return new MetaWhatsAppProvider({
         accessToken: requireEnv('WHATSAPP_ACCESS_TOKEN'),
         phoneNumberId: requireEnv('WHATSAPP_PHONE_NUMBER_ID'),
-        apiVersion: process.env.WHATSAPP_GRAPH_API_VERSION || 'v24.0',
       });
     },
     get drive() {
       return new GoogleDriveProvider({
-        projectId: process.env.GOOGLE_PROJECT_ID || 'morrowotif',
-        clientEmail: requireEnv('GOOGLE_CLIENT_EMAIL'),
-        privateKey: requireEnv('GOOGLE_PRIVATE_KEY'),
+        clientId: requireEnv('GOOGLE_DRIVE_CLIENT_ID'),
+        clientSecret: requireEnv('GOOGLE_DRIVE_CLIENT_SECRET'),
+        redirectUri: requireEnv('GOOGLE_DRIVE_REDIRECT_URI'),
+        refreshToken: requireEnv('GOOGLE_DRIVE_REFRESH_TOKEN'),
+        userEmail: process.env.GOOGLE_DRIVE_USER_EMAIL,
         rootFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
       });
     },

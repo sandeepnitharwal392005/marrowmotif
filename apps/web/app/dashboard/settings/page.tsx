@@ -98,13 +98,13 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-4 sm:p-10 max-w-4xl mx-auto space-y-6 sm:space-y-8">
+    <div className="p-6 sm:p-10 max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A] tracking-tight">Settings</h1>
-        <p className="text-[#666666] text-xs sm:text-sm mt-1">Manage your account and platform configuration.</p>
+        <h1 className="text-3xl font-serif text-[#1A1A1A] tracking-tight">Settings</h1>
+        <p className="text-[#666666] text-sm mt-1">Manage your account and platform configuration.</p>
       </div>
 
-      <form onSubmit={handleProfileSave} className="bg-white border border-[#EAE6DF] rounded-xl p-5 sm:p-8 shadow-sm space-y-6">
+      <form onSubmit={handleProfileSave} className="bg-white border border-[#EAE6DF] rounded-xl p-6 sm:p-8 shadow-sm space-y-6">
         <h2 className="font-serif text-[#1A1A1A] text-xl mb-4">Account Information</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
@@ -208,7 +208,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={savingProfile}
-            className="w-full sm:w-auto bg-[#1A1A1A] hover:bg-[#333333] text-white px-6 py-3 sm:py-2.5 rounded-md font-medium transition-colors flex items-center justify-center gap-2 min-w-[140px] shadow-sm"
+            className="bg-[#1A1A1A] hover:bg-[#333333] text-white px-6 py-2.5 rounded-md font-medium transition-colors flex items-center justify-center gap-2 min-w-[140px]"
           >
             {savingProfile ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {savingProfile ? "Saving..." : "Save Profile"}

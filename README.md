@@ -138,4 +138,4 @@ npm run dev --workspace=apps/web
 This monorepo is fully production-ready.
 - **Frontend:** Deploy `apps/web` to Vercel for instantaneous Edge caching and optimized React rendering.
 - **Backend & Worker:** Deploy `apps/api` and `apps/worker` to Railway or Render as long-running Node.js services. Connect them to managed PostgreSQL and Redis instances on the same private network.
-- **Security:** Ensure `DEMO_MODE=false` and all Google Cloud Service Accounts and Meta API credentials are provided as strictly secured environment variables.
+- **Security:** Ensure `DEMO_MODE=false` and Google Drive OAuth credentials, the refresh token, and Meta API credentials are provided only as strictly secured server/worker environment variables. See [Google Drive OAuth setup](docs/google-drive-oauth.md).

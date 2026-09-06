@@ -19,13 +19,17 @@ To ensure the **Drive Generation & WhatsApp Worker** runs properly and picks up 
      npm run start --workspace=apps/worker
      ```
 8. Under **Variables**:
-   - Ensure you copy over *all* the same environment variables that your API uses, especially:
-     - `DATABASE_URL`
-     - `REDIS_URL`
-   - You must also provide the integration credentials here:
-     - `GOOGLE_PROJECT_ID`
-     - `GOOGLE_CLIENT_EMAIL`
-     - `GOOGLE_PRIVATE_KEY` (ensure newlines are preserved properly or replace actual newlines with `\n` literals)
+  - You must also provide the Worker-only Drive OAuth configuration here:
+     - `GOOGLE_DRIVE_CLIENT_ID`
+     - `GOOGLE_DRIVE_CLIENT_SECRET`
+     - `GOOGLE_DRIVE_REDIRECT_URI`
+     - `GOOGLE_DRIVE_REFRESH_TOKEN`
+     - `GOOGLE_DRIVE_USER_EMAIL` (informational only; it is not used to authenticate)
+     - `GOOGLE_DRIVE_ROOT_FOLDER_ID` (optional)
+    - `WHATSAPP_ACCESS_TOKEN` (system-user Cloud API token)
+    - `WHATSAPP_PHONE_NUMBER_ID`
+
+  The Drive refresh token must be generated once with `npm run drive:auth` and entered directly into Railway. Never commit it or place it in the Next.js environment.
      - `GOOGLE_DRIVE_ROOT_FOLDER_ID`
      - `WHATSAPP_ACCESS_TOKEN`
      - `WHATSAPP_PHONE_NUMBER_ID`

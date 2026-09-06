@@ -9,11 +9,6 @@ import { Role } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 
-function normalizeWhatsAppNumber(value?: string) {
-  const digits = value?.replace(/[^0-9]/g, '');
-  return digits ? digits : undefined;
-}
-
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
@@ -157,10 +152,8 @@ export class UsersService {
         referrals: { select: { id: true, name: true } },
         pictureBooks: {
           include: {
-            // The admin UI uses the first message as the current delivery state,
-            // so relation ordering must be explicit rather than database-dependent.
-            messages: { orderBy: { createdAt: 'desc' } },
-            activityLogs: { orderBy: { createdAt: 'desc' } },
+            messages: true,
+            activityLogs: true,
           },
           orderBy: { createdAt: 'desc' }
         },
@@ -199,7 +192,7 @@ export class UsersService {
         name: data.name,
         email: data.email.toLowerCase(),
         phone: data.phone,
-        whatsappNumber: normalizeWhatsAppNumber(data.whatsappNumber),
+        whatsappNumber: data.whatsappNumber,
         whatsappVerified: false,
         referredById: data.referredById,
         passwordHash,
@@ -242,7 +235,7 @@ export class UsersService {
       data: {
         name: data.name,
         email: data.email.toLowerCase(),
-        whatsappNumber: normalizeWhatsAppNumber(data.whatsappNumber),
+        whatsappNumber: data.whatsappNumber,
         passwordHash: 'pending-setup',
         role: Role.GUIDE,
         setupToken,
@@ -256,9 +249,9 @@ export class UsersService {
       const link = `https://marrowotif-six.vercel.app/setup-account?token=${setupToken}`;
 
       // Attempt WhatsApp first, fallback to email conceptually (but we only have WhatsApp provider right now)
-      if (user.whatsappNumber) {
+      if (data.whatsappNumber) {
         await providers.whatsApp.sendTextMessage(
-          user.whatsappNumber,
+          data.whatsappNumber,
           `Welcome to Marrowmotif, ${data.name}! Set up your Guide account here: ${link}`,
         );
       }
@@ -273,14 +266,12 @@ export class UsersService {
     const guide = await this.prisma.user.findUnique({ where: { id: guideId } });
     if (!guide) throw new NotFoundException('Guide not found');
 
-    const whatsappNumber = normalizeWhatsAppNumber(data.whatsappNumber);
-    if (!whatsappNumber) throw new NotFoundException('A WhatsApp number is required');
-    const customerEmail = data.email || `${whatsappNumber}@guest.marrowotif.com`;
+    const customerEmail = data.email || `${data.whatsappNumber.replace(/[^0-9]/g, '')}@guest.marrowotif.com`;
     let customer = await this.prisma.user.findFirst({
       where: { 
         OR: [
           { email: customerEmail },
-          { whatsappNumber }
+          { whatsappNumber: data.whatsappNumber }
         ]
       }
     });
@@ -289,7 +280,7 @@ export class UsersService {
       customer = await this.prisma.user.create({
         data: {
           name: data.customerName || data.name,
-          whatsappNumber,
+          whatsappNumber: data.whatsappNumber,
           email: customerEmail,
           passwordHash: 'pending_setup',
           role: Role.END_USER,
@@ -304,7 +295,7 @@ export class UsersService {
       const link = `https://marrowotif-six.vercel.app/register?ref=${guideId}`;
 
       await providers.whatsApp.sendTextMessage(
-        whatsappNumber,
+        data.whatsappNumber,
         `Hello ${data.customerName || data.name}! ${guide.name} has invited you to create your Picture Book with Marrowmotif. Register here: ${link}`,
       );
     } catch (err) {
@@ -351,7 +342,7 @@ export class UsersService {
     const updateData: any = {
       name: data.name,
       phone: data.phone,
-      whatsappNumber: normalizeWhatsAppNumber(data.whatsappNumber),
+      whatsappNumber: data.whatsappNumber,
       addressLine1: data.addressLine1,
       addressLine2: data.addressLine2,
       city: data.city,

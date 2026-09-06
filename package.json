@@ -16,6 +16,7 @@
     "db:generate": "npm run db:generate --workspace=packages/database",
     "db:migrate": "npm run db:migrate --workspace=packages/database",
     "db:seed": "npm run db:seed --workspace=packages/database",
+    "drive:auth": "ts-node --transpile-only --project tsconfig.base.json -r dotenv/config scripts/drive-auth.ts",
     "worker": "npm run dev --workspace=apps/worker",
     "type-check": "turbo run type-check"
   },

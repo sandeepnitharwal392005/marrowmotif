@@ -14,9 +14,12 @@ The website uses Click-to-Chat only after the customer explicitly chooses WhatsA
 | `WHATSAPP_VERIFY_TOKEN` | API when webhook is enabled | API webhook verification | A random secret chosen by the operator and entered identically in Meta | Confirms the webhook GET challenge | Not an API access token. |
 | `WHATSAPP_APP_SECRET` | API when webhook is enabled | API webhook authentication | Meta App Dashboard > App settings > Basic > App Secret | Verifies `X-Hub-Signature-256` on POST webhooks | Secret; never expose to frontend or logs. |
 | `WHATSAPP_BUSINESS_NUMBER` | API for opt-in links | API | The business phone number connected to the WABA, in international format | Target of the customer `wa.me` link | Digits/country code are used; do not confuse with phone number ID. |
-| `GOOGLE_PROJECT_ID` | Worker when live | Worker/integrations | Google Cloud project | Drive provider project | Required by the shared factory. |
-| `GOOGLE_CLIENT_EMAIL` | Worker when live | Worker/integrations | Google service-account JSON | Drive authentication | Secret-adjacent identity value. |
-| `GOOGLE_PRIVATE_KEY` | Worker when live | Worker/integrations | Google service-account JSON | Drive authentication | Store securely; preserve `\\n` if entered as one-line environment text. |
+| `GOOGLE_DRIVE_CLIENT_ID` | Worker when live | Worker/integrations | Google OAuth client | Drive OAuth client ID | Required by the Drive provider. |
+| `GOOGLE_DRIVE_CLIENT_SECRET` | Worker when live | Worker/integrations | Google OAuth client | Drive OAuth client secret | Store securely. |
+| `GOOGLE_DRIVE_REDIRECT_URI` | Worker and local setup | Worker/integrations | OAuth client callback | One-time Drive authorization | Must match the Google Cloud OAuth client. |
+| `GOOGLE_DRIVE_REFRESH_TOKEN` | Worker when live | Worker/integrations | One-time OAuth setup | Drive user authentication | Store securely; never expose to the browser. |
+| `GOOGLE_DRIVE_USER_EMAIL` | Worker when live | Worker/integrations | Operator configuration | Informational account label | Not used for authentication. |
+| `GOOGLE_DRIVE_ROOT_FOLDER_ID` | Worker when live | Worker/integrations | Drive folder | Optional parent folder | Existing folder IDs remain valid. |
 | `GOOGLE_DRIVE_ROOT_FOLDER_ID` | Optional Worker | Worker/integrations | Google Drive folder URL/ID | Parent folder for generated upload folders | Keep folders private or use a constrained upload design. |
 | `NEXT_PUBLIC_API_URL` | Frontend | Web | API deployment URL | Browser API base URL | Public URL only; never place Meta tokens here. |
 | `NEXT_PUBLIC_DEMO_MODE` | Optional frontend | Web | Frontend deployment configuration | Demo UI behavior | Never use this to hold credentials. |

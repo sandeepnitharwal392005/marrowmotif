@@ -4,7 +4,6 @@ import { WhatsAppProvider } from './whatsapp.provider';
 interface MetaConfig {
   accessToken: string;
   phoneNumberId: string;
-  apiVersion?: string;
 }
 
 /**
@@ -15,13 +14,13 @@ export class MetaWhatsAppProvider implements WhatsAppProvider {
   private readonly baseUrl: string;
 
   constructor(private readonly config: MetaConfig) {
-    this.baseUrl = `https://graph.facebook.com/${config.apiVersion || 'v24.0'}/${config.phoneNumberId}/messages`;
+    this.baseUrl = `https://graph.facebook.com/v19.0/${config.phoneNumberId}/messages`;
   }
 
   async sendTextMessage(to: string, text: string): Promise<WhatsAppSendResult> {
     try {
       const response = await fetch(
-        this.baseUrl,
+        `https://graph.facebook.com/v19.0/${this.config.phoneNumberId}/messages`,
         {
           method: 'POST',
           headers: {
@@ -42,13 +41,9 @@ export class MetaWhatsAppProvider implements WhatsAppProvider {
       const data: any = await response.json();
 
       if (!response.ok) {
-        const providerError = data?.error;
-        const detail = [providerError?.code, providerError?.type, providerError?.message]
-          .filter(Boolean)
-          .join(': ');
         return {
           success: false,
-          error: detail || 'Failed to send text message',
+          error: data?.error?.message || 'Failed to send text message',
         };
       }
 
