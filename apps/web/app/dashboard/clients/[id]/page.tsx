@@ -163,14 +163,13 @@ export default function PictureBookDetailPage() {
     }
   }
 
-  async function handleWhatsappOptIn() {
+  async function handleWhatsappOptIn(numberOverride?: string) {
     if (!accessToken || !id) return;
     setSendingWa(true);
     try {
-      const number = normalizePhoneNumber(waCountryCode, waLocalNumber);
+      const number = numberOverride || normalizePhoneNumber(waCountryCode, waLocalNumber);
       const result = await pictureBooksApi.whatsappOptIn(accessToken, id, number || undefined);
-      setWaLink(result.link);
-      await load();
+      window.location.assign(result.link);
     } catch (err: any) {
       toast.error("WhatsApp updates are unavailable", { description: err.message });
     } finally {
@@ -187,6 +186,16 @@ export default function PictureBookDetailPage() {
     } catch (err: any) {
       toast.error("Could not update your preference", { description: err.message });
     }
+  }
+
+  function handleGetUpdatesClick() {
+    if (book.user?.whatsappNumber) {
+      setWhatsAppFields(book.user.whatsappNumber);
+      void handleWhatsappOptIn(book.user.whatsappNumber);
+      return;
+    }
+    setWaLink("");
+    setShowWaModal(true);
   }
 
   if (loading) return (
@@ -477,8 +486,8 @@ export default function PictureBookDetailPage() {
                 <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Want updates on WhatsApp?
               </h2>
               <p className="text-sm text-[#666] mt-1">WhatsApp notifications are optional. Everything continues here on the website.</p>
-                <button onClick={() => { setWhatsAppFields(book.user?.whatsappNumber || ""); setWaLink(""); setShowWaModal(true); }} className="mt-3 bg-[#1A1A1A] text-white px-4 py-2 rounded-md text-sm font-medium">
-                {book.whatsappStatus === 'LINK_GENERATED' ? "View WhatsApp instructions" : "Get updates on WhatsApp"}
+                <button onClick={handleGetUpdatesClick} className="mt-3 bg-[#1A1A1A] text-white px-4 py-2 rounded-md text-sm font-medium">
+                Get updates on WhatsApp
               </button>
             </div>
           )}
@@ -613,7 +622,7 @@ export default function PictureBookDetailPage() {
                 <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-[#EAE6DF]">
                   <button type="button" onClick={handleWhatsappDecline} className="px-5 py-2.5 rounded-md text-sm font-medium text-[#666]">Not now</button>
                   {!waLink ? (
-                    <button type="button" onClick={handleWhatsappOptIn} disabled={sendingWa || !waCountryCode || !waLocalNumber} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white disabled:opacity-50">{sendingWa ? "Preparing..." : "Continue"}</button>
+                    <button type="button" onClick={() => handleWhatsappOptIn()} disabled={sendingWa || !waCountryCode || !waLocalNumber} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white disabled:opacity-50">{sendingWa ? "Preparing..." : "Continue"}</button>
                   ) : (
                     <a href={waLink} target="_blank" rel="noopener noreferrer" onClick={() => setShowWaModal(false)} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white">Continue to WhatsApp</a>
                   )}
