@@ -10,7 +10,9 @@ Marrowmotif creates Picture Book upload folders asynchronously in the BullMQ Wor
 4. Create an OAuth client ID for a Web application.
 5. Add the exact value of `GOOGLE_DRIVE_REDIRECT_URI` as an authorized redirect URI. For local setup, the example value is `http://localhost:8080/oauth2callback`.
 
-The provider retains the existing `https://www.googleapis.com/auth/drive` scope because it lists existing folders, creates folders under an optional parent, and creates link permissions. No additional Google Workspace scope is required.
+The provider retains the existing `https://www.googleapis.com/auth/drive` scope because it lists existing folders, creates folders under an optional parent, and manages folder permissions. No additional Google Workspace scope is required.
+
+Generated folders are private. The authenticated Google account remains the owner, and `GOOGLE_DRIVE_USER_EMAIL` receives writer access. Public, group, domain, and other explicit user permissions are removed, including when a retry finds an existing folder.
 
 ## Environment
 

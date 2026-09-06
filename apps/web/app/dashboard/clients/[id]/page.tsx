@@ -4,7 +4,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { pictureBooksApi, apiFetch } from "@/lib/api";
-import { ArrowLeft, User, Mail, CheckCircle2, Clock, CheckCircle, Smartphone, HardDrive, RefreshCw, Copy, ExternalLink, XCircle, Send, BookOpen } from "lucide-react";
+import { ArrowLeft, User, Mail, CheckCircle2, Clock, CheckCircle, Smartphone, HardDrive, RefreshCw, Copy, ExternalLink, XCircle, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneNumberFields, normalizePhoneNumber } from "@/components/PhoneNumberFields";
 
@@ -61,8 +61,6 @@ export default function PictureBookDetailPage() {
   const [waCountryCode, setWaCountryCode] = useState("+1");
   const [waLocalNumber, setWaLocalNumber] = useState("");
   const [waLink, setWaLink] = useState("");
-  const [waType, setWaType] = useState<"DEFAULT" | "CUSTOM">("DEFAULT");
-  const [customMsg, setCustomMsg] = useState("");
   const [sendingWa, setSendingWa] = useState(false);
 
   function setWhatsAppFields(value: string) {
@@ -165,32 +163,6 @@ export default function PictureBookDetailPage() {
     }
   }
 
-  async function handleSendWa(e: React.FormEvent) {
-    e.preventDefault();
-    if (!accessToken || !id) return;
-    setSendingWa(true);
-    try {
-      if (waType === "CUSTOM") {
-        await apiFetch(`/whatsapp/send-custom/${id}`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}` 
-          },
-          body: JSON.stringify({ message: customMsg })
-        });
-      }
-      toast.success("WhatsApp message queued");
-      setShowWaModal(false);
-      setCustomMsg("");
-      setTimeout(load, 1500);
-    } catch (err: any) {
-      toast.error("Failed to queue message", { description: err.message });
-    } finally {
-      setSendingWa(false);
-    }
-  }
-
   async function handleWhatsappOptIn() {
     if (!accessToken || !id) return;
     setSendingWa(true);
@@ -231,7 +203,6 @@ export default function PictureBookDetailPage() {
     <div className="p-8 text-center text-[#999]">Picture Book not found.</div>
   );
 
-  const lastMsg = book.whatsappMessages?.[0];
   const isFailed = book.driveStatus === "FAILED";
   const isEndUser = user?.role === "END_USER";
 
@@ -500,56 +471,6 @@ export default function PictureBookDetailPage() {
             )}
           </div>
 
-          {user?.role === "ADMIN" && <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-serif text-[#1A1A1A] text-lg flex items-center gap-2">
-                <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Communication Log
-              </h2>
-            </div>
-            
-            {book.whatsappMessages?.length === 0 ? (
-              <div className="p-8 rounded-xl border border-dashed border-[#EAE6DF] bg-[#FAF9F6] flex flex-col items-center justify-center text-center">
-                <Smartphone className="w-8 h-8 text-[#CCC] mb-3" />
-                <p className="text-[#999] text-sm">No messages have been logged yet.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {book.whatsappMessages?.map((msg: any) => (
-                  <div key={msg.id} className="p-4 rounded-lg bg-[#FAF9F6] border border-[#EAE6DF] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-start sm:items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                        msg.status === "DELIVERED" || msg.status === "READ" ? "bg-emerald-50 text-emerald-600" :
-                        msg.status === "FAILED" ? "bg-rose-50 text-rose-600" :
-                        "bg-blue-50 text-blue-600"
-                      }`}>
-                        {msg.status === "FAILED" ? <XCircle className="w-4 h-4" /> : 
-                         msg.status === "DELIVERED" || msg.status === "READ" ? <CheckCircle2 className="w-4 h-4" /> :
-                         <Send className="w-4 h-4" />}
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-[#1A1A1A] capitalize">{msg.status.toLowerCase()}</div>
-                        <div className="text-xs text-[#999] flex items-center gap-1.5 mt-0.5">
-                          <span>{new Date(msg.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                          {msg.attempts > 1 && (
-                            <>
-                              <span className="opacity-50">•</span>
-                              <span>{msg.attempts} attempts</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {msg.errorMessage && (
-                      <div className="text-xs text-rose-600 bg-rose-50 px-3 py-2 rounded-lg max-w-xs break-words border border-rose-100">
-                        {msg.errorMessage}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>}
-
           {isEndUser && (
             <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
               <h2 className="font-serif text-[#1A1A1A] text-lg mb-2 flex items-center gap-2">
@@ -657,14 +578,14 @@ export default function PictureBookDetailPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-[#EAE6DF]">
             <div className="flex justify-between items-center p-5 border-b border-[#EAE6DF] bg-[#FAF9F6]">
               <h3 className="font-serif text-xl text-[#1A1A1A] font-semibold flex items-center gap-2">
-                <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Send WhatsApp Message
+                <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Get Updates on WhatsApp
               </h3>
               <button onClick={() => setShowWaModal(false)} className="text-[#999] hover:text-[#1A1A1A] p-1 rounded-full hover:bg-[#EAE6DF] transition-colors">
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
             
-            {isEndUser ? (
+            {isEndUser && (
               <div className="p-6">
                 <p className="text-sm text-[#666] leading-relaxed">
                   We’ll send relevant Picture Book updates on WhatsApp. The website will continue working normally even if you do not send the message.
@@ -698,56 +619,6 @@ export default function PictureBookDetailPage() {
                   )}
                 </div>
               </div>
-            ) : (
-            <form onSubmit={handleSendWa} className="p-6">
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-[#1A1A1A] mb-3">Message Type</label>
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => setWaType("CUSTOM")}
-                      className="py-2.5 px-4 rounded-lg border border-[#C9A84C] bg-[#FAF9F6] text-[#C9A84C] text-sm font-medium"
-                    >
-                      Custom free-form message
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-[#1A1A1A] mb-2">Custom Message Content</label>
-                    <textarea 
-                      required
-                      rows={5}
-                      value={customMsg}
-                      onChange={(e) => setCustomMsg(e.target.value)}
-                      placeholder="Hi Rahul, please upload the remaining 5 photos..."
-                      className="w-full px-4 py-3 rounded-lg border border-[#EAE6DF] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none text-sm text-[#1A1A1A] resize-y bg-white"
-                    />
-                    <p className="text-xs text-[#999] mt-2">
-                      This will be sent exactly as typed to {book.user?.whatsappNumber || "the customer"}.
-                    </p>
-                </div>
-              </div>
-
-              <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-[#EAE6DF]">
-                <button
-                  type="button"
-                  onClick={() => setShowWaModal(false)}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium text-[#666] hover:text-[#1A1A1A] hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={sendingWa || (waType === "CUSTOM" && !customMsg.trim())}
-                  className="px-6 py-2.5 rounded-lg text-sm font-medium bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  {sendingWa ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  {sendingWa ? "Queuing..." : "Queue Message"}
-                </button>
-              </div>
-            </form>
             )}
           </div>
         </div>

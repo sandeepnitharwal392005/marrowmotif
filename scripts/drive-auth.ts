@@ -119,7 +119,7 @@ async function main(): Promise<void> {
       clientSecret,
       redirectUri,
       refreshToken: tokens.refresh_token,
-      userEmail: process.env.GOOGLE_DRIVE_USER_EMAIL,
+      userEmail: requireEnv('GOOGLE_DRIVE_USER_EMAIL'),
       rootFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
     });
     const result = await provider.createClientFolder(`Marrowmotif OAuth verification ${new Date().toISOString()}`);

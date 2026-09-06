@@ -16,7 +16,7 @@ const oauthClient = { setCredentials: jest.fn() };
 const driveClient = {
   about: { get: jest.fn() },
   files: { list: jest.fn(), create: jest.fn() },
-  permissions: { create: jest.fn() },
+  permissions: { list: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() },
 };
 
 const config = {
@@ -29,6 +29,7 @@ const config = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  driveClient.permissions.list.mockResolvedValue({ data: { permissions: [] } });
   (google.auth.OAuth2 as jest.Mock).mockImplementation(() => oauthClient);
   (google.drive as jest.Mock).mockReturnValue(driveClient);
 });
@@ -92,10 +93,17 @@ describe('GoogleDriveProvider', () => {
       shareLink: 'https://drive.google.com/drive/folders/existing-folder',
     });
     expect(driveClient.files.create).not.toHaveBeenCalled();
-    expect(driveClient.permissions.create).not.toHaveBeenCalled();
+    expect(driveClient.permissions.create).toHaveBeenCalledWith({
+      fileId: 'existing-folder',
+      requestBody: {
+        role: 'writer',
+        type: 'user',
+        emailAddress: config.userEmail,
+      },
+    });
   });
 
-  it('creates a folder and its existing public upload permission', async () => {
+  it('creates a folder with private access for the configured user', async () => {
     driveClient.files.list.mockResolvedValue({ data: { files: [] } });
     driveClient.files.create.mockResolvedValue({ data: { id: 'new-folder' } });
     driveClient.permissions.create.mockResolvedValue({});
@@ -115,8 +123,43 @@ describe('GoogleDriveProvider', () => {
     });
     expect(driveClient.permissions.create).toHaveBeenCalledWith({
       fileId: 'new-folder',
-      requestBody: { role: 'writer', type: 'anyone' },
+      requestBody: {
+        role: 'writer',
+        type: 'user',
+        emailAddress: config.userEmail,
+      },
     });
+  });
+
+  it('removes public and other explicit permissions while preserving the target user', async () => {
+    driveClient.files.list.mockResolvedValue({ data: { files: [] } });
+    driveClient.files.create.mockResolvedValue({ data: { id: 'restricted-folder' } });
+    driveClient.permissions.list.mockResolvedValue({
+      data: {
+        permissions: [
+          { id: 'owner', type: 'user', emailAddress: 'owner@example.com', role: 'owner' },
+          { id: 'target', type: 'user', emailAddress: config.userEmail, role: 'writer' },
+          { id: 'anyone', type: 'anyone', role: 'writer' },
+          { id: 'group', type: 'group', emailAddress: 'other@example.com', role: 'reader' },
+        ],
+      },
+    });
+    const provider = new GoogleDriveProvider(config);
+
+    await expect(provider.createClientFolder('Restricted Picture Book')).resolves.toMatchObject({
+      success: true,
+      folderId: 'restricted-folder',
+    });
+    expect(driveClient.permissions.delete).toHaveBeenCalledWith({
+      fileId: 'restricted-folder',
+      permissionId: 'anyone',
+    });
+    expect(driveClient.permissions.delete).toHaveBeenCalledWith({
+      fileId: 'restricted-folder',
+      permissionId: 'group',
+    });
+    expect(driveClient.permissions.delete).toHaveBeenCalledTimes(2);
+    expect(driveClient.permissions.create).not.toHaveBeenCalled();
   });
 
   it('returns a safe failure result and does not log OAuth secrets', async () => {

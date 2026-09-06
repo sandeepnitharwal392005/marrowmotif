@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { createProviders } from './providers';
 
 const prisma = new PrismaClient();
-const { whatsApp, drive, isDemoMode } = createProviders();
+const { drive, isDemoMode } = createProviders();
 const queueConnection = { url: process.env.REDIS_URL || 'redis://localhost:6379' };
 const automationQueue = new Queue('google-drive', { connection: queueConnection });
 
@@ -16,9 +16,6 @@ const worker = new Worker(
   async (job: Job) => {
     if (job.name === 'generate-drive-link' || job.name === 'send-welcome-message') {
       return processWelcomeMessage(job);
-    }
-    if (job.name === 'send-manual-whatsapp') {
-      return processManualWhatsApp(job);
     }
   },
   {
@@ -126,11 +123,6 @@ async function processWelcomeMessage(job: Job) {
       });
     }
 
-    if (pictureBook.whatsappStatus === 'CONVERSATION_INITIATED' && pictureBook.user.whatsappNumber && driveLink) {
-      const messageContent = `Your photo upload folder for “${pictureBook.title}” is ready!\n\nPlease upload your photos here:\n${driveLink}\n\nOnce your photos are uploaded, we’ll use them to create your picture book.`;
-      await automationQueue.add('send-manual-whatsapp', { pictureBookId, messageContent, idempotencyKey: `wa-drive-ready-${pictureBookId}` }, { jobId: `wa-drive-ready-${pictureBookId}`, attempts: 3, removeOnComplete: false, removeOnFail: false });
-    }
-
   } catch (error: any) {
     console.error(`[Worker] ❌ Error in drive generation: ${error.message}`);
     
@@ -158,106 +150,6 @@ async function processWelcomeMessage(job: Job) {
     data: { pictureBookId, action: 'UPLOAD_INSTRUCTIONS_READY', details: 'The website upload folder is ready.' }
   });
   return { success: true, driveLink };
-}
-
-async function processManualWhatsApp(job: Job) {
-  const { pictureBookId, messageContent, idempotencyKey, toNumber: directNumber } = job.data as { pictureBookId: string | null, messageContent: string, idempotencyKey?: string, toNumber?: string };
-  console.log(`\n[Worker] 📱 Processing job ${job.id}`);
-  console.log(`[Worker] Message: ${messageContent.substring(0, 100)}...`);
-
-  let whatsappNumber: string | null = null;
-  let pictureBook: any = null;
-
-  if (directNumber) {
-    whatsappNumber = directNumber;
-    console.log(`[Worker] Using direct number: ${whatsappNumber}`);
-  }
-
-  if (pictureBookId) {
-    pictureBook = await prisma.pictureBook.findUnique({
-      where: { id: pictureBookId },
-      include: { user: true },
-    });
-
-    if (!pictureBook) {
-      console.error(`[Worker] PictureBook ${pictureBookId} not found`);
-      throw new Error(`PictureBook ${pictureBookId} not found`);
-    }
-    if (!whatsappNumber) {
-      whatsappNumber = pictureBook.user.whatsappNumber;
-      if (!whatsappNumber) {
-        console.error(`[Worker] User ${pictureBook.user.id} has no WhatsApp number`);
-        throw new Error(`User does not have a WhatsApp number`);
-      }
-      console.log(`[Worker] Checking conversation window...`);
-      console.log(`[Worker] Status: ${pictureBook.whatsappStatus}, lastInbound: ${pictureBook.lastInboundMessageAt}, windowOpenUntil: ${pictureBook.whatsappConversationOpenUntil}`);
-      if (pictureBook.whatsappStatus !== 'CONVERSATION_INITIATED' || !pictureBook.lastInboundMessageAt || !pictureBook.whatsappConversationOpenUntil || pictureBook.whatsappConversationOpenUntil <= new Date()) {
-        console.error(`[Worker] WhatsApp customer-service window is not open`);
-        throw new Error('WhatsApp customer-service window is not open');
-      }
-    } else {
-      console.log(`[Worker] Skipping conversation window check (cross-user match)`);
-    }
-  } else if (!directNumber) {
-    console.error(`[Worker] No pictureBookId or toNumber provided`);
-    throw new Error('No pictureBookId or toNumber provided');
-  }
-
-  console.log(`[Worker] Target number: ${whatsappNumber}`);
-
-  let waMessage = idempotencyKey
-    ? await prisma.whatsAppMessage.upsert({
-      where: { idempotencyKey },
-      update: {},
-      create: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, idempotencyKey, body: messageContent, senderNumber: whatsappNumber },
-    })
-    : await prisma.whatsAppMessage.create({ data: { pictureBookId: pictureBookId || null, status: 'QUEUED', attempts: 0, body: messageContent, senderNumber: whatsappNumber } });
-
-  if (['SENT', 'DELIVERED', 'READ'].includes(waMessage.status)) return { success: true, messageId: waMessage.providerMessageId };
-
-  let waResult;
-  const isSynthetic = whatsappNumber === '+15550000000' || (pictureBook?.user?.email === 'production-test@marrowotif.internal');
-  
-  if (isSynthetic) {
-    console.log(`[Worker] 🧪 SYNTHETIC TEST: Mocking manual WhatsApp to ${whatsappNumber}`);
-    waResult = { success: true, messageId: `synthetic-manual-msg-${Date.now()}` };
-  } else {
-    try {
-      console.log(`[Worker] Sending WhatsApp to ${whatsappNumber}...`);
-      const waProvider = whatsApp;
-      waResult = await waProvider.sendTextMessage(
-        whatsappNumber,
-        messageContent
-      );
-      console.log(`[Worker] WhatsApp send result:`, JSON.stringify(waResult));
-    } catch (e: any) {
-      console.error(`[Worker] WhatsApp send error:`, e.message);
-      waResult = { success: false, error: e.message };
-    }
-  }
-
-  const attempts = 1;
-
-  if (!waResult.success) {
-    await prisma.whatsAppMessage.update({
-      where: { id: waMessage.id },
-      data: { status: 'FAILED', errorMessage: waResult.error, attempts },
-    });
-    throw new Error(`WhatsApp send failed: ${waResult.error}`);
-  }
-
-  await prisma.whatsAppMessage.update({
-    where: { id: waMessage.id },
-    data: {
-      status: 'SENT',
-      providerMessageId: waResult.messageId,
-      attempts,
-      sentAt: new Date(),
-      errorMessage: null,
-    },
-  });
-
-  return { success: true, messageId: waResult.messageId };
 }
 
 worker.on('completed', (job, result) => {

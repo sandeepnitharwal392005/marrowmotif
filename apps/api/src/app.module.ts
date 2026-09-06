@@ -10,7 +10,6 @@ import { ProductsModule } from './products/products.module';
 import { ContactModule } from './contact/contact.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { SettingsModule } from './settings/settings.module';
-import { WhatsAppModule } from './whatsapp/whatsapp.module';
 import { LoggerModule } from 'nestjs-pino';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuditModule } from './audit/audit.module';
@@ -53,7 +52,6 @@ import { AppService } from './app.service';
     ContactModule,
     WebhooksModule,
     SettingsModule,
-    WhatsAppModule,
     AuditModule,
     IncidentsModule,
   ],
