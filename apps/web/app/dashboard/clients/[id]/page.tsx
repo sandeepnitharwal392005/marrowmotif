@@ -351,7 +351,7 @@ export default function PictureBookDetailPage() {
             </div>
           </div>
 
-          <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm bg-gradient-to-b from-[#FAF9F6] to-white">
+          {user?.role === "ADMIN" && <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm bg-gradient-to-b from-[#FAF9F6] to-white">
             <h2 className="font-serif text-[#1A1A1A] text-lg mb-6 flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-[#C9A84C]" /> Automation Status
             </h2>
@@ -404,7 +404,7 @@ export default function PictureBookDetailPage() {
                 </button>
               </div>
             )}
-          </div>
+          </div>}
 
         </div>
 
@@ -448,6 +448,25 @@ export default function PictureBookDetailPage() {
                     </a>
                   </div>
                 </div>
+
+                {user?.role === "ADMIN" && (
+                  <div className="mt-4 p-4 rounded-lg border border-amber-200 bg-amber-50">
+                    <div className="text-sm font-medium text-[#1A1A1A] mb-2">Prepared WhatsApp message</div>
+                    <textarea
+                      readOnly
+                      rows={3}
+                      value={`Your upload link for "${book.title}" is ready:\n${book.driveLink}`}
+                      className="w-full px-3 py-2 rounded-md border border-amber-200 bg-white text-sm text-[#1A1A1A] resize-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(`Your upload link for "${book.title}" is ready:\n${book.driveLink}`).then(() => toast.success("WhatsApp message copied"))}
+                      className="mt-2 inline-flex items-center gap-2 border border-[#EAE6DF] bg-white hover:bg-[#FAF9F6] text-[#1A1A1A] px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      <Copy className="w-4 h-4" /> Copy message
+                    </button>
+                  </div>
+                )}
                 
               </div>
             ) : (
@@ -468,7 +487,7 @@ export default function PictureBookDetailPage() {
             )}
           </div>
 
-          <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
+          {user?.role === "ADMIN" && <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-serif text-[#1A1A1A] text-lg flex items-center gap-2">
                 <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Communication Log
@@ -481,13 +500,6 @@ export default function PictureBookDetailPage() {
                   <Send className="w-3.5 h-3.5 text-[#C9A84C]" /> Send Message
                 </button>
               )}
-            {isEndUser && (
-              <div className="mt-6 border-t border-[#EAE6DF] pt-5">
-                <h3 className="text-sm font-semibold text-[#1A1A1A]">Want updates on WhatsApp?</h3>
-                <p className="text-sm text-[#666] mt-1">WhatsApp notifications are optional. Everything continues here on the website.</p>
-                <button onClick={() => { setWaNumber(book.user?.whatsappNumber || ""); setWaLink(""); setShowWaModal(true); }} className="mt-3 bg-[#1A1A1A] text-white px-4 py-2 rounded-md text-sm font-medium">{book.whatsappStatus === 'LINK_GENERATED' ? "View WhatsApp instructions" : "Get updates on WhatsApp"}</button>
-              </div>
-            )}
             </div>
             
             {book.whatsappMessages?.length === 0 ? (
@@ -531,9 +543,21 @@ export default function PictureBookDetailPage() {
                 ))}
               </div>
             )}
-          </div>
+          </div>}
 
-          <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
+          {isEndUser && (
+            <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
+              <h2 className="font-serif text-[#1A1A1A] text-lg mb-2 flex items-center gap-2">
+                <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Want updates on WhatsApp?
+              </h2>
+              <p className="text-sm text-[#666] mt-1">WhatsApp notifications are optional. Everything continues here on the website.</p>
+              <button onClick={() => { setWaNumber(book.user?.whatsappNumber || ""); setWaLink(""); setShowWaModal(true); }} className="mt-3 bg-[#1A1A1A] text-white px-4 py-2 rounded-md text-sm font-medium">
+                {book.whatsappStatus === 'LINK_GENERATED' ? "View WhatsApp instructions" : "Get updates on WhatsApp"}
+              </button>
+            </div>
+          )}
+
+          {user?.role === "ADMIN" && <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
             <h2 className="font-serif text-[#1A1A1A] text-lg mb-4 flex items-center gap-2">
               <Clock className="w-5 h-5 text-[#C9A84C]" /> Execution History
             </h2>
@@ -617,7 +641,7 @@ export default function PictureBookDetailPage() {
                 ))}
               </div>
             )}
-          </div>
+          </div>}
 
         </div>
       </div>
