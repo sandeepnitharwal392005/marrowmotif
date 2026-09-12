@@ -24,6 +24,7 @@ export function PhoneNumberFields({
         <input
           type="text"
           inputMode="tel"
+          name="whatsappCountryCode"
           aria-label="Country code"
           value={countryCode}
           onChange={(event) => onCountryCodeChange(event.target.value.replace(/[^+0-9]/g, ""))}
@@ -34,6 +35,7 @@ export function PhoneNumberFields({
         />
         <input
           type="tel"
+          name="whatsappNumber"
           aria-label="Phone number"
           value={phoneNumber}
           onChange={(event) => onPhoneNumberChange(event.target.value.replace(/[^0-9]/g, ""))}

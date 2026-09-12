@@ -1,12 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { pictureBooksApi, apiFetch } from "@/lib/api";
 import { ArrowLeft, User, Mail, CheckCircle2, Clock, CheckCircle, Smartphone, HardDrive, RefreshCw, Copy, ExternalLink, XCircle, BookOpen } from "lucide-react";
 import { toast } from "sonner";
-import { PhoneNumberFields, normalizePhoneNumber } from "@/components/PhoneNumberFields";
 
 import { ErrorState } from "@/components/ui/ErrorState";
 
@@ -58,19 +57,9 @@ export default function PictureBookDetailPage() {
   // WhatsApp Modal State
   const [showWaModal, setShowWaModal] = useState(false);
   const [waNumber, setWaNumber] = useState("");
-  const [waCountryCode, setWaCountryCode] = useState("+1");
-  const [waLocalNumber, setWaLocalNumber] = useState("");
   const [waLink, setWaLink] = useState("");
   const [sendingWa, setSendingWa] = useState(false);
-
-  function setWhatsAppFields(value: string) {
-    const digits = value.replace(/[^0-9]/g, "");
-    const countryCode = digits.startsWith("91") ? "+91" : digits.startsWith("44") ? "+44" : digits.length === 11 && digits.startsWith("1") ? "+1" : "+1";
-    const localNumber = countryCode === "+1" && digits.length === 11 ? digits.slice(1) : digits.slice(countryCode.length - 1);
-    setWaCountryCode(countryCode);
-    setWaLocalNumber(localNumber);
-    setWaNumber(digits);
-  }
+  const waModalInitialized = useRef(false);
 
   async function load() {
     if (!accessToken || !id) return;
@@ -88,8 +77,9 @@ export default function PictureBookDetailPage() {
   useEffect(() => { load(); }, [accessToken, id]);
 
   useEffect(() => {
-    if (searchParams.get("whatsapp") === "1" && book && user?.role === "END_USER") {
-      setWhatsAppFields(book.user?.whatsappNumber || "");
+    if (searchParams.get("whatsapp") === "1" && book && user?.role === "END_USER" && !waModalInitialized.current) {
+      waModalInitialized.current = true;
+      setWaNumber(book.user?.whatsappNumber || "");
       setShowWaModal(true);
     }
   }, [searchParams, book, user?.role]);
@@ -167,7 +157,7 @@ export default function PictureBookDetailPage() {
     if (!accessToken || !id) return;
     setSendingWa(true);
     try {
-      const number = numberOverride || normalizePhoneNumber(waCountryCode, waLocalNumber);
+      const number = numberOverride || waNumber;
       const result = await pictureBooksApi.whatsappOptIn(accessToken, id, number || undefined);
       window.location.assign(result.link);
     } catch (err: any) {
@@ -189,11 +179,7 @@ export default function PictureBookDetailPage() {
   }
 
   function handleGetUpdatesClick() {
-    if (book.user?.whatsappNumber) {
-      setWhatsAppFields(book.user.whatsappNumber);
-      void handleWhatsappOptIn(book.user.whatsappNumber);
-      return;
-    }
+    setWaNumber(book.user?.whatsappNumber || "");
     setWaLink("");
     setShowWaModal(true);
   }
@@ -607,14 +593,17 @@ export default function PictureBookDetailPage() {
                 </ol>
                 {!waLink ? (
                   <>
-                    <div className="mt-6">
-                      <PhoneNumberFields
-                        countryCode={waCountryCode}
-                        phoneNumber={waLocalNumber}
-                        onCountryCodeChange={(value) => { setWaCountryCode(value); setWaNumber(normalizePhoneNumber(value, waLocalNumber)); }}
-                        onPhoneNumberChange={(value) => { setWaLocalNumber(value); setWaNumber(normalizePhoneNumber(waCountryCode, value)); }}
-                      />
-                    </div>
+                    <label className="block text-sm font-medium text-[#1A1A1A] mt-6 mb-2" htmlFor="whatsapp-number">WhatsApp number</label>
+                    <input
+                      id="whatsapp-number"
+                      name="whatsappNumber"
+                      type="tel"
+                      value={waNumber}
+                      onChange={(event) => setWaNumber(event.target.value)}
+                      placeholder="+1234567890"
+                      autoFocus
+                      className="w-full px-4 py-3 rounded-md border border-[#EAE6DF] bg-white text-sm text-[#1A1A1A] outline-none focus:border-[#C9A84C]"
+                    />
                   </>
                 ) : (
                   <p className="mt-6 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] p-3 text-sm text-[#666]">Your WhatsApp link is ready. Open WhatsApp and press Send there.</p>
@@ -622,7 +611,7 @@ export default function PictureBookDetailPage() {
                 <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-[#EAE6DF]">
                   <button type="button" onClick={handleWhatsappDecline} className="px-5 py-2.5 rounded-md text-sm font-medium text-[#666]">Not now</button>
                   {!waLink ? (
-                    <button type="button" onClick={() => handleWhatsappOptIn()} disabled={sendingWa || !waCountryCode || !waLocalNumber} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white disabled:opacity-50">{sendingWa ? "Preparing..." : "Continue"}</button>
+                    <button type="button" onClick={() => handleWhatsappOptIn()} disabled={sendingWa || !waNumber.trim()} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white disabled:opacity-50">{sendingWa ? "Preparing..." : "Continue"}</button>
                   ) : (
                     <a href={waLink} target="_blank" rel="noopener noreferrer" onClick={() => setShowWaModal(false)} className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#1A1A1A] text-white">Continue to WhatsApp</a>
                   )}
