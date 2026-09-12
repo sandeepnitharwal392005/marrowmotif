@@ -13,17 +13,11 @@ const statusOptions = [
   { value: "ATTENTION", label: "Need Attention" },
 ];
 
-function matchesStatus(status: string, filter: string) {
-  if (filter === "IN_PROGRESS") return ["PHOTOS_UPLOADED", "UNDER_REVIEW", "IN_PRODUCTION"].includes(status);
-  if (filter === "COMPLETED") return ["READY", "COMPLETED"].includes(status);
-  if (filter === "ATTENTION") return ["REQUESTED", "UPLOAD_PENDING", "CANCELLED"].includes(status);
-  return true;
-}
-
 function StatusBadge({ status }: { status: string }) {
-  if (status === "ACTIVE") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 className="w-3 h-3"/> Active</span>;
-  if (status === "PENDING") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200"><Clock className="w-3 h-3"/> Pending</span>;
-  if (status === "FAILED") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200"><XCircle className="w-3 h-3"/> Failed</span>;
+  if (["READY", "COMPLETED"].includes(status)) return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 className="w-3 h-3"/> Completed</span>;
+  if (["REQUESTED", "UPLOAD_PENDING"].includes(status)) return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200"><Clock className="w-3 h-3"/> Need attention</span>;
+  if (["PHOTOS_UPLOADED", "UNDER_REVIEW", "IN_PRODUCTION"].includes(status)) return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200"><Clock className="w-3 h-3"/> In progress</span>;
+  if (status === "CANCELLED") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200"><XCircle className="w-3 h-3"/> Need attention</span>;
   return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gray-50 text-gray-700 border border-gray-200">{status}</span>;
 }
 
@@ -39,19 +33,14 @@ export default function PictureBooksPage() {
   useEffect(() => {
     if (!accessToken) return;
     setLoading(true);
-    pictureBooksApi.list(accessToken, page)
+    pictureBooksApi.list(accessToken, page, 20, { q: search, status: statusFilter })
       .then((res: any) => {
         setBooks(res.data || []);
         setMeta(res.meta || null);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [accessToken, page]);
-
-  const filtered = books.filter((b) => matchesStatus(b.status, statusFilter) &&
-    [b.title, b.user?.name, b.user?.email, b.user?.whatsappNumber].some(
-      (v) => v && v.toLowerCase().includes(search.toLowerCase())
-    ));
+  }, [accessToken, page, search, statusFilter]);
 
   const isEndUser = user?.role === "END_USER";
 
@@ -77,12 +66,12 @@ export default function PictureBooksPage() {
       <div className="flex flex-col sm:flex-row gap-3 max-w-2xl">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"><Search className="h-5 w-5 text-[#999]" /></div>
-          <input type="search" placeholder="Search picture books..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-11 pr-4 py-2.5 rounded-md bg-white border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors shadow-sm" />
+          <input type="search" placeholder="Search picture books..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="w-full pl-11 pr-4 py-2.5 rounded-md bg-white border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors shadow-sm" />
         </div>
         <label className="relative flex items-center min-w-0 sm:w-52">
           <SlidersHorizontal className="absolute left-3 w-4 h-4 text-[#999] pointer-events-none" />
           <span className="sr-only">Filter picture books by status</span>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full appearance-none pl-9 pr-8 py-2.5 rounded-md bg-white border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none shadow-sm">
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="w-full appearance-none pl-9 pr-8 py-2.5 rounded-md bg-white border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none shadow-sm">
             {statusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </label>
@@ -94,7 +83,7 @@ export default function PictureBooksPage() {
             <div className="w-8 h-8 border-2 border-[#EAE6DF] border-t-[#C9A84C] rounded-full animate-spin mb-4"></div>
             <div className="text-sm font-medium text-[#999] uppercase tracking-widest">Loading...</div>
           </div>
-        ) : filtered.length === 0 ? (
+        ) : books.length === 0 ? (
           <div className="p-16 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 rounded-full bg-[#FAF9F6] flex items-center justify-center mb-4">
               <BookOpen className="w-8 h-8 text-[#CCC]" />
@@ -124,7 +113,7 @@ export default function PictureBooksPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EAE6DF]">
-                  {filtered.map((book) => (
+                  {books.map((book) => (
                     <tr key={book.id} className="hover:bg-[#FAF9F6] transition-colors group">
                       <td className="px-6 py-4">
                         <div className="font-semibold text-[#1A1A1A]">{book.title}</div>
@@ -161,7 +150,7 @@ export default function PictureBooksPage() {
 
             {/* Mobile Card View */}
             <div className="md:hidden flex flex-col divide-y divide-[#EAE6DF]">
-              {filtered.map((book) => (
+              {books.map((book) => (
                 <Link href={`/dashboard/clients/${book.id}`} key={book.id} className="p-4 hover:bg-[#FAF9F6] transition-colors active:bg-[#F5F3EC]">
                   <div className="flex justify-between items-start mb-2.5">
                     <div className="min-w-0 pr-2">
@@ -189,7 +178,7 @@ export default function PictureBooksPage() {
               ))}
             </div>
             
-            {!loading && filtered.length > 0 && (
+            {!loading && books.length > 0 && (
               <Pagination meta={meta} onPageChange={setPage} />
             )}
           </>

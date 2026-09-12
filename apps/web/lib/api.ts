@@ -154,8 +154,12 @@ export const productsApi = {
 
 // Picture Books
 export const pictureBooksApi = {
-  list: (token: string, page: number = 1, limit: number = 20) => 
-    apiFetch<any>(`/picture-books?page=${page}&limit=${limit}`, { token }),
+  list: (token: string, page: number = 1, limit: number = 20, filters?: { q?: string; status?: string }) => {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (filters?.q) params.set('q', filters.q);
+    if (filters?.status && filters.status !== 'ALL') params.set('status', filters.status);
+    return apiFetch<any>(`/picture-books?${params.toString()}`, { token });
+  },
   get: (token: string, id: string) => apiFetch<any>(`/picture-books/${id}`, { token }),
   create: (token: string, data: any) =>
     apiFetch<any>("/picture-books", { method: "POST", token, body: JSON.stringify(data) }),

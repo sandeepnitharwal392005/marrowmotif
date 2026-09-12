@@ -116,6 +116,38 @@ export class PictureBooksService {
         throw new ForbiddenException('Guides do not have access to Picture Books');
       }
 
+      if (pagination.q?.trim()) {
+        const query = pagination.q.trim();
+        where = {
+          ...where,
+          AND: [{
+            OR: [
+              { title: { contains: query, mode: 'insensitive' } },
+              { user: { name: { contains: query, mode: 'insensitive' } } },
+              { user: { email: { contains: query, mode: 'insensitive' } } },
+              { user: { whatsappNumber: { contains: query, mode: 'insensitive' } } },
+            ],
+          }],
+        };
+      }
+
+      const statusGroups: Record<string, string[]> = {
+        IN_PROGRESS: ['PHOTOS_UPLOADED', 'UNDER_REVIEW', 'IN_PRODUCTION'],
+        COMPLETED: ['READY', 'COMPLETED'],
+        ATTENTION: ['REQUESTED', 'UPLOAD_PENDING', 'CANCELLED'],
+      };
+      if (pagination.status && pagination.status !== 'ALL') {
+        where = pagination.status === 'ATTENTION'
+          ? {
+              ...where,
+              OR: [
+                { status: { in: statusGroups.ATTENTION } },
+                { driveStatus: 'FAILED' },
+              ],
+            }
+          : { ...where, status: { in: statusGroups[pagination.status] } };
+      }
+
       const [data, total] = await Promise.all([
         this.prisma.pictureBook.findMany({
           where,
