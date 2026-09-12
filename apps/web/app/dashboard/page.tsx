@@ -5,6 +5,13 @@ import { useAuth } from "@/lib/auth";
 import { pictureBooksApi, usersApi } from "@/lib/api";
 import { Plus, ChevronRight, CheckCircle2, Clock, XCircle, FileText, Send, Smartphone, BookOpen, Users } from "lucide-react";
 
+const statusFilters = {
+  total: () => true,
+  inProgress: (status: string) => ["PHOTOS_UPLOADED", "UNDER_REVIEW", "IN_PRODUCTION"].includes(status),
+  completed: (status: string) => ["READY", "COMPLETED"].includes(status),
+  attention: (status: string) => ["REQUESTED", "UPLOAD_PENDING", "CANCELLED"].includes(status),
+} as const;
+
 function StatCard({ label, value, color, icon: Icon }: { label: string; value: number; color: string; icon: any }) {
   return (
     <div className="bg-white p-4 sm:p-6 border border-[#EAE6DF] rounded-xl relative overflow-hidden group shadow-xs transition-shadow hover:shadow-sm">
@@ -16,6 +23,15 @@ function StatCard({ label, value, color, icon: Icon }: { label: string; value: n
         <div className="text-[11px] sm:text-xs font-semibold text-[#666] uppercase tracking-wider">{label}</div>
       </div>
     </div>
+  );
+}
+
+function PictureBookStatCard({ label, value, color, icon: Icon, selected, onClick }: { label: string; value: number; color: string; icon: any; selected: boolean; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} aria-pressed={selected} className={`text-left bg-white p-4 sm:p-6 border rounded-xl relative overflow-hidden group shadow-xs transition-shadow hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#C9A84C] ${selected ? "border-[#C9A84C] ring-1 ring-[#C9A84C]" : "border-[#EAE6DF]"}`}>
+      <div className="absolute top-0 right-0 p-3 sm:p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Icon className="w-12 h-12 sm:w-16 sm:h-16" style={{ color }} /></div>
+      <div className="relative z-10"><div className="text-2xl sm:text-3xl font-bold mb-1 tracking-tight" style={{ color }}>{value}</div><div className="text-[11px] sm:text-xs font-semibold text-[#666] uppercase tracking-wider">{label}</div></div>
+    </button>
   );
 }
 
@@ -42,6 +58,7 @@ export default function DashboardPage() {
   // Book States
   const [stats, setStats] = useState({ totalBooks: 0, activeBooks: 0, pendingBooks: 0, failedBooks: 0 });
   const [books, setBooks] = useState<any[]>([]);
+  const [bookFilter, setBookFilter] = useState<keyof typeof statusFilters>("total");
 
   // Referral States
   const [referralStats, setReferralStats] = useState({ totalReferred: 0, pendingRegistration: 0, registered: 0 });
@@ -70,9 +87,9 @@ export default function DashboardPage() {
         .then(([s, b]) => {
           setStats({
             totalBooks: s.totalPictureBooks || 0,
-            activeBooks: s.readyPictureBooks || 0,
-            pendingBooks: s.requestedPictureBooks || 0,
-            failedBooks: s.cancelledPictureBooks || 0,
+            activeBooks: s.inProgressPictureBooks || 0,
+            pendingBooks: s.completedPictureBooks || 0,
+            failedBooks: s.attentionPictureBooks || 0,
           });
           const booksArray = Array.isArray(b) ? b : (b.data || []);
           setBooks(booksArray.slice(0, 5));
@@ -86,6 +103,7 @@ export default function DashboardPage() {
   const isAdmin = user?.role === "ADMIN";
   const isEndUser = user?.role === "END_USER";
   const firstName = user?.name?.trim().split(/\s+/)[0];
+  const visibleBooks = books.filter((book) => statusFilters[bookFilter](book.status));
 
   return (
     <div className="p-6 sm:p-10 max-w-7xl mx-auto space-y-8">
@@ -115,10 +133,10 @@ export default function DashboardPage() {
           </>
         ) : (
           <>
-            <StatCard label={isEndUser ? "My Picture Books" : "Total Books"} value={stats.totalBooks} color="#C9A84C" icon={BookOpen} />
-            <StatCard label={isEndUser ? "In progress" : "Active"} value={stats.activeBooks} color="#10B981" icon={CheckCircle2} />
-            <StatCard label={isEndUser ? "Getting started" : "Pending"} value={stats.pendingBooks} color="#F59E0B" icon={Clock} />
-            <StatCard label={isEndUser ? "Need attention" : "Failed"} value={stats.failedBooks} color="#EF4444" icon={XCircle} />
+            <PictureBookStatCard label="Total Books" value={stats.totalBooks} color="#C9A84C" icon={BookOpen} selected={bookFilter === "total"} onClick={() => setBookFilter("total")} />
+            <PictureBookStatCard label="In Progress" value={stats.activeBooks} color="#10B981" icon={Clock} selected={bookFilter === "inProgress"} onClick={() => setBookFilter("inProgress")} />
+            <PictureBookStatCard label="Completed" value={stats.pendingBooks} color="#10B981" icon={CheckCircle2} selected={bookFilter === "completed"} onClick={() => setBookFilter("completed")} />
+            <PictureBookStatCard label="Need Attention" value={stats.failedBooks} color="#EF4444" icon={XCircle} selected={bookFilter === "attention"} onClick={() => setBookFilter("attention")} />
           </>
         )}
       </div>
@@ -200,7 +218,7 @@ export default function DashboardPage() {
               </div>
             </>
           )
-        ) : books.length === 0 ? (
+        ) : visibleBooks.length === 0 ? (
           <div className="p-16 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 rounded-full bg-[#FAF9F6] flex items-center justify-center mb-4">
               <BookOpen className="w-8 h-8 text-[#CCC]" />
@@ -230,7 +248,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAE6DF]">
-                {books.map((book: any) => (
+                {visibleBooks.map((book: any) => (
                   <tr key={book.id} className="hover:bg-[#FAF9F6] transition-colors group">
                     {isEndUser ? (
                       <td className="px-6 py-4">
@@ -274,7 +292,7 @@ export default function DashboardPage() {
             </table>
           </div>
           <div className="md:hidden divide-y divide-[#EAE6DF]">
-            {books.map((book: any) => (
+            {visibleBooks.map((book: any) => (
               <Link key={book.id} href={`/dashboard/clients/${book.id}`} className="block p-4 hover:bg-[#FAF9F6] active:bg-[#F5F3EC] transition-colors">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

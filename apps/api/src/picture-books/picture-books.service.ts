@@ -278,23 +278,23 @@ export class PictureBooksService {
       throw new ForbiddenException('Guides do not have access to Picture Books');
     }
 
-    const [total, active, pending, failed] = await Promise.all([
+    const [total, inProgress, completed, attention] = await Promise.all([
       this.prisma.pictureBook.count({ where }),
       this.prisma.pictureBook.count({ 
         where: { 
           ...where, 
-          status: { in: ['READY', 'IN_PRODUCTION', 'UNDER_REVIEW', 'PHOTOS_UPLOADED', 'UPLOAD_PENDING'] } 
+          status: { in: ['PHOTOS_UPLOADED', 'UNDER_REVIEW', 'IN_PRODUCTION'] },
         } 
       }),
       this.prisma.pictureBook.count({
-        where: { ...where, status: 'REQUESTED' },
+        where: { ...where, status: { in: ['READY', 'COMPLETED'] } },
       }),
       this.prisma.pictureBook.count({
         where: { 
           ...where, 
           OR: [
+            { status: { in: ['REQUESTED', 'UPLOAD_PENDING', 'CANCELLED'] } },
             { driveStatus: 'FAILED' },
-            { status: 'CANCELLED' }
           ] 
         },
       }),
@@ -302,9 +302,9 @@ export class PictureBooksService {
 
     return {
       totalPictureBooks: total,
-      readyPictureBooks: active,
-      requestedPictureBooks: pending,
-      cancelledPictureBooks: failed,
+      inProgressPictureBooks: inProgress,
+      completedPictureBooks: completed,
+      attentionPictureBooks: attention,
     };
   }
 

@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
-import { AlertTriangle, Plus, CheckCircle2, Clock, XCircle, FileText, ChevronRight } from "lucide-react";
+import { supportContact } from "@/lib/support";
+import { AlertTriangle, Plus, CheckCircle2, Clock, XCircle, FileText, ChevronRight, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Pagination } from "@/components/ui/pagination";
 
@@ -47,6 +48,7 @@ export default function IncidentsPage() {
   }, [accessToken, page]);
 
   const isAdmin = user?.role === "ADMIN";
+  const whatsappHref = `https://wa.me/${supportContact.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Hi, [write your question here]")}`;
 
   if (user?.role === "GUIDE") {
     return (
@@ -63,14 +65,25 @@ export default function IncidentsPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A] tracking-tight">IT Support</h1>
           <p className="text-[#666] text-xs sm:text-sm mt-1">
-            {isAdmin ? "Manage and resolve customer support tickets." : "Report an issue or check the status of your support tickets."}
+            {isAdmin ? "Manage and resolve customer support tickets." : "Report an IT issue or ask a general question on WhatsApp."}
           </p>
         </div>
         {!isAdmin && (
-          <Link href="/dashboard/incidents/new" className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium shadow-sm">
-            <Plus className="w-4 h-4 mr-2" /> 
-            Report Issue
-          </Link>
+          <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto border border-[#25D366] text-[#168A43] hover:bg-[#F0FFF5] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Ask a Question on WhatsApp
+            </a>
+            <Link href="/dashboard/incidents/new" className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium shadow-sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Report Issue
+            </Link>
+          </div>
         )}
       </div>
 

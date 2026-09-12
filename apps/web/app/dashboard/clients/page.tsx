@@ -4,7 +4,21 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { pictureBooksApi } from "@/lib/api";
 import { Pagination } from "@/components/ui/pagination";
-import { Search, Plus, Users, ChevronRight, CheckCircle2, Clock, XCircle, Smartphone, HardDrive, BookOpen } from "lucide-react";
+import { Search, Plus, Users, ChevronRight, CheckCircle2, Clock, XCircle, Smartphone, HardDrive, BookOpen, SlidersHorizontal } from "lucide-react";
+
+const statusOptions = [
+  { value: "ALL", label: "All statuses" },
+  { value: "IN_PROGRESS", label: "In Progress" },
+  { value: "COMPLETED", label: "Completed" },
+  { value: "ATTENTION", label: "Need Attention" },
+];
+
+function matchesStatus(status: string, filter: string) {
+  if (filter === "IN_PROGRESS") return ["PHOTOS_UPLOADED", "UNDER_REVIEW", "IN_PRODUCTION"].includes(status);
+  if (filter === "COMPLETED") return ["READY", "COMPLETED"].includes(status);
+  if (filter === "ATTENTION") return ["REQUESTED", "UPLOAD_PENDING", "CANCELLED"].includes(status);
+  return true;
+}
 
 function StatusBadge({ status }: { status: string }) {
   if (status === "ACTIVE") return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 className="w-3 h-3"/> Active</span>;
@@ -19,6 +33,7 @@ export default function PictureBooksPage() {
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -33,11 +48,10 @@ export default function PictureBooksPage() {
       .finally(() => setLoading(false));
   }, [accessToken, page]);
 
-  const filtered = books.filter((b) =>
+  const filtered = books.filter((b) => matchesStatus(b.status, statusFilter) &&
     [b.title, b.user?.name, b.user?.email, b.user?.whatsappNumber].some(
       (v) => v && v.toLowerCase().includes(search.toLowerCase())
-    )
-  );
+    ));
 
   const isEndUser = user?.role === "END_USER";
 
@@ -60,17 +74,18 @@ export default function PictureBooksPage() {
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-[#999]" />
+      <div className="flex flex-col sm:flex-row gap-3 max-w-2xl">
+        <div className="relative flex-1">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"><Search className="h-5 w-5 text-[#999]" /></div>
+          <input type="search" placeholder="Search picture books..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-11 pr-4 py-2.5 rounded-md bg-white border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors shadow-sm" />
         </div>
-        <input
-          type="search"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-11 pr-4 py-2.5 rounded-md bg-white border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors shadow-sm"
-        />
+        <label className="relative flex items-center min-w-0 sm:w-52">
+          <SlidersHorizontal className="absolute left-3 w-4 h-4 text-[#999] pointer-events-none" />
+          <span className="sr-only">Filter picture books by status</span>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full appearance-none pl-9 pr-8 py-2.5 rounded-md bg-white border border-[#EAE6DF] text-[#1A1A1A] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none shadow-sm">
+            {statusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        </label>
       </div>
 
       <div className="bg-white border border-[#EAE6DF] rounded-xl overflow-hidden shadow-sm">
@@ -85,12 +100,12 @@ export default function PictureBooksPage() {
               <BookOpen className="w-8 h-8 text-[#CCC]" />
             </div>
             <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">
-              {search ? "No matches found" : "No items yet"}
+              {search || statusFilter !== "ALL" ? "No matches found" : "No items yet"}
             </h3>
             <p className="text-[#666] text-sm max-w-sm mb-6">
-              {search ? `No items matched your search for "${search}".` : "Get started by adding a new item."}
+              {search || statusFilter !== "ALL" ? "Try a different search or status filter." : "Get started by adding a new item."}
             </p>
-            {!search && (
+            {!search && statusFilter === "ALL" && (
               <Link href="/dashboard/clients/new" className="bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-2.5 flex items-center shadow-sm">
                 <Plus className="w-4 h-4 mr-2" /> Get Started
               </Link>
