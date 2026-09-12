@@ -172,6 +172,12 @@ export const pictureBooksApi = {
   stats: (token: string) => apiFetch<any>("/picture-books/stats", { token }),
 };
 
+// Support
+export const supportApi = {
+  whatsappLink: (token: string) =>
+    apiFetch<{ link: string }>("/incidents/whatsapp-support", { method: "POST", token }),
+};
+
 // Contact
 export const contactApi = {
   submit: (data: { name: string; email: string; message: string }) =>

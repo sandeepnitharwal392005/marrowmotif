@@ -1,6 +1,6 @@
 # Google Drive OAuth setup
 
-Marrowmotif creates Picture Book upload folders asynchronously in the BullMQ Worker. The Worker authenticates as the configured Google user with OAuth 2.0 and a refresh token; `GOOGLE_DRIVE_USER_EMAIL` is only an informational label.
+Marrowmotif creates Picture Book upload folders asynchronously in the BullMQ Worker. The Worker authenticates as the configured Google user with OAuth 2.0 and a refresh token.
 
 ## Google Cloud setup
 
@@ -10,9 +10,9 @@ Marrowmotif creates Picture Book upload folders asynchronously in the BullMQ Wor
 4. Create an OAuth client ID for a Web application.
 5. Add the exact value of `GOOGLE_DRIVE_REDIRECT_URI` as an authorized redirect URI. For local setup, the example value is `http://localhost:8080/oauth2callback`.
 
-The provider retains the existing `https://www.googleapis.com/auth/drive` scope because it lists existing folders, creates folders under an optional parent, and manages folder permissions. No additional Google Workspace scope is required.
+The provider uses the narrower `https://www.googleapis.com/auth/drive.file` scope. It creates private folders owned by the authenticated account and does not change, delete, or email-share Drive permissions. The optional parent folder must be accessible to the app, such as a folder created by this app or selected through a Drive picker.
 
-Generated folders are private. The authenticated Google account remains the owner, and `GOOGLE_DRIVE_USER_EMAIL` receives writer access. Public, group, domain, and other explicit user permissions are removed, including when a retry finds an existing folder.
+Generated folders are private and owned by the authenticated Google account. The integration does not modify existing ACLs or send sharing notifications.
 
 ## Environment
 
@@ -23,7 +23,6 @@ GOOGLE_DRIVE_CLIENT_ID=
 GOOGLE_DRIVE_CLIENT_SECRET=
 GOOGLE_DRIVE_REDIRECT_URI=http://localhost:8080/oauth2callback
 GOOGLE_DRIVE_REFRESH_TOKEN=
-GOOGLE_DRIVE_USER_EMAIL=marrowmotifdrive@gmail.com
 GOOGLE_DRIVE_ROOT_FOLDER_ID=
 ```
 
@@ -37,7 +36,7 @@ Run this from the repository root after setting the client ID, client secret, an
 npm run drive:auth
 ```
 
-Authorize as `marrowmotifdrive@gmail.com` (or the account named by `GOOGLE_DRIVE_USER_EMAIL`). The command verifies the authenticated email and prints the refresh token once so it can be entered as `GOOGLE_DRIVE_REFRESH_TOKEN` in the Worker environment. It does not save the token or authorization code.
+Authorize as the Google account that should own the folders. The command verifies the authenticated email and prints the refresh token once so it can be entered as `GOOGLE_DRIVE_REFRESH_TOKEN` in the Worker environment. It does not save the token or authorization code.
 
 To create and verify a harmless test folder after authorization:
 

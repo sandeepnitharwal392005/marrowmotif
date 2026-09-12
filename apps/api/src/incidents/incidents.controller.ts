@@ -21,6 +21,11 @@ import { Role } from '@prisma/client';
 export class IncidentsController {
   constructor(private readonly incidentsService: IncidentsService) {}
 
+  @Post('whatsapp-support')
+  whatsappSupport() {
+    return this.incidentsService.createWhatsappSupportLink();
+  }
+
   @Post()
   create(@Body() dto: CreateIncidentDto, @CurrentUser() user: any) {
     return this.incidentsService.create(dto, user);

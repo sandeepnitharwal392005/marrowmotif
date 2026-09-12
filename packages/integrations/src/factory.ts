@@ -42,7 +42,6 @@ export function createProviders(): Providers {
     clientSecret: requireEnv('GOOGLE_DRIVE_CLIENT_SECRET'),
     redirectUri: requireEnv('GOOGLE_DRIVE_REDIRECT_URI'),
     refreshToken: requireEnv('GOOGLE_DRIVE_REFRESH_TOKEN'),
-    userEmail: requireEnv('GOOGLE_DRIVE_USER_EMAIL'),
     rootFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
   });
 

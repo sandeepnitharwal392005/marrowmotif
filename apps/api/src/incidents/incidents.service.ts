@@ -2,6 +2,7 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role, Prisma } from '@prisma/client';
@@ -16,6 +17,16 @@ export class IncidentsService {
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
   ) {}
+
+  createWhatsappSupportLink() {
+    const businessNumber = (process.env.WHATSAPP_BUSINESS_NUMBER || '').replace(/[^0-9]/g, '');
+    if (!businessNumber) {
+      throw new BadRequestException('WhatsApp support is temporarily unavailable');
+    }
+
+    const link = `https://wa.me/${businessNumber}?text=${encodeURIComponent('Hi, [write your question here]')}`;
+    return { link };
+  }
 
   async create(dto: CreateIncidentDto, user: { id: string; role: Role }) {
     if (user.role !== Role.END_USER) {

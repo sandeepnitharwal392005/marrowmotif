@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
-import { apiFetch } from "@/lib/api";
-import { supportContact } from "@/lib/support";
+import { apiFetch, supportApi } from "@/lib/api";
 import { AlertTriangle, Plus, CheckCircle2, Clock, XCircle, FileText, ChevronRight, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Pagination } from "@/components/ui/pagination";
@@ -29,6 +28,7 @@ export default function IncidentsPage() {
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [openingWhatsapp, setOpeningWhatsapp] = useState(false);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -48,7 +48,19 @@ export default function IncidentsPage() {
   }, [accessToken, page]);
 
   const isAdmin = user?.role === "ADMIN";
-  const whatsappHref = `https://wa.me/${supportContact.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Hi, [write your question here]")}`;
+
+  async function handleWhatsappSupport() {
+    if (!accessToken || openingWhatsapp) return;
+    setOpeningWhatsapp(true);
+    try {
+      const result = await supportApi.whatsappLink(accessToken);
+      window.location.assign(result.link);
+    } catch (err: any) {
+      toast.error("WhatsApp support is unavailable", { description: err.message });
+    } finally {
+      setOpeningWhatsapp(false);
+    }
+  }
 
   if (user?.role === "GUIDE") {
     return (
@@ -70,15 +82,15 @@ export default function IncidentsPage() {
         </div>
         {!isAdmin && (
           <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={handleWhatsappSupport}
+              disabled={openingWhatsapp}
               className="w-full sm:w-auto border border-[#25D366] text-[#168A43] hover:bg-[#F0FFF5] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium"
             >
               <MessageCircle className="w-4 h-4 mr-2" />
-              Ask a Question on WhatsApp
-            </a>
+              {openingWhatsapp ? "Opening WhatsApp..." : "Ask a Question on WhatsApp"}
+            </button>
             <Link href="/dashboard/incidents/new" className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] transition-colors rounded-md px-5 py-3 sm:py-2.5 flex items-center justify-center font-medium shadow-sm">
               <Plus className="w-4 h-4 mr-2" />
               Report Issue

@@ -24,7 +24,6 @@ To ensure the **Drive Generation & WhatsApp Worker** runs properly and picks up 
      - `GOOGLE_DRIVE_CLIENT_SECRET`
      - `GOOGLE_DRIVE_REDIRECT_URI`
      - `GOOGLE_DRIVE_REFRESH_TOKEN`
-     - `GOOGLE_DRIVE_USER_EMAIL` (informational only; it is not used to authenticate)
      - `GOOGLE_DRIVE_ROOT_FOLDER_ID` (optional)
     - `WHATSAPP_ACCESS_TOKEN` (system-user Cloud API token)
     - `WHATSAPP_PHONE_NUMBER_ID`

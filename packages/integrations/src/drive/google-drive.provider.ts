@@ -7,7 +7,6 @@ interface GoogleDriveConfig {
   clientSecret: string;
   redirectUri: string;
   refreshToken: string;
-  userEmail: string;
   rootFolderId?: string;
 }
 
@@ -20,7 +19,7 @@ export interface DriveUserDiagnostic {
   };
 }
 
-export const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
+export const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
 export function createGoogleDriveOAuthClient(config: Pick<GoogleDriveConfig, 'clientId' | 'clientSecret' | 'redirectUri' | 'refreshToken'>) {
   const oauth2Client = new google.auth.OAuth2(
@@ -69,7 +68,6 @@ export class GoogleDriveProvider implements DriveProvider {
       // Check for existing folder (idempotency)
       const existing = await this.findExistingFolder(folderName);
       if (existing) {
-        await this.ensureRestrictedAccess(existing.id!);
         console.log(`[GoogleDrive] Folder already exists: ${folderName}`);
         return {
           success: true,
@@ -88,8 +86,6 @@ export class GoogleDriveProvider implements DriveProvider {
       });
 
       const folderId = folder.data.id!;
-
-      await this.ensureRestrictedAccess(folderId);
 
       const shareLink = `https://drive.google.com/drive/folders/${folderId}`;
 
@@ -115,46 +111,6 @@ export class GoogleDriveProvider implements DriveProvider {
     return response.data.files?.[0] || null;
   }
 
-  private async ensureRestrictedAccess(folderId: string): Promise<void> {
-    const response = await this.drive.permissions.list({
-      fileId: folderId,
-      fields: 'permissions(id,type,emailAddress,role)',
-    });
-    const permissions = response.data.permissions || [];
-    const targetEmail = this.config.userEmail.toLowerCase();
-    const targetPermission = permissions.find(
-      (permission: { type?: string; emailAddress?: string }) =>
-        permission.type === 'user' && permission.emailAddress?.toLowerCase() === targetEmail,
-    );
-
-    if (targetPermission?.id && targetPermission.role !== 'writer' && targetPermission.role !== 'owner') {
-      await this.drive.permissions.update({
-        fileId: folderId,
-        permissionId: targetPermission.id,
-        requestBody: { role: 'writer' },
-      });
-    } else if (!targetPermission) {
-      await this.drive.permissions.create({
-        fileId: folderId,
-        requestBody: {
-          role: 'writer',
-          type: 'user',
-          emailAddress: this.config.userEmail,
-        },
-      });
-    }
-
-    await Promise.all(
-      permissions
-        .filter((permission: { id?: string; type?: string; role?: string; emailAddress?: string }) => {
-          if (!permission.id || permission.role === 'owner') return false;
-          return permission.type !== 'user' || permission.emailAddress?.toLowerCase() !== targetEmail;
-        })
-        .map((permission: { id: string }) =>
-          this.drive.permissions.delete({ fileId: folderId, permissionId: permission.id }),
-        ),
-    );
-  }
 }
 
 function formatDriveError(error: unknown): string {

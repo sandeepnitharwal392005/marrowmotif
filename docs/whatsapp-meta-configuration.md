@@ -18,7 +18,6 @@ The website uses Click-to-Chat only after the customer explicitly chooses WhatsA
 | `GOOGLE_DRIVE_CLIENT_SECRET` | Worker when live | Worker/integrations | Google OAuth client | Drive OAuth client secret | Store securely. |
 | `GOOGLE_DRIVE_REDIRECT_URI` | Worker and local setup | Worker/integrations | OAuth client callback | One-time Drive authorization | Must match the Google Cloud OAuth client. |
 | `GOOGLE_DRIVE_REFRESH_TOKEN` | Worker when live | Worker/integrations | One-time OAuth setup | Drive user authentication | Store securely; never expose to the browser. |
-| `GOOGLE_DRIVE_USER_EMAIL` | Worker when live | Worker/integrations | Operator configuration | Informational account label | Not used for authentication. |
 | `GOOGLE_DRIVE_ROOT_FOLDER_ID` | Worker when live | Worker/integrations | Drive folder | Optional parent folder | Existing folder IDs remain valid. |
 | `GOOGLE_DRIVE_ROOT_FOLDER_ID` | Optional Worker | Worker/integrations | Google Drive folder URL/ID | Parent folder for generated upload folders | Keep folders private or use a constrained upload design. |
 | `NEXT_PUBLIC_API_URL` | Frontend | Web | API deployment URL | Browser API base URL | Public URL only; never place Meta tokens here. |
