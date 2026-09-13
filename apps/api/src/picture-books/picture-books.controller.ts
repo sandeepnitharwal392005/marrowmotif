@@ -89,6 +89,17 @@ export class PictureBooksController {
     return this.pictureBooksService.createDriveLink(id, user);
   }
 
+  @Patch(':id/drive-link')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  setDriveLink(
+    @Param('id') id: string,
+    @Body('driveLink') driveLink: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.pictureBooksService.setDriveLink(id, driveLink, user);
+  }
+
   @Delete('synthetic')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)

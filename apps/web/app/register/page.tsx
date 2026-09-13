@@ -16,6 +16,11 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const normalizedEmail = formData.email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setError("Please enter a valid email address that you can access. We use it for account updates and your Picture Book upload link.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -25,7 +30,7 @@ export default function RegisterPage() {
       const urlParams = new URLSearchParams(window.location.search);
       const ref = urlParams.get('ref');
       
-      const payload = ref ? { ...formData, referredById: ref } : formData;
+      const payload = ref ? { ...formData, email: normalizedEmail, referredById: ref } : { ...formData, email: normalizedEmail };
 
       await apiFetch("/users", {
         method: "POST",
@@ -81,6 +86,9 @@ export default function RegisterPage() {
                   className="w-full px-4 py-3 rounded-md bg-[#FAF9F6] border border-[#EAE6DF] text-[#1A1A1A] text-base focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors" 
                   placeholder="you@example.com" 
                 />
+                <p className="mt-2 text-xs leading-relaxed text-[#777]">
+                  Use an email address you can open and check. Your Picture Book upload access and important updates will be connected to this address.
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Password (8+ characters) *</label>

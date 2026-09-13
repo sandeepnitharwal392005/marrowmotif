@@ -218,6 +218,47 @@ export class PictureBooksService {
     return pictureBook;
   }
 
+  async setDriveLink(id: string, driveLink: string, user: { id: string; role: Role }) {
+    if (user.role !== Role.ADMIN) throw new ForbiddenException('Access denied');
+
+    const pictureBook = await this.prisma.pictureBook.findUnique({ where: { id } });
+    if (!pictureBook) throw new NotFoundException('Picture Book not found');
+
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL((driveLink || '').trim());
+    } catch {
+      throw new BadRequestException('Please provide a valid Google Drive folder URL');
+    }
+
+    if (parsedUrl.protocol !== 'https:' || !['drive.google.com', 'docs.google.com'].includes(parsedUrl.hostname)) {
+      throw new BadRequestException('Please provide a valid Google Drive folder URL');
+    }
+
+    const updated = await this.prisma.pictureBook.update({
+      where: { id },
+      data: { driveLink: parsedUrl.toString(), driveStatus: 'SUCCESS', driveError: null },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        pictureBookId: id,
+        action: 'DRIVE_LINK_SET_MANUALLY',
+        details: 'Drive folder link was provided manually by an administrator',
+      },
+    });
+
+    this.eventEmitter.emit('audit.log', {
+      userId: user.id,
+      action: 'MANUAL_DRIVE_LINK_SET',
+      resourceType: 'PictureBook',
+      resourceId: id,
+      status: 'SUCCESS',
+    });
+
+    return updated;
+  }
+
   async createWhatsappOptIn(
     id: string,
     whatsappNumber: string | undefined,

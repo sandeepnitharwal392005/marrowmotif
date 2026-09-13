@@ -16,7 +16,7 @@ const oauthClient = { setCredentials: jest.fn() };
 const driveClient = {
   about: { get: jest.fn() },
   files: { list: jest.fn(), create: jest.fn() },
-  permissions: { list: jest.fn(), create: jest.fn() },
+  permissions: { list: jest.fn(), create: jest.fn(), update: jest.fn() },
 };
 
 const config = {
@@ -82,7 +82,7 @@ describe('GoogleDriveProvider', () => {
     });
   });
 
-  it('returns an existing folder and grants the creator reader access', async () => {
+  it('returns an existing folder and grants the creator upload access', async () => {
     driveClient.files.list.mockResolvedValue({ data: { files: [{ id: 'existing-folder' }] } });
     const provider = new GoogleDriveProvider(config);
 
@@ -97,7 +97,7 @@ describe('GoogleDriveProvider', () => {
       sendNotificationEmail: false,
       requestBody: {
         type: 'user',
-        role: 'reader',
+        role: 'writer',
         emailAddress: 'customer@example.com',
       },
     });
@@ -126,10 +126,29 @@ describe('GoogleDriveProvider', () => {
       sendNotificationEmail: false,
       requestBody: {
         type: 'user',
-        role: 'reader',
+        role: 'writer',
         emailAddress: 'customer@example.com',
       },
     });
+  });
+
+  it('upgrades an existing creator reader permission without creating a duplicate', async () => {
+    driveClient.files.list.mockResolvedValue({ data: { files: [{ id: 'existing-folder' }] } });
+    driveClient.permissions.list.mockResolvedValue({
+      data: { permissions: [{ id: 'permission-id', type: 'user', emailAddress: 'customer@example.com', role: 'reader' }] },
+    });
+    const provider = new GoogleDriveProvider(config);
+
+    await expect(provider.createClientFolder('A Picture Book', 'customer@example.com')).resolves.toMatchObject({
+      success: true,
+      folderId: 'existing-folder',
+    });
+    expect(driveClient.permissions.update).toHaveBeenCalledWith({
+      fileId: 'existing-folder',
+      permissionId: 'permission-id',
+      requestBody: { role: 'writer' },
+    });
+    expect(driveClient.permissions.create).not.toHaveBeenCalled();
   });
 
   it('does not create a duplicate permission when a retry finds existing access', async () => {

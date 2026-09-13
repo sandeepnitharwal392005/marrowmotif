@@ -60,6 +60,8 @@ export default function PictureBookDetailPage() {
   const [retrying, setRetrying] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [generatingDrive, setGeneratingDrive] = useState(false);
+  const [manualDriveLink, setManualDriveLink] = useState("");
+  const [savingManualDriveLink, setSavingManualDriveLink] = useState(false);
   
   // WhatsApp Modal State
   const [showWaModal, setShowWaModal] = useState(false);
@@ -167,6 +169,28 @@ export default function PictureBookDetailPage() {
       toast.error("Failed to generate drive link", { description: err.message });
     } finally {
       setGeneratingDrive(false);
+    }
+  }
+
+  async function handleSaveManualDriveLink() {
+    if (!accessToken || !id || !manualDriveLink.trim()) return;
+    setSavingManualDriveLink(true);
+    try {
+      await apiFetch(`/picture-books/${id}/drive-link`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ driveLink: manualDriveLink }),
+      });
+      toast.success("Manual Drive link saved");
+      setManualDriveLink("");
+      await load();
+    } catch (err: any) {
+      toast.error("Could not save Drive link", { description: err.message });
+    } finally {
+      setSavingManualDriveLink(false);
     }
   }
 
@@ -381,6 +405,7 @@ export default function PictureBookDetailPage() {
                 } 
               />
               <TimelineStep label="Website upload instructions" description={book.driveLink ? "Ready on this page" : "We’ll show the link here when ready"} state={book.driveLink ? "completed" : book.driveStatus === 'FAILED' ? "failed" : "active"} />
+              <TimelineStep label="WhatsApp automation" description="Not configured. Website updates remain available." state="completed" />
             </div>
 
             {isFailed && (
@@ -478,6 +503,29 @@ export default function PictureBookDetailPage() {
                     {generatingDrive ? <RefreshCw className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
                     {generatingDrive ? "Generating..." : "Create Drive Link"}
                   </button>
+                )}
+                {user?.role === "ADMIN" && (
+                  <div className="w-full max-w-lg mt-5 pt-5 border-t border-[#EAE6DF] text-left">
+                    <div className="text-sm font-medium text-[#1A1A1A] mb-1">Manual fallback</div>
+                    <p className="text-xs text-[#666] mb-3">Paste a Google Drive folder URL if automation is unavailable.</p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="url"
+                        value={manualDriveLink}
+                        onChange={(e) => setManualDriveLink(e.target.value)}
+                        placeholder="https://drive.google.com/drive/folders/..."
+                        className="flex-1 px-3 py-2 rounded-md border border-[#EAE6DF] bg-white text-sm outline-none focus:border-[#C9A84C]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveManualDriveLink}
+                        disabled={savingManualDriveLink || !manualDriveLink.trim()}
+                        className="bg-[#1A1A1A] hover:bg-[#333] disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm font-medium"
+                      >
+                        {savingManualDriveLink ? "Saving..." : "Save link"}
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}

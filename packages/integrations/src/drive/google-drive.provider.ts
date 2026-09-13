@@ -66,7 +66,7 @@ export class GoogleDriveProvider implements DriveProvider {
   ): Promise<DriveFolderResult> {
     try {
       const normalizedCustomerEmail = customerEmail.trim().toLowerCase();
-      if (!normalizedCustomerEmail || !normalizedCustomerEmail.includes('@')) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedCustomerEmail)) {
         throw new Error('A valid customer email is required to share the Drive folder');
       }
 
@@ -92,7 +92,7 @@ export class GoogleDriveProvider implements DriveProvider {
       });
 
       const folderId = folder.data.id!;
-        await this.ensureCustomerAccess(folderId, normalizedCustomerEmail);
+      await this.ensureCustomerAccess(folderId, normalizedCustomerEmail);
 
       const shareLink = `https://drive.google.com/drive/folders/${folderId}`;
 
@@ -121,21 +121,35 @@ export class GoogleDriveProvider implements DriveProvider {
   private async ensureCustomerAccess(folderId: string, customerEmail: string): Promise<void> {
     const response = await this.drive.permissions.list({
       fileId: folderId,
-      fields: 'permissions(type,emailAddress,role)',
+      fields: 'permissions(id,type,emailAddress,role)',
     });
-    const alreadyGranted = (response.data.permissions || []).some(
-      (permission: { type?: string; emailAddress?: string }) =>
-        permission.type === 'user' && permission.emailAddress?.toLowerCase() === customerEmail,
+    const permissions = (response.data.permissions || []) as Array<{
+      id?: string | null;
+      type?: string | null;
+      emailAddress?: string | null;
+      role?: string | null;
+    }>;
+    const existingPermission = permissions.find(
+      (permission) => permission.type === 'user' && permission.emailAddress?.toLowerCase() === customerEmail,
     );
 
-    if (alreadyGranted) return;
+    if (existingPermission) {
+      if (existingPermission.role !== 'writer' && existingPermission.role !== 'owner' && existingPermission.id) {
+        await this.drive.permissions.update({
+          fileId: folderId,
+          permissionId: existingPermission.id,
+          requestBody: { role: 'writer' },
+        });
+      }
+      return;
+    }
 
     await this.drive.permissions.create({
       fileId: folderId,
       sendNotificationEmail: false,
       requestBody: {
         type: 'user',
-        role: 'reader',
+        role: 'writer',
         emailAddress: customerEmail,
       },
     });
@@ -159,5 +173,5 @@ function formatDriveError(error: unknown): string {
 function sanitizeDriveError(error: unknown, config: GoogleDriveConfig): string {
   return [config.clientSecret, config.refreshToken, config.clientId]
     .filter(Boolean)
-    .reduce((message, secret) => message.replaceAll(secret, '[redacted]'), formatDriveError(error));
+    .reduce((message, secret) => message.split(secret).join('[redacted]'), formatDriveError(error));
 }
