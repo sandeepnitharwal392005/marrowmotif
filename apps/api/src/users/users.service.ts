@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
@@ -187,32 +188,41 @@ export class UsersService {
   async create(data: CreateUserDto) {
     const passwordHash = await bcrypt.hash(data.password, 10);
 
-    return this.prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email.toLowerCase(),
-        phone: data.phone,
-        whatsappNumber: data.whatsappNumber,
-        whatsappVerified: false,
-        referredById: data.referredById,
-        passwordHash,
-        role: Role.END_USER,
-        addressLine1: data.addressLine1,
-        addressLine2: data.addressLine2,
-        city: data.city,
-        state: data.state,
-        postalCode: data.postalCode,
-        country: data.country,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        whatsappVerified: true,
-      },
-    });
+    try {
+      return await this.prisma.user.create({
+        data: {
+          name: data.name,
+          email: data.email.toLowerCase(),
+          phone: data.phone,
+          whatsappNumber: data.whatsappNumber,
+          whatsappVerified: false,
+          referredById: data.referredById,
+          passwordHash,
+          role: Role.END_USER,
+          addressLine1: data.addressLine1,
+          addressLine2: data.addressLine2,
+          city: data.city,
+          state: data.state,
+          postalCode: data.postalCode,
+          country: data.country,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true,
+          whatsappVerified: true,
+        },
+      });
+    } catch (error: any) {
+      if (error?.code === 'P2002' && error?.meta?.target?.includes('email')) {
+        throw new ConflictException(
+          'An account with this email already exists. Please sign in or reset your password.',
+        );
+      }
+      throw error;
+    }
   }
 
   async toggleActive(id: string) {

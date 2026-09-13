@@ -33,11 +33,8 @@ export default function RegisterPage() {
       });
       router.push("/login?registered=true");
     } catch (err: any) {
-      setError(
-        err?.status >= 500
-          ? "We couldn't create your account right now. Please try again. If the problem continues, contact support."
-          : err.message || "Registration failed. Please try again.",
-      );
+      const { getUserFriendlyError } = await import("@/lib/api");
+      setError(getUserFriendlyError(err, "We could not create your account. Please try again."));
     } finally {
       setLoading(false);
     }

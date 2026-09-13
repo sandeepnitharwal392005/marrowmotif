@@ -59,7 +59,7 @@ export function ErrorState({ error, onRetry, className = "" }: ErrorStateProps) 
     config = {
       icon: <AlertCircle className="w-12 h-12 text-rose-500 mb-4" />,
       title: "Server Error",
-      description: `The server encountered an error (500). Message: ${message}`,
+      description: "Something went wrong on our side. Please try again in a moment. If the problem continues, contact support.",
       action: (
         <button 
           onClick={onRetry || (() => window.location.reload())} 

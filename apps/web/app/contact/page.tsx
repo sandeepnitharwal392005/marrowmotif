@@ -17,7 +17,8 @@ export default function ContactPage() {
       setStatus("success");
       setForm({ name: "", email: "", message: "" });
     } catch (err: any) {
-      setError(err.message || "Failed to send message. Please try again.");
+      const { getUserFriendlyError } = await import("@/lib/api");
+      setError(getUserFriendlyError(err, "We could not send your message. Please try again."));
       setStatus("error");
     }
   }

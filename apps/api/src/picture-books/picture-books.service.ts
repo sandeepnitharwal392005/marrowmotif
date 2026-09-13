@@ -174,7 +174,7 @@ export class PictureBooksService {
         meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
       };
     } catch (e: any) {
-      throw new BadRequestException('DEBUG: ' + e.message);
+      throw new BadRequestException('We could not load the Picture Books. Please try again.');
     }
   }
 

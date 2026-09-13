@@ -17,6 +17,50 @@ export class ApiError extends Error {
   }
 }
 
+export function getUserFriendlyError(error: unknown, fallback: string): string {
+  const apiError = error instanceof ApiError ? error : null;
+  const status = apiError?.status;
+  const message = error instanceof Error ? error.message : "";
+  const normalizedMessage = message.toLowerCase();
+
+  if (
+    normalizedMessage.includes("email") &&
+    (normalizedMessage.includes("already exists") || normalizedMessage.includes("already registered") || status === 409)
+  ) {
+    return "An account with this email already exists. Please sign in or reset your password.";
+  }
+
+  if (status === 401) {
+    return "The email or password is incorrect. Please try again.";
+  }
+
+  if (status === 403) {
+    return "You do not have permission to complete this action.";
+  }
+
+  if (status === 404) {
+    return "We could not find what you were looking for. Please try again.";
+  }
+
+  if (status === 400 && normalizedMessage.includes("email must be an email")) {
+    return "Please enter a valid email address.";
+  }
+
+  if (status === 400 && normalizedMessage.includes("password must be longer than or equal to 8 characters")) {
+    return "Your password must be at least 8 characters long.";
+  }
+
+  if (!status || normalizedMessage.includes("fetch") || normalizedMessage.includes("network")) {
+    return "We are having trouble connecting. Please check your connection and try again.";
+  }
+
+  if (status >= 500) {
+    return "Something went wrong on our side. Please try again in a moment. If the problem continues, contact support.";
+  }
+
+  return message || fallback;
+}
+
 // Track if a refresh is already in progress to prevent infinite loops
 let isRefreshing = false;
 
@@ -108,7 +152,8 @@ export async function apiFetch<T>(
       message = "An unexpected server error occurred. Please try again later or contact support.";
     }
     
-    throw new ApiError(response.status, message, errorData);
+    const error = new ApiError(response.status, message, errorData);
+    throw new ApiError(response.status, getUserFriendlyError(error, message), errorData);
   }
 
   return response.json();

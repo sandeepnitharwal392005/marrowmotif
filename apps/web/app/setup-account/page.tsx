@@ -40,7 +40,8 @@ function SetupAccountForm() {
         router.push("/login?setup=true");
       }, 2000);
     } catch (err: any) {
-      setError(err.message || "Failed to set up account.");
+      const { getUserFriendlyError } = await import("@/lib/api");
+      setError(getUserFriendlyError(err, "We could not set up your account. Please try again."));
     } finally {
       setLoading(false);
     }

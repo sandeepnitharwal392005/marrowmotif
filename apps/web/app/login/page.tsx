@@ -35,11 +35,8 @@ export default function LoginPage() {
       await login(email, password);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(
-        err?.status >= 500
-          ? "We couldn't complete the sign-in request right now. Please try again. If the problem continues, contact support."
-          : err.message || "Invalid credentials. Please try again.",
-      );
+      const { getUserFriendlyError } = await import("@/lib/api");
+      setError(getUserFriendlyError(err, "The email or password is incorrect. Please try again."));
       setLoading(false);
     }
   }
