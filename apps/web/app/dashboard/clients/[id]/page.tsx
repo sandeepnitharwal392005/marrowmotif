@@ -404,8 +404,6 @@ export default function PictureBookDetailPage() {
                     : "pending"
                 } 
               />
-              <TimelineStep label="Website upload instructions" description={book.driveLink ? "Ready on this page" : "We’ll show the link here when ready"} state={book.driveLink ? "completed" : book.driveStatus === 'FAILED' ? "failed" : "active"} />
-              <TimelineStep label="WhatsApp automation" description="Not configured. Website updates remain available." state="completed" />
             </div>
 
             {isFailed && (
