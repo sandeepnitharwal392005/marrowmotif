@@ -12,10 +12,15 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!emailConfirmed) {
+      setError("Please confirm that you can access this email address. We need it for your Picture Book upload link and important updates.");
+      return;
+    }
     const normalizedEmail = formData.email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       setError("Please enter a valid email address that you can access. We use it for account updates and your Picture Book upload link.");
@@ -62,6 +67,12 @@ export default function RegisterPage() {
 
         <div className="p-6 sm:p-8 bg-white border border-[#EAE6DF] rounded-xl shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p className="font-semibold">Use an email address you can access</p>
+              <p className="mt-1 leading-relaxed">
+                Your upload folder link and important Picture Book updates will be connected to this email. A wrong email can prevent you from receiving access.
+              </p>
+            </div>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Full Name *</label>
@@ -87,7 +98,7 @@ export default function RegisterPage() {
                   placeholder="you@example.com" 
                 />
                 <p className="mt-2 text-xs leading-relaxed text-[#777]">
-                  Use an email address you can open and check. Your Picture Book upload access and important updates will be connected to this address.
+                  Check for spelling errors before creating your account.
                 </p>
               </div>
               <div>
@@ -106,6 +117,16 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            <label className="flex items-start gap-3 text-sm text-[#4A4A4A] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={emailConfirmed}
+                onChange={(e) => setEmailConfirmed(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-[#C9A84C]"
+              />
+              <span>I confirm that I can access this email address and that it is spelled correctly.</span>
+            </label>
+
             {error && (
               <div className="p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
                 {error}
@@ -115,7 +136,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#1A1A1A] hover:bg-[#333333] text-white py-3.5 rounded-md font-medium transition-colors mt-2 text-base shadow-sm"
+              className="w-full bg-[#1A1A1A] hover:bg-[#333333] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 rounded-md font-medium transition-colors mt-2 text-base shadow-sm"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>

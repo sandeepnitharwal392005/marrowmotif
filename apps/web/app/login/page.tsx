@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 const demoLoginHint = process.env.NEXT_PUBLIC_DEMO_LOGIN_HINT;
@@ -19,6 +20,12 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      if (params.get("registered") === "true") {
+        toast.success("Account created successfully", {
+          description: "Your account is ready. Please sign in to continue.",
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
       if (params.get("reason") === "expired") {
         setExpiredMessage("Your session has expired. Please log in again to continue.");
         // Clean up the URL to prevent showing the message if they refresh
