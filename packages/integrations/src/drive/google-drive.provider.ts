@@ -62,12 +62,18 @@ export class GoogleDriveProvider implements DriveProvider {
 
   async createClientFolder(
     folderName: string,
+    customerEmail: string,
   ): Promise<DriveFolderResult> {
     try {
+      const normalizedCustomerEmail = customerEmail.trim().toLowerCase();
+      if (!normalizedCustomerEmail || !normalizedCustomerEmail.includes('@')) {
+        throw new Error('A valid customer email is required to share the Drive folder');
+      }
 
       // Check for existing folder (idempotency)
       const existing = await this.findExistingFolder(folderName);
       if (existing) {
+        await this.ensureCustomerAccess(existing.id!, normalizedCustomerEmail);
         console.log(`[GoogleDrive] Folder already exists: ${folderName}`);
         return {
           success: true,
@@ -86,6 +92,7 @@ export class GoogleDriveProvider implements DriveProvider {
       });
 
       const folderId = folder.data.id!;
+        await this.ensureCustomerAccess(folderId, normalizedCustomerEmail);
 
       const shareLink = `https://drive.google.com/drive/folders/${folderId}`;
 
@@ -109,6 +116,29 @@ export class GoogleDriveProvider implements DriveProvider {
     });
 
     return response.data.files?.[0] || null;
+  }
+
+  private async ensureCustomerAccess(folderId: string, customerEmail: string): Promise<void> {
+    const response = await this.drive.permissions.list({
+      fileId: folderId,
+      fields: 'permissions(type,emailAddress,role)',
+    });
+    const alreadyGranted = (response.data.permissions || []).some(
+      (permission: { type?: string; emailAddress?: string }) =>
+        permission.type === 'user' && permission.emailAddress?.toLowerCase() === customerEmail,
+    );
+
+    if (alreadyGranted) return;
+
+    await this.drive.permissions.create({
+      fileId: folderId,
+      sendNotificationEmail: false,
+      requestBody: {
+        type: 'user',
+        role: 'reader',
+        emailAddress: customerEmail,
+      },
+    });
   }
 
 }

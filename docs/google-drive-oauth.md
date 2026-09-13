@@ -10,9 +10,9 @@ Marrowmotif creates Picture Book upload folders asynchronously in the BullMQ Wor
 4. Create an OAuth client ID for a Web application.
 5. Add the exact value of `GOOGLE_DRIVE_REDIRECT_URI` as an authorized redirect URI. For local setup, the example value is `http://localhost:8080/oauth2callback`.
 
-The provider uses the narrower `https://www.googleapis.com/auth/drive.file` scope. It creates private folders owned by the authenticated account and does not change, delete, or email-share Drive permissions. The optional parent folder must be accessible to the app, such as a folder created by this app or selected through a Drive picker.
+The provider uses the narrower `https://www.googleapis.com/auth/drive.file` scope. It creates folders owned by the authenticated account and grants the picture-book creator `reader` access to that specific folder. Sharing is idempotent, does not delete other permissions, and does not send Google notification emails. The optional parent folder must be accessible to the app, such as a folder created by this app or selected through a Drive picker.
 
-Generated folders are private and owned by the authenticated Google account. The integration does not modify existing ACLs or send sharing notifications.
+Generated folders are owned by the authenticated Google account. Only the associated picture-book creator receives direct reader access; existing ACLs are not modified.
 
 ## Environment
 

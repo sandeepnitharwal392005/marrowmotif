@@ -8,6 +8,7 @@ import { DriveProvider } from './drive.provider';
 export class MockDriveProvider implements DriveProvider {
   async createClientFolder(
     folderName: string,
+    _customerEmail: string,
   ): Promise<DriveFolderResult> {
     // Simulate API latency
     await this.delay(300 + Math.random() * 400);

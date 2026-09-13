@@ -108,7 +108,8 @@ async function main(): Promise<void> {
   oauth2Client.setCredentials(tokens);
   const drive = google.drive({ version: 'v3', auth: oauth2Client });
   const about = await drive.about.get({ fields: 'user(displayName,emailAddress)' });
-  console.log(`Authenticated Google user: ${about.data.user?.emailAddress || 'unknown'}`);
+  const authenticatedEmail = about.data.user?.emailAddress;
+  console.log(`Authenticated Google user: ${authenticatedEmail || 'unknown'}`);
   console.log(`Display name: ${about.data.user?.displayName || 'unknown'}`);
   console.log('\nStore this refresh token as GOOGLE_DRIVE_REFRESH_TOKEN in the Worker environment:');
   console.log(tokens.refresh_token);
@@ -121,7 +122,11 @@ async function main(): Promise<void> {
       refreshToken: tokens.refresh_token,
       rootFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
     });
-    const result = await provider.createClientFolder(`Marrowmotif OAuth verification ${new Date().toISOString()}`);
+    if (!authenticatedEmail) throw new Error('Google did not return the authenticated email');
+    const result = await provider.createClientFolder(
+      `Marrowmotif OAuth verification ${new Date().toISOString()}`,
+      authenticatedEmail,
+    );
     if (!result.success) throw new Error(result.error || 'Drive verification folder creation failed');
     console.log(`Verification folder ID: ${result.folderId}`);
     console.log(`Verification folder link: ${result.shareLink}`);

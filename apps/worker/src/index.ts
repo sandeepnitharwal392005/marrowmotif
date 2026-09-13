@@ -86,11 +86,12 @@ async function processWelcomeMessage(job: Job) {
         // Lazy loading happens here! If provider fails, it throws!
         const driveProvider = drive; 
         
-        const shortCode = pictureBook.id.substring(pictureBook.id.length - 4).toUpperCase();
-        const folderName = `${pictureBook.title}-${pictureBook.user.name}-${shortCode}`;
+        const uniqueCode = pictureBook.id.substring(pictureBook.id.length - 5).toUpperCase();
+        const folderName = `${pictureBook.user.name}-${pictureBook.title}-${uniqueCode}`;
 
         const driveResult = await driveProvider.createClientFolder(
-          folderName
+          folderName,
+          pictureBook.user.email,
         );
 
         if (!driveResult.success || !driveResult.shareLink) {

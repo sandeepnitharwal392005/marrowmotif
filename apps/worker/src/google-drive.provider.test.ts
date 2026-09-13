@@ -16,6 +16,7 @@ const oauthClient = { setCredentials: jest.fn() };
 const driveClient = {
   about: { get: jest.fn() },
   files: { list: jest.fn(), create: jest.fn() },
+  permissions: { list: jest.fn(), create: jest.fn() },
 };
 
 const config = {
@@ -27,6 +28,7 @@ const config = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  driveClient.permissions.list.mockResolvedValue({ data: { permissions: [] } });
   (google.auth.OAuth2 as jest.Mock).mockImplementation(() => oauthClient);
   (google.drive as jest.Mock).mockReturnValue(driveClient);
 });
@@ -80,16 +82,25 @@ describe('GoogleDriveProvider', () => {
     });
   });
 
-  it('returns an existing folder without creating a duplicate or changing permissions', async () => {
+  it('returns an existing folder and grants the creator reader access', async () => {
     driveClient.files.list.mockResolvedValue({ data: { files: [{ id: 'existing-folder' }] } });
     const provider = new GoogleDriveProvider(config);
 
-    await expect(provider.createClientFolder('A Picture Book')).resolves.toEqual({
+    await expect(provider.createClientFolder('A Picture Book', 'Customer@Example.com')).resolves.toEqual({
       success: true,
       folderId: 'existing-folder',
       shareLink: 'https://drive.google.com/drive/folders/existing-folder',
     });
     expect(driveClient.files.create).not.toHaveBeenCalled();
+    expect(driveClient.permissions.create).toHaveBeenCalledWith({
+      fileId: 'existing-folder',
+      sendNotificationEmail: false,
+      requestBody: {
+        type: 'user',
+        role: 'reader',
+        emailAddress: 'customer@example.com',
+      },
+    });
   });
 
   it('creates a folder owned by the authenticated account', async () => {
@@ -97,7 +108,7 @@ describe('GoogleDriveProvider', () => {
     driveClient.files.create.mockResolvedValue({ data: { id: 'new-folder' } });
     const provider = new GoogleDriveProvider({ ...config, rootFolderId: 'root-folder' });
 
-    await expect(provider.createClientFolder('A Picture Book')).resolves.toEqual({
+    await expect(provider.createClientFolder('A Picture Book', 'customer@example.com')).resolves.toEqual({
       success: true,
       folderId: 'new-folder',
       shareLink: 'https://drive.google.com/drive/folders/new-folder',
@@ -110,6 +121,29 @@ describe('GoogleDriveProvider', () => {
       },
     });
     expect(google.drive).toHaveBeenCalledTimes(1);
+    expect(driveClient.permissions.create).toHaveBeenCalledWith({
+      fileId: 'new-folder',
+      sendNotificationEmail: false,
+      requestBody: {
+        type: 'user',
+        role: 'reader',
+        emailAddress: 'customer@example.com',
+      },
+    });
+  });
+
+  it('does not create a duplicate permission when a retry finds existing access', async () => {
+    driveClient.files.list.mockResolvedValue({ data: { files: [{ id: 'existing-folder' }] } });
+    driveClient.permissions.list.mockResolvedValue({
+      data: { permissions: [{ type: 'user', emailAddress: 'customer@example.com', role: 'reader' }] },
+    });
+    const provider = new GoogleDriveProvider(config);
+
+    await expect(provider.createClientFolder('A Picture Book', 'CUSTOMER@example.com')).resolves.toMatchObject({
+      success: true,
+      folderId: 'existing-folder',
+    });
+    expect(driveClient.permissions.create).not.toHaveBeenCalled();
   });
 
   it('returns a safe failure result and does not log OAuth secrets', async () => {
@@ -117,7 +151,7 @@ describe('GoogleDriveProvider', () => {
     driveClient.files.list.mockRejectedValue(new Error(`invalid ${config.refreshToken} ${config.clientSecret}`));
     const provider = new GoogleDriveProvider(config);
 
-    await expect(provider.createClientFolder('A Picture Book')).resolves.toEqual({
+    await expect(provider.createClientFolder('A Picture Book', 'customer@example.com')).resolves.toEqual({
       success: false,
       error: 'invalid [redacted] [redacted]',
     });
