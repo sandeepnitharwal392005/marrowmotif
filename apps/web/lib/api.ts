@@ -1,5 +1,7 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_URL = /^https?:\/\//i.test(configuredApiUrl)
+  ? configuredApiUrl.replace(/\/$/, "")
+  : `https://${configuredApiUrl}`;
 
 interface FetchOptions extends RequestInit {
   token?: string;
