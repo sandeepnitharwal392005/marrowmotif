@@ -5,6 +5,14 @@ import { ArrowRight, BookOpen, UploadCloud, Sparkles } from 'lucide-react';
 export const metadata = {
   title: 'Marrowmotif — Where Memory Meets Craft',
   description: 'We create beautiful Picture Books from your travel memories.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    url: 'https://marrowmotif.vercel.app',
+    title: 'Marrowmotif — Where Memory Meets Craft',
+    description: 'We create beautiful Picture Books from your travel memories.',
+  },
 };
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1600&q=85';
@@ -34,8 +42,30 @@ const PRODUCTS = [
 ];
 
 export default function HomePage() {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: 'Marrowmotif',
+        url: 'https://marrowmotif.vercel.app',
+        description: 'Heirloom-quality Picture Books crafted from travel memories.',
+      },
+      {
+        '@type': 'WebSite',
+        name: 'Marrowmotif',
+        url: 'https://marrowmotif.vercel.app',
+        description: 'Beautiful, heirloom-quality Picture Books crafted from your travel memories.',
+      },
+    ],
+  };
+
   return (
     <div className="bg-[#FAF9F6] min-h-screen text-[#1A1A1A] flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* ─── Navbar with Mobile Drawer ─────────────────────────── */}
       <PublicNavbar />
 

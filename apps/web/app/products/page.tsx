@@ -5,6 +5,14 @@ import Image from "next/image";
 export const metadata = {
   title: "Tours & Experiences",
   description: "Browse our collection of premium guided travel experiences.",
+  alternates: {
+    canonical: "/products",
+  },
+  openGraph: {
+    url: "https://marrowmotif.vercel.app/products",
+    title: "Tours & Experiences | Marrowmotif",
+    description: "Browse our collection of premium guided travel experiences.",
+  },
 };
 
 async function getProducts() {

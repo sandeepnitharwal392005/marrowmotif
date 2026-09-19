@@ -11,7 +11,18 @@ export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   try {
     const product = await productsApi.get(id);
-    return { title: product.title, description: product.description.slice(0, 160) };
+    return {
+      title: product.title,
+      description: product.description.slice(0, 160),
+      alternates: {
+        canonical: `/products/${id}`,
+      },
+      openGraph: {
+        url: `https://marrowmotif.vercel.app/products/${id}`,
+        title: `${product.title} | Marrowmotif`,
+        description: product.description.slice(0, 160),
+      },
+    };
   } catch {
     return { title: "Tour Not Found" };
   }
