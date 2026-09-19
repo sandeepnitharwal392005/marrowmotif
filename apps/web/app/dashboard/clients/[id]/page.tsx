@@ -99,8 +99,7 @@ export default function PictureBookDetailPage() {
   useEffect(() => {
     if (searchParams.get("whatsapp") === "1" && book && user?.role === "END_USER" && !waModalInitialized.current) {
       waModalInitialized.current = true;
-      setWhatsAppFields(book.user?.whatsappNumber || "");
-      setShowWaModal(true);
+      void handleWhatsappOptIn();
     }
   }, [searchParams, book, user?.role]);
 
@@ -215,9 +214,7 @@ export default function PictureBookDetailPage() {
   }
 
   function handleGetUpdatesClick() {
-    setWhatsAppFields(book.user?.whatsappNumber || "");
-    setWaLink("");
-    setShowWaModal(true);
+    void handleWhatsappOptIn();
   }
 
   if (loading) return (

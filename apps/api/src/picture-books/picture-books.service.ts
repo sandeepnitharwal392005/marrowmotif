@@ -295,12 +295,13 @@ export class PictureBooksService {
   ) {
     const pictureBook = await this.findOne(id, user);
     const number = (whatsappNumber?.replace(/[^0-9]/g, '') || pictureBook.user.whatsappNumber?.replace(/[^0-9]/g, '')) || undefined;
-    if (!number) throw new BadRequestException('A WhatsApp number is required');
 
-    await this.prisma.user.update({
-      where: { id: pictureBook.userId },
-      data: { whatsappNumber: number },
-    });
+    if (number) {
+      await this.prisma.user.update({
+        where: { id: pictureBook.userId },
+        data: { whatsappNumber: number },
+      });
+    }
 
     const businessNumber = (process.env.WHATSAPP_BUSINESS_NUMBER || '').replace(/[^0-9]/g, '');
     if (!businessNumber) throw new BadRequestException('WhatsApp updates are temporarily unavailable');
