@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, use } from "react";
 import { useAuth } from "@/lib/auth";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, pictureBooksApi } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { 
@@ -17,6 +17,8 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [customer, setCustomer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [manualDriveLinks, setManualDriveLinks] = useState<Record<string, string>>({});
+  const [editingDrivePbId, setEditingDrivePbId] = useState<string | null>(null);
 
   const loadCustomer = async () => {
     if (!accessToken) return;
@@ -86,6 +88,24 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       await loadCustomer();
     } catch (err: any) {
       toast.error("Failed to queue drive job", { description: err.message });
+    } finally {
+      setSubmittingId(null);
+    }
+  }
+
+  async function saveManualDriveLink(pbId: string) {
+    if (!accessToken) return;
+    const link = (manualDriveLinks[pbId] || "").trim();
+    if (!link) return;
+    setSubmittingId(`drive-link-${pbId}`);
+    try {
+      await pictureBooksApi.setDriveLink(accessToken, pbId, link);
+      toast.success("Drive folder link saved successfully");
+      setManualDriveLinks(prev => ({ ...prev, [pbId]: "" }));
+      setEditingDrivePbId(null);
+      await loadCustomer();
+    } catch (err: any) {
+      toast.error("Failed to save Drive link", { description: err.message });
     } finally {
       setSubmittingId(null);
     }
@@ -254,47 +274,64 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         </div>
                         
                         <div className="mt-1">
-                          {!pb.driveStatus && (
-                            <span className="text-sm text-[#666]">Not started</span>
-                          )}
-                          
-                          {pb.driveStatus === 'QUEUED' && (
-                            <span className="text-sm text-[#666]">Drive link generation queued</span>
-                          )}
-                          
-                          {pb.driveStatus === 'PROCESSING' && (
-                            <span className="text-sm text-blue-600 flex items-center gap-2">
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating Drive link...
-                            </span>
-                          )}
-                          
-                          {pb.driveStatus === 'SUCCESS' && pb.driveLink && (
+                          {pb.driveStatus === 'SUCCESS' && pb.driveLink && editingDrivePbId !== pb.id ? (
                             <div className="flex flex-col gap-2">
-                              <span className="text-sm text-emerald-600 font-medium">Drive link generated</span>
-                              <a 
-                                href={pb.driveLink} 
-                                target="_blank" 
-                                className="inline-flex items-center justify-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-md text-sm font-medium w-fit transition-colors"
-                              >
-                                <HardDrive className="w-3.5 h-3.5" /> Open Drive
-                              </a>
-                            </div>
-                          )}
-                          
-                          {pb.driveStatus === 'FAILED' && (
-                            <div className="flex flex-col gap-2">
-                              <span className="text-sm text-rose-600 font-medium">Drive link generation failed</span>
-                              <div className="text-xs text-rose-700 bg-rose-50 p-2 rounded border border-rose-100 break-words">
-                                {pb.driveError || 'Could not create the Drive folder.'}
+                              <span className="text-sm text-emerald-600 font-medium">Drive link ready</span>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <a 
+                                  href={pb.driveLink} 
+                                  target="_blank" 
+                                  className="inline-flex items-center justify-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-md text-sm font-medium w-fit transition-colors"
+                                >
+                                  <HardDrive className="w-3.5 h-3.5" /> Open Drive
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setManualDriveLinks(prev => ({ ...prev, [pb.id]: pb.driveLink || "" }));
+                                    setEditingDrivePbId(pb.id);
+                                  }}
+                                  className="text-xs font-medium text-[#666] hover:text-[#1A1A1A] border border-[#EAE6DF] hover:bg-[#FAF9F6] px-2.5 py-1.5 rounded-md transition-colors"
+                                >
+                                  Update link
+                                </button>
                               </div>
-                              <button 
-                                onClick={() => createDriveLink(pb.id)}
-                                disabled={submittingId === `drive-${pb.id}`}
-                                className="inline-flex items-center justify-center gap-1.5 bg-white border border-[#EAE6DF] hover:border-[#C9A84C] text-[#1A1A1A] hover:text-[#C9A84C] px-3 py-1.5 rounded-md text-sm font-medium w-fit transition-colors disabled:opacity-50"
-                              >
-                                {submittingId === `drive-${pb.id}` ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                                Retry
-                              </button>
+                            </div>
+                          ) : (
+                            <div className="space-y-2 mt-1">
+                              <p className="text-xs text-[#666]">
+                                Paste manually created Google Drive folder URL:
+                              </p>
+                              <div className="flex gap-2">
+                                <input
+                                  type="url"
+                                  value={manualDriveLinks[pb.id] ?? (editingDrivePbId === pb.id ? pb.driveLink || "" : "")}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setManualDriveLinks(prev => ({ ...prev, [pb.id]: val }));
+                                  }}
+                                  placeholder="https://drive.google.com/drive/folders/..."
+                                  className="flex-1 px-3 py-1.5 text-xs rounded border border-[#EAE6DF] bg-white outline-none focus:border-[#C9A84C]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => saveManualDriveLink(pb.id)}
+                                  disabled={submittingId === `drive-link-${pb.id}` || !(manualDriveLinks[pb.id] ?? pb.driveLink)?.trim()}
+                                  className="bg-[#1A1A1A] hover:bg-[#333] disabled:opacity-50 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors shrink-0 flex items-center gap-1.5"
+                                >
+                                  {submittingId === `drive-link-${pb.id}` ? <RefreshCw className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                                  Save link
+                                </button>
+                                {editingDrivePbId === pb.id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingDrivePbId(null)}
+                                    className="border border-[#EAE6DF] hover:bg-[#FAF9F6] text-[#666] px-2.5 py-1.5 rounded text-xs transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -306,17 +343,12 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   <div>
                     <h4 className="text-sm font-semibold text-[#1A1A1A] mb-3 uppercase tracking-wider">Admin Actions</h4>
                     <div className="flex flex-col gap-2">
-                      {!pb.driveStatus && (
-                        <button 
-                          onClick={() => createDriveLink(pb.id)}
-                          disabled={submittingId === `drive-${pb.id}`}
-                          className="bg-white border border-[#EAE6DF] hover:border-[#C9A84C] text-[#1A1A1A] hover:text-[#C9A84C] px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2"
-                        >
-                          {submittingId === `drive-${pb.id}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
-                          Generate Drive Link
-                        </button>
-                      )}
-                      
+                      <a 
+                        href={`/dashboard/clients/${pb.id}`}
+                        className="bg-white border border-[#EAE6DF] hover:border-[#C9A84C] text-[#1A1A1A] hover:text-[#C9A84C] px-4 py-2 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-2"
+                      >
+                        Open Project Details
+                      </a>
                     </div>
                   </div>
                 </div>

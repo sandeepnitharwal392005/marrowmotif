@@ -214,6 +214,12 @@ export const pictureBooksApi = {
     apiFetch<any>(`/picture-books/${id}/whatsapp-decline`, { method: "POST", token }),
   resend: (token: string, id: string) =>
     apiFetch<any>(`/picture-books/${id}/resend`, { method: "POST", token }),
+  setDriveLink: (token: string, id: string, driveLink: string) =>
+    apiFetch<any>(`/picture-books/${id}/drive-link`, {
+      method: "PATCH",
+      token,
+      body: JSON.stringify({ driveLink }),
+    }),
   stats: (token: string) => apiFetch<any>("/picture-books/stats", { token }),
 };
 

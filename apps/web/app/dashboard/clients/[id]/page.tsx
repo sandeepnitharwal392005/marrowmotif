@@ -62,6 +62,7 @@ export default function PictureBookDetailPage() {
   const [generatingDrive, setGeneratingDrive] = useState(false);
   const [manualDriveLink, setManualDriveLink] = useState("");
   const [savingManualDriveLink, setSavingManualDriveLink] = useState(false);
+  const [isEditingDriveLink, setIsEditingDriveLink] = useState(false);
   
   // WhatsApp Modal State
   const [showWaModal, setShowWaModal] = useState(false);
@@ -176,16 +177,10 @@ export default function PictureBookDetailPage() {
     if (!accessToken || !id || !manualDriveLink.trim()) return;
     setSavingManualDriveLink(true);
     try {
-      await apiFetch(`/picture-books/${id}/drive-link`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ driveLink: manualDriveLink }),
-      });
-      toast.success("Manual Drive link saved");
+      await pictureBooksApi.setDriveLink(accessToken, id, manualDriveLink.trim());
+      toast.success("Manual Drive link saved successfully");
       setManualDriveLink("");
+      setIsEditingDriveLink(false);
       await load();
     } catch (err: any) {
       toast.error("Could not save Drive link", { description: err.message });
@@ -385,14 +380,14 @@ export default function PictureBookDetailPage() {
                 label="Google Drive Folder" 
                 description={
                   book.driveStatus === 'SUCCESS' || book.driveLink 
-                    ? "Secure upload folder generated" 
+                    ? "Upload folder linked" 
                     : book.driveStatus === 'PROCESSING'
                     ? "Generating secure folder..."
                     : book.driveStatus === 'QUEUED'
                     ? "Queued for generation..."
                     : book.driveStatus === 'FAILED'
                     ? (book.driveError || "Failed to generate folder")
-                    : "Not generated yet"
+                    : "Awaiting manual Drive link"
                 }
                 state={
                   book.driveStatus === 'SUCCESS' || book.driveLink 
@@ -431,11 +426,25 @@ export default function PictureBookDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           
           <div className="bg-white p-6 border border-[#EAE6DF] rounded-xl shadow-sm">
-            <h2 className="font-serif text-[#1A1A1A] text-lg mb-4 flex items-center gap-2">
-              <HardDrive className="w-5 h-5 text-[#C9A84C]" /> Document Upload Link
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-serif text-[#1A1A1A] text-lg flex items-center gap-2">
+                <HardDrive className="w-5 h-5 text-[#C9A84C]" /> Document Upload Link
+              </h2>
+              {user?.role === "ADMIN" && book.driveLink && !isEditingDriveLink && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setManualDriveLink(book.driveLink || "");
+                    setIsEditingDriveLink(true);
+                  }}
+                  className="text-xs font-medium text-[#C9A84C] hover:text-[#B3933B] transition-colors border border-[#EAE6DF] hover:border-[#C9A84C] px-3 py-1.5 rounded-md"
+                >
+                  Update link
+                </button>
+              )}
+            </div>
             
-            {book.driveLink ? (
+            {book.driveLink && !isEditingDriveLink ? (
               <div className="space-y-4">
                 <p className="text-sm text-[#666] leading-relaxed">
                   Your photo upload folder is ready. Please upload your photos to this Google Drive folder to create your picture book.
@@ -488,43 +497,66 @@ export default function PictureBookDetailPage() {
                 )}
                 
               </div>
+            ) : user?.role === "ADMIN" ? (
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50/70 border border-amber-200">
+                  <HardDrive className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-semibold text-[#1A1A1A]">
+                      {book.driveLink ? "Update Google Drive Upload Folder" : "Assign Google Drive Upload Folder"}
+                    </div>
+                    <p className="text-xs text-[#666] mt-1 leading-relaxed">
+                      Automated Drive generation is paused. Please paste a manually created Google Drive folder URL below. Once saved, the customer will see the upload folder link to submit their photos.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#999]">
+                    Google Drive Folder URL
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="url"
+                      value={manualDriveLink}
+                      onChange={(e) => setManualDriveLink(e.target.value)}
+                      placeholder="https://drive.google.com/drive/folders/..."
+                      className="flex-1 px-4 py-2.5 rounded-md border border-[#EAE6DF] bg-[#FAF9F6] text-sm text-[#1A1A1A] outline-none focus:border-[#C9A84C] focus:bg-white transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveManualDriveLink}
+                      disabled={savingManualDriveLink || !manualDriveLink.trim()}
+                      className="bg-[#1A1A1A] hover:bg-[#333] disabled:opacity-50 text-white px-5 py-2.5 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 shrink-0"
+                    >
+                      {savingManualDriveLink ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                      {savingManualDriveLink ? "Saving..." : "Save Drive Link"}
+                    </button>
+                    {isEditingDriveLink && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingDriveLink(false);
+                          setManualDriveLink("");
+                        }}
+                        className="border border-[#EAE6DF] hover:bg-[#FAF9F6] text-[#666] px-4 py-2.5 rounded-md text-sm font-medium transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[#999]">
+                    Must start with https://drive.google.com/. Saving will set the project status to &ldquo;Upload Pending&rdquo;.
+                  </p>
+                </div>
+              </div>
             ) : (
               <div className="p-8 rounded-xl border border-dashed border-[#EAE6DF] bg-[#FAF9F6] flex flex-col items-center justify-center text-center">
                 <HardDrive className="w-8 h-8 text-[#CCC] mb-3" />
-                <p className="text-[#999] text-sm mb-4">{book.driveStatus === 'FAILED' ? "We couldn’t prepare your upload folder yet. Please try again shortly. If the problem continues, our support team can help." : "Your photo upload folder is being prepared. We’ll show the upload link here as soon as it’s ready."}</p>
-                {user?.role === "ADMIN" && (
-                  <button 
-                    onClick={handleCreateDrive}
-                    disabled={generatingDrive}
-                    className="bg-[#1A1A1A] hover:bg-[#333] text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                  >
-                    {generatingDrive ? <RefreshCw className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
-                    {generatingDrive ? "Generating..." : "Create Drive Link"}
-                  </button>
-                )}
-                {user?.role === "ADMIN" && (
-                  <div className="w-full max-w-lg mt-5 pt-5 border-t border-[#EAE6DF] text-left">
-                    <div className="text-sm font-medium text-[#1A1A1A] mb-1">Manual fallback</div>
-                    <p className="text-xs text-[#666] mb-3">Paste a Google Drive folder URL if automation is unavailable.</p>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="url"
-                        value={manualDriveLink}
-                        onChange={(e) => setManualDriveLink(e.target.value)}
-                        placeholder="https://drive.google.com/drive/folders/..."
-                        className="flex-1 px-3 py-2 rounded-md border border-[#EAE6DF] bg-white text-sm outline-none focus:border-[#C9A84C]"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSaveManualDriveLink}
-                        disabled={savingManualDriveLink || !manualDriveLink.trim()}
-                        className="bg-[#1A1A1A] hover:bg-[#333] disabled:opacity-50 text-white px-4 py-2 rounded-md text-sm font-medium"
-                      >
-                        {savingManualDriveLink ? "Saving..." : "Save link"}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <h3 className="text-sm font-semibold text-[#1A1A1A] mb-1">Your photo upload folder is being prepared</h3>
+                <p className="text-[#666] text-xs max-w-sm">
+                  Our team is setting up your personal Google Drive upload folder. As soon as it is linked, your upload instructions will appear here.
+                </p>
               </div>
             )}
           </div>

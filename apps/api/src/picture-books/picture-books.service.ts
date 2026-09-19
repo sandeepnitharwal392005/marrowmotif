@@ -12,6 +12,11 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { Role } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
+// Toggle for automated Google Drive folder generation via BullMQ worker.
+// Set to false to allow administrators to manually generate and paste Google Drive links.
+// Existing automation logic is kept completely intact so it can be re-enabled whenever needed.
+const AUTO_DRIVE_GENERATION_ENABLED = false;
+
 @Injectable()
 export class PictureBooksService {
   constructor(
@@ -64,38 +69,48 @@ export class PictureBooksService {
         }
       }
 
-      const automationJob = await this.prisma.automationJob.create({
-        data: {
-          pictureBookId: pictureBook.id,
-          automationType: 'DRIVE_GENERATION',
-          status: 'QUEUED',
-        }
-      });
+      if (AUTO_DRIVE_GENERATION_ENABLED) {
+        const automationJob = await this.prisma.automationJob.create({
+          data: {
+            pictureBookId: pictureBook.id,
+            automationType: 'DRIVE_GENERATION',
+            status: 'QUEUED',
+          }
+        });
 
-      const job = await this.automationQueue.add(
-        'generate-drive-link',
-        { pictureBookId: pictureBook.id, automationJobId: automationJob.id },
-        {
-          jobId: `drive-${pictureBook.id}`,
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 5000,
+        const job = await this.automationQueue.add(
+          'generate-drive-link',
+          { pictureBookId: pictureBook.id, automationJobId: automationJob.id },
+          {
+            jobId: `drive-${pictureBook.id}`,
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 5000,
+            },
+            removeOnComplete: false,
+            removeOnFail: false,
           },
-          removeOnComplete: false,
-          removeOnFail: false,
-        },
-      );
+        );
 
-      await this.prisma.automationJob.update({
-        where: { id: automationJob.id },
-        data: { jobId: job.id?.toString() }
-      });
+        await this.prisma.automationJob.update({
+          where: { id: automationJob.id },
+          data: { jobId: job.id?.toString() }
+        });
 
-      await this.prisma.pictureBook.update({
-        where: { id: pictureBook.id },
-        data: { jobId: job.id?.toString(), driveStatus: 'QUEUED', driveError: null },
-      });
+        await this.prisma.pictureBook.update({
+          where: { id: pictureBook.id },
+          data: { jobId: job.id?.toString(), driveStatus: 'QUEUED', driveError: null },
+        });
+      } else {
+        await this.prisma.activityLog.create({
+          data: {
+            pictureBookId: pictureBook.id,
+            action: 'PROJECT_CREATED',
+            details: 'Picture Book created. Manual Google Drive link assignment pending from admin.',
+          },
+        });
+      }
 
       return pictureBook;
     } catch (e: any) {
@@ -237,7 +252,12 @@ export class PictureBooksService {
 
     const updated = await this.prisma.pictureBook.update({
       where: { id },
-      data: { driveLink: parsedUrl.toString(), driveStatus: 'SUCCESS', driveError: null },
+      data: {
+        driveLink: parsedUrl.toString(),
+        driveStatus: 'SUCCESS',
+        driveError: null,
+        status: pictureBook.status === 'REQUESTED' ? 'UPLOAD_PENDING' : pictureBook.status,
+      },
     });
 
     await this.prisma.activityLog.create({
@@ -248,12 +268,21 @@ export class PictureBooksService {
       },
     });
 
+    await this.prisma.activityLog.create({
+      data: {
+        pictureBookId: id,
+        action: 'UPLOAD_INSTRUCTIONS_READY',
+        details: 'The website upload folder is ready.',
+      },
+    });
+
     this.eventEmitter.emit('audit.log', {
       userId: user.id,
       action: 'MANUAL_DRIVE_LINK_SET',
       resourceType: 'PictureBook',
       resourceId: id,
       status: 'SUCCESS',
+      details: { driveLink: parsedUrl.toString() },
     });
 
     return updated;
@@ -298,6 +327,10 @@ export class PictureBooksService {
   }
 
   async resend(id: string, user: { id: string; role: Role }) {
+    if (!AUTO_DRIVE_GENERATION_ENABLED) {
+      throw new BadRequestException('Automated Drive generation is currently paused. Please paste the Drive folder URL manually.');
+    }
+
     const pictureBook = await this.findOne(id, user);
 
     if (pictureBook.driveStatus === 'QUEUED' || pictureBook.driveStatus === 'PROCESSING') {
@@ -415,6 +448,10 @@ export class PictureBooksService {
 
   async createDriveLink(id: string, user: { id: string; role: Role }) {
     if (user.role !== Role.ADMIN) throw new ForbiddenException('Access denied');
+
+    if (!AUTO_DRIVE_GENERATION_ENABLED) {
+      throw new BadRequestException('Automated Drive generation is currently paused. Please paste the Drive folder URL manually.');
+    }
 
     const pictureBook = await this.prisma.pictureBook.findUnique({ where: { id } });
     if (!pictureBook) throw new NotFoundException('Picture Book not found');
