@@ -564,8 +564,8 @@ export default function PictureBookDetailPage() {
                 <Smartphone className="w-5 h-5 text-[#C9A84C]" /> Want updates on WhatsApp?
               </h2>
               <p className="text-sm text-[#666] mt-1">WhatsApp notifications are optional. Everything continues here on the website.</p>
-                <button onClick={handleGetUpdatesClick} className="mt-3 bg-[#1A1A1A] text-white px-4 py-2 rounded-md text-sm font-medium">
-                Get updates on WhatsApp
+                <button onClick={handleGetUpdatesClick} disabled={sendingWa} className="mt-3 bg-[#1A1A1A] text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-60 disabled:cursor-wait">
+                {sendingWa ? "Opening WhatsApp..." : "Get updates on WhatsApp"}
               </button>
             </div>
           )}

@@ -107,7 +107,7 @@ export default function PictureBooksPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-[#FAF9F6] border-b border-[#EAE6DF]">
-                    {["Title / Customer", "Contact", "Status", "Drive", "Added", ""].map((h) => (
+                    {["Title", "Contact", "Status", "Drive", "Added", ""].map((h) => (
                       <th key={h} className="text-left px-6 py-4 text-xs font-semibold text-[#666] uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
@@ -117,7 +117,6 @@ export default function PictureBooksPage() {
                     <tr key={book.id} className="hover:bg-[#FAF9F6] transition-colors group">
                       <td className="px-6 py-4">
                         <div className="font-semibold text-[#1A1A1A]">{book.title}</div>
-                        {book.user && <div className="text-xs text-[#666] mt-0.5">{book.user.name} ({book.user.email})</div>}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-[#4A4A4A] font-medium">{book.user?.whatsappNumber || "N/A"}</div>
@@ -155,9 +154,6 @@ export default function PictureBooksPage() {
                   <div className="flex justify-between items-start mb-2.5">
                     <div className="min-w-0 pr-2">
                       <div className="font-semibold text-[#1A1A1A] text-base leading-snug break-words">{book.title}</div>
-                      {book.user && !isEndUser && (
-                        <div className="text-xs text-[#666] mt-0.5 truncate">{book.user.name}</div>
-                      )}
                     </div>
                     <ChevronRight className="w-5 h-5 text-[#999] shrink-0 mt-0.5" />
                   </div>
